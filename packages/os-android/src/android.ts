@@ -3,6 +3,7 @@ import { androidKit } from './theme';
 import { Context } from './content/context';
 import { WindowManager } from './view/window-manager';
 import { SystemUI } from './systemui/system-bars';
+import { AnimationHandler } from './animation/value-animator';
 
 /**
  * Android on a kernel: the window manager (input routing, traversals, back),
@@ -22,6 +23,8 @@ export class Android implements OperatingSystem {
   readonly systemUI: SystemUI;
 
   constructor(readonly kernel: Kernel, options: AndroidOptions = {}) {
+    // The main looper: animators created without a view run here.
+    AnimationHandler.setMainKernel(kernel);
     this.context = new Context(kernel);
     this.windowManager = new WindowManager(kernel, { routeInput: options.routeInput });
     this.systemUI = new SystemUI(this.context, this.windowManager);

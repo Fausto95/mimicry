@@ -6,6 +6,8 @@ import { MotionEvent, ViewConfiguration } from './motion-event';
 import type { ViewGroup } from './view-group';
 import type { ViewRootImpl } from './view-root';
 import type { WindowInsets } from './window-insets';
+import { FloatProperty } from '../util/property';
+import { ViewPropertyAnimator } from '../animation/view-property-animator';
 
 /**
  * android.view.View: a rectangle in the view tree backed by a RenderNode.
@@ -80,6 +82,20 @@ export class View implements DrawableCallback {
     return nextViewId++;
   }
 
+  // android.view.View's Property constants (ObjectAnimator, SpringAnimation)
+  static readonly ALPHA = new FloatProperty<View>('alpha', (v) => v.getAlpha(), (v, x) => v.setAlpha(x));
+  static readonly TRANSLATION_X = new FloatProperty<View>('translationX', (v) => v.getTranslationX(), (v, x) => v.setTranslationX(x));
+  static readonly TRANSLATION_Y = new FloatProperty<View>('translationY', (v) => v.getTranslationY(), (v, x) => v.setTranslationY(x));
+  static readonly TRANSLATION_Z = new FloatProperty<View>('translationZ', (v) => v.getTranslationZ(), (v, x) => v.setTranslationZ(x));
+  static readonly X = new FloatProperty<View>('x', (v) => v.getX(), (v, x) => v.setX(x));
+  static readonly Y = new FloatProperty<View>('y', (v) => v.getY(), (v, x) => v.setY(x));
+  static readonly Z = new FloatProperty<View>('z', (v) => v.getZ(), (v, x) => v.setZ(x));
+  static readonly ROTATION = new FloatProperty<View>('rotation', (v) => v.getRotation(), (v, x) => v.setRotation(x));
+  static readonly ROTATION_X = new FloatProperty<View>('rotationX', (v) => v.getRotationX(), (v, x) => v.setRotationX(x));
+  static readonly ROTATION_Y = new FloatProperty<View>('rotationY', (v) => v.getRotationY(), (v, x) => v.setRotationY(x));
+  static readonly SCALE_X = new FloatProperty<View>('scaleX', (v) => v.getScaleX(), (v, x) => v.setScaleX(x));
+  static readonly SCALE_Y = new FloatProperty<View>('scaleY', (v) => v.getScaleY(), (v, x) => v.setScaleY(x));
+
   readonly renderNode: RenderNode;
   /** @internal */
   _parent: ViewGroup | null = null;
@@ -106,6 +122,8 @@ export class View implements DrawableCallback {
   private translationZ = 0;
   private elevation = 0;
   private rotation = 0;
+  private rotationX = 0;
+  private rotationY = 0;
   private scaleX = 1;
   private scaleY = 1;
   private pivotX: number | null = null;
@@ -127,6 +145,7 @@ export class View implements DrawableCallback {
   private touchDown: { x: number; y: number } | null = null;
   private insetsListener: ((view: View, insets: WindowInsets) => WindowInsets) | null = null;
   private layerType = View.LAYER_TYPE_NONE;
+  private propertyAnimator: ViewPropertyAnimator | null = null;
 
   constructor(readonly context: Context) {
     this.renderNode = new RenderNode(this);
@@ -351,6 +370,18 @@ export class View implements DrawableCallback {
   setScaleY(v: number): void { this.scaleY = v; this.updateMatrix(); }
   setPivotX(v: number): void { this.pivotX = v; this.updateMatrix(); }
   setPivotY(v: number): void { this.pivotY = v; this.updateMatrix(); }
+  setZ(z: number): void { this.setTranslationZ(z - this.elevation); }
+  /** Stored only: the render tree is 2D, so 3D rotations are not drawn. */
+  getRotationX(): number { return this.rotationX; }
+  getRotationY(): number { return this.rotationY; }
+  setRotationX(degrees: number): void { this.rotationX = degrees; }
+  setRotationY(degrees: number): void { this.rotationY = degrees; }
+
+  /** The view's ViewPropertyAnimator (one per view, reused). */
+  animate(): ViewPropertyAnimator {
+    this.propertyAnimator ??= new ViewPropertyAnimator(this);
+    return this.propertyAnimator;
+  }
 
   setAlpha(alpha: number): void {
     this.renderNode.opacity = Math.max(0, Math.min(1, alpha));
@@ -453,7 +484,7 @@ export class View implements DrawableCallback {
     return this.renderNode.masksToBounds;
   }
 
-  setLayerType(type: number): void {
+  setLayerType(type: number, _paint: unknown = null): void {
     this.layerType = type;
     this.renderNode.composited = type === View.LAYER_TYPE_HARDWARE;
   }
