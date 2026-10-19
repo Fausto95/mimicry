@@ -1,7 +1,8 @@
 import { createCanvas, GlobalFonts, loadImage, type Image as NapiImage } from '@napi-rs/canvas';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { CanvasTextMeasurer, Kernel, VirtualClock } from '@mimicry/os-core';
+import { CanvasTextMeasurer, VirtualClock, type Kernel } from '@mimicry/os-core';
+import { bootDevice } from '@mimicry/device';
 import { IOS } from '@mimicry/os-ios';
 import { Android } from '@mimicry/os-android';
 import { Compositor } from '@mimicry/host-web';
@@ -187,7 +188,7 @@ export function createDevice(options: DeviceOptions = {}): Device {
   const measure = createCanvas(8, 8).getContext('2d');
   let device: Device | null = null;
   const queue: EngineMessage[] = [];
-  const kernel = new Kernel({
+  const { kernel, os } = bootDevice({
     measurer: new CanvasTextMeasurer(measure as any),
     clock,
     bundledFonts: true,
@@ -196,7 +197,6 @@ export function createDevice(options: DeviceOptions = {}): Device {
     environment: { device: descriptor, orientation: options.orientation ?? 'portrait', appearance: options.appearance ?? 'light', fontScale: options.fontScale },
     send: (m) => (device ? device.receive(m) : queue.push(m)),
   });
-  const os = descriptor.platform === 'ios' ? new IOS(kernel) : new Android(kernel);
   device = new Device(kernel, os, clock, options);
   for (const m of queue) device.receive(m);
   return device;

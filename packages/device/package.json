@@ -1,0 +1,14 @@
+{
+  "name": "@mimicry/device",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mimicry/os-android": "0.3.0",
+    "@mimicry/os-core": "0.3.0",
+    "@mimicry/os-ios": "0.3.0"
+  }
+}

@@ -21,3 +21,4 @@ export * from './input/scroll-kinetics';
 export * from './os';
 export * from './services/storage';
 export * from './services/text-input';
+export * from './adapter';

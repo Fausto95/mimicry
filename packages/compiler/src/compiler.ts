@@ -239,7 +239,7 @@ export class AppCompiler {
     const hash = createHash('sha1');
     for (const m of list) hash.update(m.id).update(m.code);
     const build: Build = {
-      bundle: { platform, entry: entryId, modules: list, env: readPublicEnv(this.root), hash: hash.digest('hex').slice(0, 12), config: await this.appConfig() },
+      bundle: { framework: 'react-native', platform, entry: entryId, modules: list, env: readPublicEnv(this.root), hash: hash.digest('hex').slice(0, 12), config: await this.appConfig() },
       errors,
     };
     this.builds.set(platform, build);

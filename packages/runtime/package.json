@@ -5,6 +5,8 @@
   "type": "module",
   "exports": { ".": "./src/index.ts", "./worker": "./src/worker.ts" },
   "dependencies": {
+    "@mimicry/device": "0.3.0",
+    "@mimicry/os-core": "0.3.0",
     "@mimicry/react-native-fabric": "0.3.0",
     "@mimicry/protocol": "0.3.0",
     "@mimicry/react-native": "0.3.0",

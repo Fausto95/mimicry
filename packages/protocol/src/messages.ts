@@ -14,6 +14,8 @@ export interface ModuleRecord {
 }
 
 export interface AppBundle {
+  /** the framework adapter that runs it (default 'react-native') */
+  framework?: string;
   platform: PlatformName;
   entry: string;
   modules: ModuleRecord[];

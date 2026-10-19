@@ -6,6 +6,7 @@ import {
   CanvasTextMeasurer, Engine, VirtualClock, loadYoga,
 } from '@mimicry/react-native-fabric';
 import { Compositor } from '@mimicry/host-web';
+import { bootDevice } from '@mimicry/device';
 import { installReactNative, setActiveEngine } from '@mimicry/react-native';
 import {
   decodeFrame, getDevice, type Appearance, type DeviceDescriptor, type EngineError, type EngineMessage,
@@ -353,8 +354,7 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
   const measure = createCanvas(8, 8).getContext('2d');
   let session: Session | null = null;
   const queue: EngineMessage[] = [];
-  const engine = new Engine({
-    yoga,
+  const booted = bootDevice({
     measurer: new CanvasTextMeasurer(measure as any),
     clock,
     bundledFonts: true,
@@ -372,6 +372,7 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
       GlobalFonts.register(bytes, family);
     },
   });
+  const engine = new Engine({ yoga, os: booted.os });
   session = new Session(engine, clock, options);
   for (const m of queue) session.receive(m);
   act(() => installReactNative(engine));

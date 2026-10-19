@@ -6,10 +6,16 @@
 import { installRefresh } from './refresh';
 installRefresh();
 
-import { CanvasTextMeasurer, Engine, RealClock, loadYoga } from '@mimicry/react-native-fabric';
+import { bootDevice } from '@mimicry/device';
+import { AdapterRegistry } from '@mimicry/os-core';
+import { CanvasTextMeasurer, RealClock, type Engine } from '@mimicry/react-native-fabric';
 import type { EngineMessage, HostMessage } from '@mimicry/protocol';
-import { CAPABILITIES, loadStorage } from '@mimicry/react-native';
-import { AppRuntime } from './app-runtime';
+import { loadStorage } from '@mimicry/react-native';
+import type { AppRuntime } from './app-runtime';
+import { reactNativeAdapter, type ReactNativeAdapter } from './adapter';
+
+const adapters = new AdapterRegistry();
+adapters.register(reactNativeAdapter);
 
 declare const self: {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -64,10 +70,8 @@ async function boot(message: Extract<HostMessage, { type: 'boot' }>): Promise<vo
       }),
     );
   }
-  const yoga = await loadYoga();
   const canvas = new OffscreenCanvas(8, 8);
-  engine = new Engine({
-    yoga,
+  const device = bootDevice({
     measurer: new CanvasTextMeasurer(canvas.getContext('2d') as any),
     clock: new RealClock(),
     environment: message.environment,
@@ -81,15 +85,21 @@ async function boot(message: Extract<HostMessage, { type: 'boot' }>): Promise<vo
       await face.load();
     },
   });
-  runtime = new AppRuntime(engine, {
-    setTimeout: (fn, ms) => setTimeout(fn, ms),
-    clearTimeout: (h) => clearTimeout(h as number),
-    setInterval: (fn, ms) => setInterval(fn, ms),
-    clearInterval: (h) => clearInterval(h as number),
+  // The app's framework runs on the booted OS (React Native is the one adapter today).
+  const adapter = adapters.get(message.app.framework ?? 'react-native') as ReactNativeAdapter;
+  const instance = await adapter.boot(device.os, {
+    timers: {
+      setTimeout: (fn, ms) => setTimeout(fn, ms),
+      clearTimeout: (h) => clearTimeout(h as number),
+      setInterval: (fn, ms) => setInterval(fn, ms),
+      clearInterval: (h) => clearInterval(h as number),
+    },
   });
+  engine = instance.engine;
+  runtime = instance.runtime;
   loadStorage(message.storage);
   runtime.start(message.app);
-  send({ type: 'ready', capabilities: CAPABILITIES, platform: engine.platform });
+  send({ type: 'ready', capabilities: instance.capabilities(), platform: engine.platform });
   engine.requestFrame();
 }
 

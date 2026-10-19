@@ -39,25 +39,8 @@ import { batchedUpdates, createFiberRoot, renderInto, type RootContainer } from 
 
 export interface EngineOptions {
   yoga: Yoga;
-  measurer: TextMeasurer;
-  environment: EnvironmentSpec;
-  clock: Clock;
-  send: (message: EngineMessage, transfer?: Transferable[]) => void;
-  /** use only the fonts Mimicry ships (deterministic screenshots) */
-  bundledFonts?: boolean;
-  /**
-   * The host mounts real text inputs over the canvas (browser). Headless
-   * hosts have none, so the engine draws focused inputs and their caret.
-   */
-  hostInputs?: boolean;
-  /**
-   * Makes a font available to the engine's text measurer (a FontFace in the
-   * worker, a registered file headless). The host is told separately so its
-   * canvas can draw it.
-   */
-  loadFont?: (family: string, url: string, descriptors: { weight?: string; style?: string }) => Promise<void>;
-  /** the host drains `engine.flushDeferred()` itself (headless tests, inside act) */
-  manualDefer?: boolean;
+  /** the operating system React Native runs on (see @mimicry/device's bootDevice) */
+  os: IOS | Android;
 }
 
 export interface EngineHooks {
@@ -112,16 +95,8 @@ export class Engine {
 
   constructor(options: EngineOptions) {
     this.yoga = options.yoga;
-    this.kernel = new Kernel({
-      measurer: options.measurer,
-      environment: options.environment,
-      clock: options.clock,
-      send: options.send,
-      bundledFonts: options.bundledFonts,
-      hostInputs: options.hostInputs,
-      loadFont: options.loadFont,
-      manualDefer: options.manualDefer,
-    });
+    this.os = options.os;
+    this.kernel = options.os.kernel;
     const kernel = this.kernel;
     this.measurer = kernel.measurer;
     this.clock = kernel.clock;
@@ -131,8 +106,7 @@ export class Engine {
     this.hooks = kernel.hooks;
     this.bundledFonts = kernel.bundledFonts;
     this.hostInputs = kernel.hostInputs;
-    const ios = this.env.device.platform === 'ios';
-    this.os = ios ? new IOS(kernel) : new Android(kernel);
+    const ios = this.os instanceof IOS;
     this.kit = this.os.theme;
     this.yogaConfig = this.yoga.Config.create();
     // React Native rounds layout to the physical pixel grid and runs Yoga in compatibility mode.
