@@ -18,9 +18,9 @@ Share of pixels that differ, bundled fonts (Inter stands in for SF Pro):
 
 | Scene | First capture | After tuning |
 | --- | --- | --- |
-| components-dark | 8.60% | 1.65% |
-| home | 5.12% | 2.48% |
-| settings | 3.74% | 1.22% |
+| components-dark | 8.60% | 1.56% |
+| home | 5.12% | 2.46% |
+| settings | 3.74% | 1.14% |
 
 What the first capture taught the iOS kit:
 
