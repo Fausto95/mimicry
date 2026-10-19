@@ -201,7 +201,11 @@ export const Vibration = { vibrate() {}, cancel() {} };
 export const LayoutAnimation = {
   configureNext(_config?: unknown, onEnd?: () => void) {
     // Layout transitions are not animated yet (docs/fidelity.md); finish immediately.
-    if (onEnd) queueMicrotask(onEnd);
+    if (onEnd) {
+      const engine = maybeEngine();
+      if (engine) engine.defer(onEnd);
+      else queueMicrotask(onEnd);
+    }
   },
   create: (duration: number, type?: string, property?: string) => ({ duration, create: { type, property }, update: { type }, delete: { type, property } }),
   Types: { spring: 'spring', linear: 'linear', easeInEaseOut: 'easeInEaseOut', easeIn: 'easeIn', easeOut: 'easeOut', keyboard: 'keyboard' },

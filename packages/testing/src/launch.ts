@@ -1,4 +1,3 @@
-import { act } from 'react';
 import { AppCompiler, type BuildError } from '@mimicry/compiler';
 import { AppRuntime } from '@mimicry/runtime';
 import { createHeadlessEngine, type Session, type SessionOptions } from './session';
@@ -31,7 +30,7 @@ export async function launch(projectRoot: string, options: SessionOptions = {}):
       setInterval: (fn, ms) => clock.setInterval(fn, ms),
       clearInterval: (h) => clock.clearInterval(h),
     },
-    (fn) => act(fn),
+    (fn) => session.act(fn),
   );
   (globalThis as any).__DEV__ = true;
   runtime.start(build.bundle);

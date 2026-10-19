@@ -43,7 +43,7 @@ export class ImageStore {
     }
     if (node && !entry.nodes.has(node)) {
       entry.nodes.add(node);
-      if (entry.state === 'loaded') queueMicrotask(() => this.notifyLoaded(entry!, node));
+      if (entry.state === 'loaded') this.engine.defer(() => this.notifyLoaded(entry!, node));
     }
     return entry;
   }

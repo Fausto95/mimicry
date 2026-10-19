@@ -58,6 +58,8 @@ export interface EngineOptions {
    * canvas can draw it.
    */
   loadFont?: (family: string, url: string, descriptors: { weight?: string; style?: string }) => Promise<void>;
+  /** the host drains `engine.flushDeferred()` itself (headless tests, inside act) */
+  manualDefer?: boolean;
 }
 
 export interface EngineHooks {
@@ -113,6 +115,9 @@ export class Engine {
   private framesPainted = 0;
   private destroyed = false;
   private rootBackground: number | null = null;
+  private readonly deferred: Array<() => void> = [];
+  private deferScheduled = false;
+  private readonly manualDefer: boolean;
   private readonly fonts = new Set<string>();
   private readonly fontLoader: EngineOptions['loadFont'];
 
@@ -124,6 +129,7 @@ export class Engine {
     this.bundledFonts = !!options.bundledFonts;
     this.hostInputs = options.hostInputs ?? false;
     this.fontLoader = options.loadFont;
+    this.manualDefer = !!options.manualDefer;
     this.env = new EnvironmentStore(options.environment);
     this.kit = this.env.device.platform === 'ios' ? iosKit : androidKit;
     this.yogaConfig = this.yoga.Config.create();
@@ -324,11 +330,40 @@ export class Engine {
     this.scrolls.clampAfterLayout();
     if (changes.length) {
       const time = this.animator.animationTime;
-      queueMicrotask(() => {
+      this.defer(() => {
         for (const { node, layout } of changes) {
           if (node.mounted) this.events.emit(node, 'onLayout', { layout, target: node.id }, time, 'default');
         }
       });
+    }
+  }
+
+  // ── deferred work ─────────────────────────────────────────────────────
+
+  /**
+   * Run `fn` after the current task, like React Native's async events
+   * (onLayout, onLoad from cache). A microtask in the browser; a headless
+   * host (option `manualDefer`) drains the queue itself inside act(), so
+   * state set from these callbacks lands deterministically on virtual time.
+   */
+  defer(fn: () => void): void {
+    this.deferred.push(fn);
+    if (this.manualDefer || this.deferScheduled) return;
+    this.deferScheduled = true;
+    queueMicrotask(() => {
+      this.deferScheduled = false;
+      this.flushDeferred();
+    });
+  }
+
+  get hasDeferred(): boolean {
+    return this.deferred.length > 0;
+  }
+
+  flushDeferred(): void {
+    while (this.deferred.length) {
+      const batch = this.deferred.splice(0);
+      for (const fn of batch) fn();
     }
   }
 

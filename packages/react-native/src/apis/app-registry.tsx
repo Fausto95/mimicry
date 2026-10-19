@@ -133,5 +133,5 @@ export function runRegisteredApp(): void {
   if (!key) throw new Error('No component was registered. The entry file should call registerRootComponent(App) or AppRegistry.registerComponent(...).');
   AppRegistry.runApplication(key);
   // The launch screen goes away with the first frame unless the app asked to keep it.
-  queueMicrotask(() => splash.firstFrame());
+  getEngine().defer(() => splash.firstFrame());
 }

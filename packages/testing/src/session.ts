@@ -92,13 +92,19 @@ export class Session {
         if (!bytes) throw new Error(`cannot load ${uri}`);
         const img = await loadImage(bytes);
         this.images.set(uri, img);
-        act(() => this.engine.handle({ type: 'imageLoaded', uri, width: img.width, height: img.height }));
+        this.act(() => this.engine.handle({ type: 'imageLoaded', uri, width: img.width, height: img.height }));
       } catch (error) {
-        act(() => this.engine.handle({ type: 'imageFailed', uri, error: String((error as Error).message ?? error) }));
+        this.act(() => this.engine.handle({ type: 'imageFailed', uri, error: String((error as Error).message ?? error) }));
       }
     })();
     this.pendingImages.add(p);
     void p.finally(() => this.pendingImages.delete(p));
+  }
+
+  /** act(), then drain the engine's deferred callbacks (onLayout…) inside act too. */
+  act(fn: () => void): void {
+    act(fn);
+    for (let i = 0; i < 20 && this.engine.hasDeferred; i++) act(() => this.engine.flushDeferred());
   }
 
   get time(): number {
@@ -111,11 +117,11 @@ export class Session {
     for (;;) {
       const nextFrame = this.lastFrame + this.interval;
       if (nextFrame > end) break;
-      this.clock.runUntil(nextFrame, (fn) => act(fn));
+      this.clock.runUntil(nextFrame, (fn) => this.act(fn));
       this.lastFrame = nextFrame;
-      if (this.engine.frameIsRequested) act(() => this.engine.frame(nextFrame));
+      if (this.engine.frameIsRequested) this.act(() => this.engine.frame(nextFrame));
     }
-    this.clock.runUntil(end, (fn) => act(fn));
+    this.clock.runUntil(end, (fn) => this.act(fn));
     return this;
   }
 
@@ -155,7 +161,7 @@ export class Session {
   }
 
   pointer(phase: 'down' | 'move' | 'up' | 'cancel', x: number, y: number, id = this.pointerId): this {
-    act(() => this.engine.handle({ type: 'pointer', phase, id, x, y, time: this.clock.now() }));
+    this.act(() => this.engine.handle({ type: 'pointer', phase, id, x, y, time: this.clock.now() }));
     return this;
   }
 
@@ -225,11 +231,11 @@ export class Session {
     const id = found[found.length - 1]?.id;
     const node = id != null ? this.engine.nodes.get(id) : undefined;
     if (!node || node.kind !== 'input') throw new Error('type(): target is not a TextInput');
-    act(() => node.focus());
+    this.act(() => node.focus());
     let value = this.engine.behaviors.inputValue(node);
     for (const ch of text) {
       value += ch;
-      act(() => this.engine.handle({ type: 'textChange', nodeId: node.id, text: value }));
+      this.act(() => this.engine.handle({ type: 'textChange', nodeId: node.id, text: value }));
       this.advance(this.interval);
     }
     return this;
@@ -237,19 +243,19 @@ export class Session {
 
   submit(target: Target): this {
     const id = this.find(target).at(-1)?.id;
-    if (id != null) act(() => this.engine.handle({ type: 'textEvent', nodeId: id, event: 'submit' }));
+    if (id != null) this.act(() => this.engine.handle({ type: 'textEvent', nodeId: id, event: 'submit' }));
     return this.advance(this.interval);
   }
 
   back(): this {
-    act(() => this.engine.handle({ type: 'back' }));
+    this.act(() => this.engine.handle({ type: 'back' }));
     return this.advance(this.interval);
   }
 
   setEnvironment(env: Partial<EnvironmentSpec> & { device?: DeviceDescriptor | string }): this {
     const next: Partial<EnvironmentSpec> = { ...env, device: typeof env.device === 'string' ? getDevice(env.device) : env.device };
     if (!next.device) delete next.device;
-    act(() => this.engine.handle({ type: 'environment', environment: next }));
+    this.act(() => this.engine.handle({ type: 'environment', environment: next }));
     return this.advance(this.interval);
   }
 
@@ -350,6 +356,7 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
       fontScale: options.fontScale,
     },
     send: (m) => (session ? session.receive(m) : queue.push(m)),
+    manualDefer: true,
     loadFont: async (family, url) => {
       const bytes = await defaultImageBytes(url);
       if (!bytes) throw new Error(`Cannot load font ${family} from ${url}`);
@@ -366,7 +373,7 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
 export async function render(element: ReactNode, options: SessionOptions = {}): Promise<Session> {
   const session = await createHeadlessEngine(options);
   try {
-    act(() => session.engine.render(element));
+    session.act(() => session.engine.render(element));
   } catch (error) {
     // act() rethrows uncaught render errors; on device they become a RedBox instead.
     const message = (error as Error)?.message;
