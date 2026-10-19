@@ -35,3 +35,18 @@ export const NativeEventEmitter = class {
   listenerCount() { return 0; }
 };
 export const DeviceEventEmitter = new NativeEventEmitter();
+
+import * as Primitives from './components/primitives';
+import * as Touchables from './components/touchables';
+import * as Lists from './components/lists';
+import { Modal as ModalComponent } from './components/modal';
+// Bundlers rename functions (View → View2); name components explicitly for the inspector and devtools.
+for (const [name, component] of Object.entries({ ...Primitives, ...Touchables, ...Lists, Modal: ModalComponent })) {
+  if (component && (typeof component === 'function' || typeof component === 'object') && /^[A-Z]/.test(name)) {
+    try {
+      (component as { displayName?: string }).displayName = name;
+    } catch {
+      // frozen exotic component; ignore
+    }
+  }
+}

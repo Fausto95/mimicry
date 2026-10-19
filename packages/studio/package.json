@@ -3,6 +3,12 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@mimicry/host-web": "0.3.0", "@mimicry/protocol": "0.3.0" }
+  "exports": {
+    ".": "./src/main.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@mimicry/host-web": "0.3.0",
+    "@mimicry/protocol": "0.3.0"
+  }
 }

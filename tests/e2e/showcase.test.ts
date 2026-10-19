@@ -45,3 +45,21 @@ describe('regressions', () => {
     s.dispose();
   });
 });
+
+describe('modal presentation', () => {
+  it('presents and dismisses an iOS page sheet over the scaled-back app', async () => {
+    const app = await launch(showcase, { device: 'iphone-17-pro' });
+    const s = app.session;
+    s.tap({ testID: 'present-sheet' }).advance(150);
+    writeFileSync('artifacts/sheet-mid.png', s.screenshot(1));
+    s.settle();
+    expect(s.exists({ testID: 'dismiss-sheet' })).toBe(true);
+    const r = s.find({ text: 'A modal sheet' })[0]!.rect;
+    expect(r.y).toBeGreaterThan(62); // the sheet starts below the safe area
+    writeFileSync('artifacts/sheet.png', s.screenshot(1));
+    s.tap({ testID: 'dismiss-sheet' }).settle();
+    expect(s.exists({ testID: 'dismiss-sheet' })).toBe(false);
+    expect(s.errors).toEqual([]);
+    s.dispose();
+  });
+});

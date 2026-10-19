@@ -56,7 +56,8 @@ export class FramePainter {
       root.flush();
       frame.push(layerId(null, LAYER.modalDim) + 8 * 1_000_000, presenting.matrix, 1, presenting.clip);
       stats.layers++;
-      const behind = new LayerRecorder(frame, v.scale, screen, stats);
+      // No tiling here: tiles composited under a scale would show seams.
+      const behind = new LayerRecorder(frame, v.scale, null, stats);
       if (presenting.radius > 0) behind.pushClip({ ...screen, radii: [presenting.radius, presenting.radius, presenting.radius, presenting.radius] });
       behind.item(screen, (w) => w.fillRect(0, 0, v.width, v.height, background));
       paintChildren(engine.appRoot.root, 0, 0, behind, ctx);
@@ -75,8 +76,10 @@ export class FramePainter {
     // System chrome: its own layer, so the status bar raster is reused every frame.
     frame.push(layerId(null, LAYER.chrome), IDENTITY, 1, NO_CLIP);
     stats.layers++;
-    const chrome = new LayerRecorder(frame, v.scale, screen, stats);
-    chrome.item(screen, (w) => engine.kit.drawChrome(w, v, engine.env.statusBar, engine.env.appearance, engine.bundledFonts));
+    // iOS switches to light status bar content over the dark backdrop of a page sheet.
+    const bar = presenting ? { ...engine.env.statusBar, barStyle: 'light-content' } : engine.env.statusBar;
+    const chrome = new LayerRecorder(frame, v.scale, null, stats);
+    chrome.item(screen, (w) => engine.kit.drawChrome(w, v, bar, engine.env.appearance, engine.bundledFonts));
     chrome.flush();
     frame.pop();
 

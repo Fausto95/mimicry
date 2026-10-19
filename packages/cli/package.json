@@ -3,6 +3,18 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@mimicry/compiler": "0.3.0", "@mimicry/protocol": "0.3.0", "@mimicry/studio": "0.3.0", "@mimicry/testing": "0.3.0", "tsx": "^4.20.0" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mimicry/compiler": "0.3.0",
+    "@mimicry/protocol": "0.3.0",
+    "@mimicry/studio": "0.3.0",
+    "@mimicry/testing": "0.3.0",
+    "tsx": "^4.20.0",
+    "@mimicry/host-web": "0.3.0"
+  },
+  "bin": {
+    "mimicry": "./bin/mimicry.js"
+  }
 }

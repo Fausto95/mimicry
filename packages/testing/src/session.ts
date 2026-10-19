@@ -336,7 +336,13 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
 /** Render a React element headlessly. */
 export async function render(element: ReactNode, options: SessionOptions = {}): Promise<Session> {
   const session = await createHeadlessEngine(options);
-  act(() => session.engine.render(element));
+  try {
+    act(() => session.engine.render(element));
+  } catch (error) {
+    // act() rethrows uncaught render errors; on device they become a RedBox instead.
+    const message = (error as Error)?.message;
+    if (!session.errors.some((e) => e.message === message)) act(() => session.engine.reportError(error, 'render'));
+  }
   await session.ready();
   return session;
 }
