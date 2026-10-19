@@ -1,5 +1,5 @@
 {
-  "ios": [],
+  "ios": ["examples/showcase", "examples/expo-template", "examples/router-stack"],
   "android": ["examples/showcase", "examples/expo-template", "examples/router-stack"],
-  "motion": false
+  "motion": true
 }
