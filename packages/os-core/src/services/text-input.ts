@@ -42,9 +42,14 @@ export class TextInputService {
     if (this.focusedId === id) this.focusedId = null;
   }
 
-  /** Bring up the keyboard for a field (the host focuses its editor). */
+  /**
+   * Bring up the keyboard for a field (the host focuses its editor). One
+   * field holds the keyboard at a time: the one that had it hears a blur.
+   */
   focus(id: number): void {
+    const previous = this.focusedId;
     this.focusedId = id;
+    if (previous != null && previous !== id) this.clients.get(previous)?.hostEvent('blur');
     this.kernel.send({ type: 'focusInput', nodeId: id });
   }
 

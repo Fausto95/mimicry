@@ -30,4 +30,21 @@ describe('UITextField', () => {
     device.advance(16);
     expect(device.screenshot(1).length).toBeGreaterThan(0);
   });
+
+  it('hands the keyboard over: the field that had it hears a blur', () => {
+    const device = createDevice({ device: 'iphone-17-pro' });
+    const window = device.ios.application.makeWindow();
+    const vc = new UIViewController();
+    window.rootViewController = vc;
+    const a = new UITextField(CGRectMake(20, 200, 300, 40));
+    vc.view.addSubview(a);
+    window.makeKeyAndVisible();
+    device.advance(16);
+    a.becomeFirstResponder();
+    // another client (a framework's own input) takes the keyboard
+    device.kernel.textInput.register(7, { hostTextChanged: () => {}, hostEvent: () => {} });
+    device.kernel.textInput.focus(7);
+    expect(a.isFirstResponder).toBe(false);
+    expect(device.kernel.textInput.focused).toBe(7);
+  });
 });
