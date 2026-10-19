@@ -8,8 +8,23 @@ import { UITraitCollection } from './ui-trait-collection';
  * home indicator) for the current orientation.
  */
 export class UIScreen {
+  private static mainScreen: UIScreen | null = null;
   private traits: UITraitCollection | null = null;
   private version = -1;
+  /** 0…1; the simulated display ignores it */
+  brightness = 1;
+  wantsSoftwareDimming = false;
+
+  /** UIScreen.main (deprecated in iOS 16, still everywhere) */
+  static get main(): UIScreen {
+    if (!UIScreen.mainScreen) throw new Error('UIScreen.main: no application is running');
+    return UIScreen.mainScreen;
+  }
+
+  /** @internal the running application's screen */
+  static _setMain(screen: UIScreen): void {
+    UIScreen.mainScreen = screen;
+  }
 
   constructor(private readonly kernel: Kernel) {}
 

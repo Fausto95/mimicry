@@ -38,6 +38,11 @@ export class UIColor {
     return new ResolvedColor(this.provider(traits));
   }
 
+  /** The color as a CGColor (packed RGBA), resolved for the light appearance like UITraitCollection.current at launch. */
+  get cgColor(): number {
+    return this.provider(null) >>> 0;
+  }
+
   withAlphaComponent(alpha: number): UIColor {
     return new UIColor((traits) => withAlpha(this.provider(traits) | 0xff, alpha) >>> 0);
   }
@@ -73,6 +78,11 @@ export class UIColor {
   static get secondarySystemGroupedBackground() { return UIColor.named('secondarySystemGroupedBackground')!; }
   static get systemFill() { return UIColor.named('systemFill')!; }
   static get secondarySystemFill() { return UIColor.named('secondarySystemFill')!; }
+  static get tertiarySystemFill() { return UIColor.named('tertiarySystemFill')!; }
+  static get quaternarySystemFill() { return UIColor.named('quaternarySystemFill')!; }
+  static get tertiarySystemGroupedBackground() { return UIColor.named('tertiarySystemGroupedBackground')!; }
+  static get lightText() { return UIColor.named('lightText')!; }
+  static get darkText() { return UIColor.named('darkText')!; }
   static get systemBlue() { return UIColor.named('systemBlue')!; }
   static get systemGreen() { return UIColor.named('systemGreen')!; }
   static get systemRed() { return UIColor.named('systemRed')!; }
