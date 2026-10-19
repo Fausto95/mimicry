@@ -14,6 +14,6 @@ export default defineConfig({
     include: ['packages/*/test/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
     environment: 'node',
     testTimeout: 30_000,
-    pool: 'threads',
+    pool: 'forks', // @napi-rs/canvas is not safe across worker threads
   },
 });

@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Mimicry Showcase",
+    "slug": "mimicry-showcase",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": { "supportsTablet": true },
+    "android": { "edgeToEdgeEnabled": true }
+  }
+}

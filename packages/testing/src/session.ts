@@ -12,6 +12,10 @@ import {
   type EnvironmentSpec, type Orientation, type SerializedSelector,
 } from '@mimicry/protocol';
 import { bundledFonts } from '@mimicry/compiler';
+import { installRefresh } from '@mimicry/runtime';
+
+// React Refresh must hook in before the first renderer registers itself.
+installRefresh();
 
 /**
  * Headless sessions: the engine runs in-process on a virtual clock and the
@@ -126,11 +130,12 @@ export class Session {
 
   /** Wait for images, then settle. */
   async ready(maxMs = 5000): Promise<this> {
+    this.settle(maxMs);
     for (let i = 0; i < 10 && this.pendingImages.size; i++) {
       await Promise.all(Array.from(this.pendingImages));
       this.settle(maxMs);
     }
-    return this.settle(maxMs);
+    return this;
   }
 
   find(target: Target): Array<{ id: number; rect: { x: number; y: number; w: number; h: number } }> {

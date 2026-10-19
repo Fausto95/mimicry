@@ -18,7 +18,7 @@ export {
 export type { ScaledSize, ColorSchemeName } from './apis/core';
 export { PanResponder } from './apis/pan-responder';
 export { Animated, Easing, useAnimatedValue } from './animated';
-export { Alert } from './system/system-ui';
+export { Alert, clearErrors } from './system/system-ui';
 export { AppRegistry, registerRootComponent, installReactNative, runRegisteredApp, CAPABILITIES } from './apis/app-registry';
 export { setActiveEngine, getEngine } from './engine-ref';
 

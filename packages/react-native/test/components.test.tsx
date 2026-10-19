@@ -11,7 +11,7 @@ function Counter() {
   return (
     <View style={styles.root}>
       <Text testID="title" style={styles.title}>Count {count}</Text>
-      <Pressable testID="inc" onPress={() => setCount((c) => c + 1)} style={({ pressed }) => [styles.button, pressed && { opacity: 0.5 }]}>
+      <Pressable testID="inc" onPress={() => setCount((c) => c + 1)} style={({ pressed }: { pressed: boolean }) => [styles.button, pressed && { opacity: 0.5 }]}>
         <Text style={{ color: 'white', fontWeight: '600' }}>Increment</Text>
       </Pressable>
       <Switch testID="switch" value={on} onValueChange={setOn} />

@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "description": "A browser-native simulator for React Native apps: a retained React renderer, Yoga layout and platform kits that emit a binary draw-command stream painted on Canvas.",
-  "engines": { "node": ">=22.13.0" },
-  "workspaces": ["packages/*"],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "node packages/cli/bin/mimicry.js dev examples/showcase",
     "render": "node packages/cli/bin/mimicry.js render",
@@ -18,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "~19.3.0",
     "@types/react-reconciler": "^0.34.0",
     "playwright": "^1.56.0",

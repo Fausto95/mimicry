@@ -19,6 +19,8 @@ export interface AppBundle {
   modules: ModuleRecord[];
   /** optional prebundled third-party code (CommonJS map of specifier → exports) */
   vendor?: { id: string; code: string; specifiers: string[] };
+  /** EXPO_PUBLIC_* variables inlined into process.env */
+  env?: Record<string, string>;
   /** content hash of the whole graph, for logging */
   hash?: string;
 }
@@ -52,6 +54,8 @@ export type HostMessage =
       environment: EnvironmentSpec;
       app: AppBundle;
       fonts?: FontSpecRecord[];
+      /** 'bundled' = only Mimicry's fonts (deterministic); 'system' = prefer SF Pro when the OS has it */
+      fontMode?: 'system' | 'bundled';
       /** 'host' = the host's vsync drives frames; 'virtual' = test runner ticks */
       clock?: 'host' | 'virtual';
       inspector?: boolean;
@@ -128,3 +132,18 @@ export interface Transport<In, Out> {
   send(message: Out, transfer?: Transferable[]): void;
   onMessage(listener: (message: In) => void): () => void;
 }
+
+/** Module specifiers the base module provides; the compiler never bundles these. */
+export const PROVIDED_MODULE_IDS = [
+  'react',
+  'react/jsx-runtime',
+  'react/jsx-dev-runtime',
+  'react-native',
+  'expo',
+  'expo-status-bar',
+  'react-native-safe-area-context',
+  'expo-linear-gradient',
+] as const;
+
+/** Dependency-map value for a provided module. */
+export const providedId = (specifier: string) => `provided:${specifier}`;

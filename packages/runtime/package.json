@@ -1,0 +1,14 @@
+{
+  "name": "@mimicry/runtime",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./worker": "./src/worker.ts" },
+  "dependencies": {
+    "@mimicry/engine": "0.3.0",
+    "@mimicry/protocol": "0.3.0",
+    "@mimicry/react-native": "0.3.0",
+    "react": "19.3.1",
+    "react-refresh": "0.19.0"
+  }
+}

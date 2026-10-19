@@ -162,7 +162,12 @@ export class HostNode {
       this.appliedLayoutStyle = layoutStyle;
       this.engine.invalidateLayout();
     }
-    if (measure || (this.kind === 'virtual-text' && prev !== next)) this.invalidateText();
+    if (measure) this.invalidateText();
+    else if ((this.kind === 'text' || this.kind === 'virtual-text') && prev !== next) {
+      // color, decoration, shadow… change the cached runs but not the size
+      const root = this.textRoot;
+      if (root) root.textLayout = null;
+    }
   }
 
   /** Kind-specific defaults under the user's style, and forced values over it. */
