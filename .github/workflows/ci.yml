@@ -1,0 +1,20 @@
+name: Web Engine
+on:
+  push:
+    branches: [main, feat/browser-native-runtime]
+  pull_request:
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run check
+      - run: npm test
+      - run: npm run typecheck --workspace @mimicry/expo-demo
+      - run: npx tsc --project packages/runtime/tsconfig.json
+      - run: npm run export:web --workspace @mimicry/expo-demo

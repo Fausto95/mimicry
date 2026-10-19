@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#101116"/>
+  <title>Mimicry — Browser-native preview</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <div class="workspace">
+    <aside class="sidebar">
+      <header class="identity">
+        <div class="symbol"><i></i><i></i></div>
+        <div><strong>mimicry</strong><small>Native UI, without native tools.</small></div>
+      </header>
+      <div class="section-title">PROJECT</div>
+      <div class="project"><div class="project-icon">m</div><div><strong>Expo Playground</strong><small>SDK 58 · React Native</small></div><span>⌄</span></div>
+      <div class="section-title spaced">PLATFORM</div>
+      <div class="segmented"><button id="ios-tab" class="active"> &nbsp; iOS</button><button id="android-tab">⬡ &nbsp; Android</button></div>
+      <div class="section-title spaced">SIMULATED DEVICES</div>
+      <div id="device-list" class="device-list"></div>
+      <div class="sidebar-foot">
+        <div class="runtime-row"><span class="indicator connected"></span><span>100% browser execution</span></div>
+        <p>No Xcode · No Android Studio · No VM</p>
+      </div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div class="breadcrumb">Projects <span>/</span> Expo Playground <span>/</span> <strong>Preview</strong>
+          <span class="tag">ENGINE ALPHA</span>
+        </div>
+        <div class="top-actions">
+          <button id="reload" class="control"><span>↻</span> Restart</button>
+          <button id="open-app" class="control">↗ Open app</button>
+          <button id="show-code" class="primary">⌘ &nbsp; Inspector</button>
+        </div>
+      </header>
+      <div class="stage">
+        <div class="stage-title">
+          <div><div class="eyebrow">INTERACTIVE RENDERER</div><h1 id="stage-name">iPhone 17 Pro</h1><p>Expo JavaScript + Mimicry platform components</p></div>
+          <div class="stage-state"><span class="indicator connected"></span><span>Browser runtime</span></div>
+        </div>
+        <div class="simulator-area" id="simulator-area">
+          <div class="floating-tools">
+            <button id="rotate" title="Rotate device">⟳</button>
+            <button id="theme-toggle" title="Switch light and dark mode">◐</button>
+            <button id="home" title="Reload app">⌂</button>
+          </div>
+          <div id="scaled-box" class="scaled-box">
+            <div id="device" class="phone">
+              <div class="display">
+                <div class="system-status">
+                  <span class="system-time" id="system-time">9:41</span>
+                  <div class="island" id="island"></div>
+                  <span class="system-signals"><span>▰▰▰</span><span>◕</span><span>▣</span></span>
+                </div>
+                <iframe id="app-frame" title="Real Expo JavaScript app inside Mimicry browser renderer" referrerpolicy="origin"></iframe>
+                <div class="sim-keyboard" id="keyboard" hidden>
+                  <div class="keyboard-top"><span>◂</span><span>Text input (browser)</span><span>✓</span></div>
+                  <div class="keyboard-grid" id="keyboard-grid"></div>
+                  <div class="keyboard-bottom">?123　　☻　　 English (US)　　 return</div>
+                </div>
+                <div class="system-bottom"><div class="home-bar"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="floating-tools floating-right">
+            <button id="zoom-in" title="Zoom in">+</button>
+            <span id="zoom-level">Fit</span>
+            <button id="zoom-out" title="Zoom out">−</button>
+          </div>
+        </div>
+        <div class="stage-footer"><span class="indicator connected"></span>
+          <strong id="runtime-status">Loading Expo…</strong>
+          <span class="divider-dot">·</span><span id="resolution">402 × 874 pt</span>
+          <span class="divider-dot">·</span><span id="target-name">iOS style</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="inspector" id="inspector">
+      <header class="inspector-header"><strong>Inspector</strong><span>Preview engine</span></header>
+      <div class="inspect-section">
+        <div class="section-title">TARGET</div>
+        <div class="fields">
+          <span>Platform</span><strong id="info-platform">iOS</strong>
+          <span>Renderer</span><strong>Browser emulation</strong>
+          <span>UI kit</span><strong id="info-ui-kit">UIKit / SwiftUI</strong>
+          <span>App target</span><strong>Expo Web JS</strong>
+        </div>
+      </div>
+      <div class="inspect-section">
+        <div class="section-title">ENVIRONMENT</div>
+        <label>Appearance</label>
+        <div class="segmented appearance"><button id="light-mode" class="active">☀ Light</button><button id="dark-mode">☾ Dark</button></div>
+        <label>Network</label>
+        <div class="network-indicator"><span class="indicator connected"></span> Browser fetch enabled</div>
+        <label>Approximation status</label>
+        <div class="fidelity"><div><span class="fidelity-dot working"></span>React Native views <b>Web layer</b></div>
+          <div><span class="fidelity-dot approximate"></span>SwiftUI controls <b>Approx.</b></div>
+          <div><span class="fidelity-dot approximate"></span>Compose controls <b>Approx.</b></div>
+          <div><span class="fidelity-dot missing"></span>Native-only APIs <b>Unsupported</b></div>
+        </div>
+      </div>
+      <div class="inspect-section terminal-section">
+        <div class="terminal-heading"><span class="section-title">RUNTIME EVENTS</span><button id="clear" title="Clear logs">Clear</button></div>
+        <div id="events" class="events" aria-live="polite"><div>Starting Expo bundler…</div></div>
+      </div>
+      <div class="inspector-note"><div class="info-icon">i</div><p>This is not the Apple or Android simulator. Mimicry is a work-in-progress web implementation of platform appearance and semantics.</p></div>
+    </aside>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
