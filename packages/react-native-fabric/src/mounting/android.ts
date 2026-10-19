@@ -1,13 +1,15 @@
 import type { Radii } from '@mimicry/protocol';
 import { inflate, parseColor, type LayerContext, type Matrix } from '@mimicry/os-core';
 import {
-  Activity, Android, FrameLayout, HorizontalScrollView, MeasureSpec, MotionEvent, OnBackPressedCallback, ProgressBar, ScrollView,
+  Activity, Android, Color, FrameLayout, RADIUS_AUTO, RippleDrawable, StateSet, HorizontalScrollView, MeasureSpec, MotionEvent, OnBackPressedCallback, ProgressBar, ScrollView,
   SwitchCompat, View, ViewGroup, type Context,
 } from '@mimicry/os-android';
 import type { Engine } from '../engine';
 import type { HostNode } from '../tree/node';
 import { drawNodeContent, drawNodeOverlay } from './draw';
-import type { HostContainer, HostView, HostViewFactory } from './host-view';
+import type { HostContainer, HostView, HostViewFactory, RippleConfig } from './host-view';
+import { rgba } from '@mimicry/protocol';
+import type { BoxGeometry } from '@mimicry/os-core';
 
 /**
  * React Native's Android views on the View system: ReactViewGroup (views,
@@ -74,6 +76,41 @@ function ReactView<T extends ViewClass>(Base: T) {
 
     get layer() {
       return this.renderNode;
+    }
+
+    private ripple: { drawable: RippleDrawable; foreground: boolean } | null = null;
+
+    /**
+     * Pressable's android_ripple: a RippleDrawable (React Native sets it as
+     * the view's background or foreground) pressed at the touch point.
+     */
+    setRipplePressed(pressed: boolean, x: number | undefined, y: number | undefined, config: RippleConfig): void {
+      const node = this.node;
+      if (pressed) {
+        const color = parseColor(config.color, node.engine.colorContext) ?? rgba(0, 0, 0, 0.12);
+        const drawable = new RippleDrawable(Color.fromRgba(color), null, config.borderless ? null : 'bounded');
+        if (typeof config.radius === 'number') drawable.setRadius(config.radius);
+        else drawable.setRadius(RADIUS_AUTO);
+        drawable.setCallback(this);
+        drawable.setBounds(0, 0, node.w, node.h);
+        drawable.setHotspot(x ?? node.w / 2, y ?? node.h / 2);
+        this.ripple = { drawable, foreground: !!config.foreground };
+        drawable.setState([StateSet.enabled, StateSet.pressed]);
+      } else if (this.ripple) {
+        this.ripple.drawable.setState([StateSet.enabled]);
+      }
+    }
+
+    drawRipple(ctx: LayerContext, box: BoxGeometry, foreground: boolean): void {
+      const ripple = this.ripple;
+      if (!ripple || ripple.foreground !== foreground) return;
+      const d = ripple.drawable;
+      if (!d.isActive) return;
+      d.maskRadii = box.radii;
+      d.setBounds(box.x, box.y, box.x + box.w, box.y + box.h);
+      const r = d.rippleBounds();
+      if (!r) return;
+      ctx.item({ x: r.left, y: r.top, w: r.width(), h: r.height() }, (w) => d.drawRipple(w));
     }
 
     /** React Native views animate on the engine's kernel even before they are attached. */

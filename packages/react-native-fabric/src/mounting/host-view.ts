@@ -1,5 +1,5 @@
 import type { Radii } from '@mimicry/protocol';
-import type { Matrix, RenderLayer } from '@mimicry/os-core';
+import type { BoxGeometry, LayerContext, Matrix, RenderLayer } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
 
 /**
@@ -37,6 +37,10 @@ export interface HostView extends HostContainer {
   updateProps(): void;
   /** controls: a finger is down on it (UIControl highlight / View pressed state) */
   setControlPressed?(pressed: boolean): void;
+  /** Android touch feedback (Pressable's android_ripple): press the view's RippleDrawable */
+  setRipplePressed?(pressed: boolean, x: number | undefined, y: number | undefined, config: RippleConfig): void;
+  /** draw the ripple (under the content, or above the children for foreground ripples) */
+  drawRipple?(ctx: LayerContext, box: BoxGeometry, foreground: boolean): void;
   /** controls: stop tracking the current touch (a gesture handler took it) */
   cancelControlTouch?(): void;
   /** the node is gone for good */
@@ -50,4 +54,11 @@ export interface HostViewFactory {
   createRoot(node: HostNode, app: boolean): HostView;
   /** the surface: a full-screen container holding the app root, modals and system root */
   readonly surface: HostContainer;
+}
+
+export interface RippleConfig {
+  color?: unknown;
+  borderless?: boolean;
+  radius?: number;
+  foreground?: boolean;
 }

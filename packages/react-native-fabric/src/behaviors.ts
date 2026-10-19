@@ -8,7 +8,7 @@ import type { HostNode } from './tree/node';
 
 /**
  * Native component behavior that lives below React on a real device:
- * UISwitch/SwitchCompat transitions, spinners, Android ripples, uncontrolled
+ * spinners, uncontrolled
  * TextInput text, and Modal presentation (slide, fade, iOS page sheets).
  */
 const presentEase = cubicBezier(0.2, 0.85, 0.25, 1);
@@ -78,7 +78,6 @@ export class Behaviors implements FrameTask {
   private stepNode(node: HostNode, now: number): boolean {
     let busy = false;
     if (node.kind === 'activity' && node.props.animating !== false) busy = true;
-    if (node.native.ripple) busy = this.stepRipple(node, now) || busy;
     if (node.kind === 'modal') busy = this.stepModal(node, now) || busy;
     return busy;
   }
@@ -131,49 +130,13 @@ export class Behaviors implements FrameTask {
     this.textChanged(node, '');
   }
 
-  // ── commands (Pressable android_ripple) ───────────────────────────────
+  // ── commands (Pressable android_ripple → the view's RippleDrawable) ──
 
   command(node: HostNode, name: string, args: Record<string, unknown>): void {
-    if (name === 'setPressed') {
-      const pressed = !!args.pressed;
-      const config = (args.config ?? {}) as { color?: unknown; borderless?: boolean; radius?: number; foreground?: boolean };
-      if (pressed) {
-        const x = typeof args.x === 'number' ? args.x : node.w / 2;
-        const y = typeof args.y === 'number' ? args.y : node.h / 2;
-        const far = Math.max(
-          Math.hypot(x, y), Math.hypot(node.w - x, y), Math.hypot(x, node.h - y), Math.hypot(node.w - x, node.h - y),
-        );
-        node.native.ripple = {
-          x, y, radius: 0, alpha: 1,
-          maxRadius: config.radius ?? (config.borderless ? Math.max(node.w, node.h) / 2 : far),
-          color: parseColor(config.color, this.engine.colorContext) ?? rgba(0, 0, 0, 0.12),
-          borderless: !!config.borderless,
-          foreground: !!config.foreground,
-          start: this.now(),
-          released: null as number | null,
-        };
-        this.track(node);
-      } else if (node.native.ripple) {
-        node.native.ripple.released = this.now();
-        this.track(node);
-      }
-    }
-  }
-
-  private stepRipple(node: HostNode, now: number): boolean {
-    const r = node.native.ripple;
-    const grow = Math.min(1, (now - r.start) / 225);
-    r.radius = r.maxRadius * easeOut(grow);
-    if (r.released != null) {
-      const fadeStart = Math.max(r.released, r.start + 120);
-      const fade = Math.max(0, Math.min(1, (now - fadeStart) / 150));
-      r.alpha = 1 - fade;
-      if (fade >= 1) {
-        node.native.ripple = undefined;
-        return false;
-      }
-    }
-    return true;
+    if (name !== 'setPressed') return;
+    const x = typeof args.x === 'number' ? args.x : undefined;
+    const y = typeof args.y === 'number' ? args.y : undefined;
+    node.hostView?.setRipplePressed?.(!!args.pressed, x, y, (args.config ?? {}) as Record<string, unknown>);
   }
 
   // ── modal presentation ────────────────────────────────────────────────

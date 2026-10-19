@@ -53,7 +53,7 @@ export function drawNodeContent(node: HostNode, ctx: LayerContext): void {
     });
   }
 
-  if (node.native.ripple && !node.native.ripple.foreground) drawRipple(node, box, ctx);
+  node.hostView?.drawRipple?.(ctx, box, false);
 
   switch (node.kind) {
     case 'text':
@@ -79,10 +79,11 @@ export function drawNodeContent(node: HostNode, ctx: LayerContext): void {
 export function drawNodeOverlay(node: HostNode, ctx: LayerContext): void {
   const engine = node.engine;
   const style = node.computed;
-  if (!node.native.ripple?.foreground && !engine.kit.borderAboveChildren) return;
+  const ripple = node.hostView?.drawRipple;
+  if (!ripple && !engine.kit.borderAboveChildren) return;
   const radii = resolveRadii(style, node.w, node.h);
   const box: BoxGeometry = { x: ctx.x, y: ctx.y, w: node.w, h: node.h, radii };
-  if (node.native.ripple?.foreground) drawRipple(node, box, ctx);
+  node.hostView?.drawRipple?.(ctx, box, true);
   if (engine.kit.borderAboveChildren) {
     const borders = resolveBorders(style, engine.colorContext, rgba(0, 0, 0, 1));
     if (borders) ctx.item(inflate(box, 1), (w) => drawBorders(w, box, borders));
@@ -348,22 +349,6 @@ function drawPath(node: HostNode, box: BoxGeometry, ctx: LayerContext): void {
         w.strokePath(stroke, strokeWidth, caps[props.strokeLinecap] ?? 0, joins[props.strokeLinejoin] ?? 0);
       }
     }
-  });
-}
-
-function drawRipple(node: HostNode, box: BoxGeometry, ctx: LayerContext): void {
-  const ripple = node.native.ripple as { x: number; y: number; radius: number; alpha: number; color: number; borderless: boolean } | undefined;
-  if (!ripple || ripple.alpha <= 0) return;
-  const cx = box.x + ripple.x;
-  const cy = box.y + ripple.y;
-  const bounds = ripple.borderless
-    ? { x: cx - ripple.radius, y: cy - ripple.radius, w: ripple.radius * 2, h: ripple.radius * 2 }
-    : box;
-  ctx.item(bounds, (w) => {
-    w.save();
-    if (!ripple.borderless) w.clipRRect(box.x, box.y, box.w, box.h, box.radii);
-    w.pathBegin().arc(cx, cy, Math.max(0.01, ripple.radius), 0, Math.PI * 2).closePath().fillPath(withAlpha(ripple.color, ripple.alpha));
-    w.restore();
   });
 }
 

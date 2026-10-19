@@ -92,3 +92,28 @@ describe('lists', () => {
     s.dispose();
   });
 });
+
+describe('android_ripple', () => {
+  it('draws a RippleDrawable from the touch point and fades it after release', async () => {
+    const { PNG } = await import('pngjs');
+    const s = await render(
+      <View style={{ flex: 1, paddingTop: 100, backgroundColor: 'white' }}>
+        <Pressable testID="row" android_ripple={{ color: 'rgba(255,0,0,1)' }} onPress={() => {}} style={{ height: 80 }} />
+      </View>,
+      { device: 'pixel-9' },
+    );
+    const at = (png: Buffer, x: number, y: number) => {
+      const img = PNG.sync.read(png);
+      const i = (y * img.width + x) * 4;
+      return [img.data[i], img.data[i + 1], img.data[i + 2]];
+    };
+    const r = s.find({ testID: 'row' })[0]!.rect;
+    s.pointer('down', r.x + 40, r.y + 40);
+    s.advance(300);
+    const pressed = s.screenshot(1);
+    expect(at(pressed, Math.round(r.x + 40), Math.round(r.y + 40))).toEqual([255, 0, 0]);
+    s.pointer('up', r.x + 40, r.y + 40);
+    s.settle();
+    expect(at(s.screenshot(1), Math.round(r.x + 40), Math.round(r.y + 40))).toEqual([255, 255, 255]);
+  });
+});
