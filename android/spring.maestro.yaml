@@ -1,0 +1,10 @@
+appId: com.mimicry.showcase
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: {"id":"tab-motion"}
+- waitForAnimationToEnd:
+    timeout: 100
+- tapOn: {"id":"spring-card"}
+- waitForAnimationToEnd

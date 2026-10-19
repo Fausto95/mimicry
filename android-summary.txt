@@ -1,0 +1,8 @@
+android-components-dark      6.73% size mismatch
+android-home                 11.29% size mismatch
+android-settings             3.86% size mismatch
+components-dark              — no reference capture
+home                         — no reference capture
+settings                     — no reference capture
+spring                       5.09% size mismatch
+report: /home/runner/work/mimicry/mimicry/oracle/showcase/android-report/index.html
