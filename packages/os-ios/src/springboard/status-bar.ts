@@ -24,7 +24,7 @@ class StatusBarView extends UIView {
   protected override drawLayerContent(ctx: LayerContext): void {
     const kernel = this.application.kernel;
     const v = kernel.viewport;
-    const forced = this.override_?.() ?? null;
+    const forced = this.override_?.() ?? this.application._systemStatusBarStyle;
     const bar = forced ? { ...kernel.env.statusBar, barStyle: forced } : kernel.env.statusBar;
     ctx.item({ x: ctx.x, y: ctx.y, w: v.width, h: v.height }, (w) => iosKit.drawChrome(w, v, bar, kernel.env.appearance, kernel.bundledFonts));
   }

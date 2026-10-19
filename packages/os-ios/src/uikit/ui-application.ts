@@ -41,6 +41,8 @@ export class UIApplication {
   applicationState = UIApplicationState.active;
   isIdleTimerDisabled = false;
   private _keyWindow: UIWindow | null = null;
+  /** @internal a status bar style UIKit imposes (light content over a page sheet's backdrop) */
+  _systemStatusBarStyle: string | null = null;
   private readonly touchWindows = new Map<number, UIWindow>();
   private readonly statusBarListeners = new Set<() => void>();
 

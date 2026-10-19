@@ -4,6 +4,8 @@ import { UIUserInterfaceStyle } from './ui-trait-collection';
 import { UIView } from './ui-view';
 import { UINavigationItem } from './ui-navigation-item';
 import { UITabBarItem } from './ui-tab-bar-item';
+import { UIPresentationController } from './ui-presentation-controller';
+import { UISheetPresentationController } from './ui-sheet-presentation-controller';
 
 /**
  * UIViewController: owns a view (loaded lazily through loadView /
@@ -40,6 +42,11 @@ export class UIViewController extends UIResponder {
   prefersStatusBarHidden = false;
   /** @internal set by the presentation machinery */
   _presentedViewController: UIViewController | null = null;
+  /** @internal */
+  _isBeingPresented = false;
+  /** @internal */
+  _isBeingDismissed = false;
+  private _presentationController: UIPresentationController | null = null;
   /** @internal */
   _presentingViewController: UIViewController | null = null;
 
@@ -202,6 +209,43 @@ export class UIViewController extends UIResponder {
 
   get presentingViewController(): UIViewController | null {
     return this._presentingViewController ?? this._parent?.presentingViewController ?? null;
+  }
+
+  get isBeingPresented(): boolean {
+    return this._isBeingPresented;
+  }
+
+  get isBeingDismissed(): boolean {
+    return this._isBeingDismissed;
+  }
+
+  /** The style a presentation uses: `automatic` is a page sheet on iOS 13+. */
+  get resolvedModalPresentationStyle(): UIModalPresentationStyle {
+    const style = this.modalPresentationStyle;
+    return style === UIModalPresentationStyle.automatic || style === UIModalPresentationStyle.popover ? UIModalPresentationStyle.pageSheet : style;
+  }
+
+  /** The presentation controller for this controller's modal style (made on first use, like UIKit's). */
+  get presentationController(): UIPresentationController {
+    const sheet = this.resolvedModalPresentationStyle === UIModalPresentationStyle.pageSheet || this.resolvedModalPresentationStyle === UIModalPresentationStyle.formSheet;
+    const current = this._presentationController;
+    if (!current || current instanceof UISheetPresentationController !== sheet) {
+      this._presentationController = sheet ? new UISheetPresentationController(this, null) : new UIPresentationController(this, null);
+    }
+    return this._presentationController!;
+  }
+
+  /** The sheet presentation controller, when presented as a sheet. */
+  get sheetPresentationController(): UISheetPresentationController | null {
+    const controller = this.presentationController;
+    return controller instanceof UISheetPresentationController ? controller : null;
+  }
+
+  /** @internal the controller a presentation by `presenting` runs with */
+  _makePresentationController(presenting: UIViewController): UIPresentationController {
+    const controller = this.presentationController;
+    controller._presenting = presenting;
+    return controller;
   }
 
   present(viewController: UIViewController, animated: boolean, completion?: () => void): void {
