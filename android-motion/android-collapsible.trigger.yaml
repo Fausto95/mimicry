@@ -1,0 +1,3 @@
+appId: com.mimicry.expotemplate
+---
+- tapOn: {"text":"File-based routing"}

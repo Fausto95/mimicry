@@ -1,0 +1,7 @@
+android-explore              2.86% size mismatch
+android-home                 11.98% size mismatch
+explore-open                 — no reference capture
+explore                      — no reference capture
+home-dark                    — no reference capture
+home                         — no reference capture
+report: /home/runner/work/mimicry/mimicry/oracle/expo-template/android-report/index.html

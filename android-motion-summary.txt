@@ -1,0 +1,3 @@
+android-collapsible          settle 150ms vs 283ms  rms 29.8%  max 58.4%
+collapsible                  — no reference recording
+report: /home/runner/work/mimicry/mimicry/oracle/expo-template/android-motion-report/index.html

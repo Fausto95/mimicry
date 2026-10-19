@@ -1,0 +1,6 @@
+appId: com.mimicry.expotemplate
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- waitForAnimationToEnd
