@@ -4,6 +4,7 @@ import { CAEnvironment } from '../quartz-core/ca-media-time';
 import { CATransaction } from '../quartz-core/ca-transaction';
 import { UITouchPhase } from './ui-event';
 import { UIScreen } from './ui-screen';
+import { UIResponder } from './ui-responder';
 import { UITraitCollection } from './ui-trait-collection';
 import type { UIView } from './ui-view';
 import { UIWindow } from './ui-window';
@@ -53,6 +54,7 @@ export class UIApplication {
     CATransaction._reset();
     this.screen = new UIScreen(kernel);
     UITraitCollection._setScreenProvider(() => this.screen.traitCollection);
+    UIScreen._setMain(this.screen);
     if (options.routeInput !== false) {
       kernel.on('pointer', (m) => {
         this.pointer(m.phase, m.id, m.x, m.y, m.time);
@@ -100,6 +102,51 @@ export class UIApplication {
 
   openURL(url: string): void {
     this.kernel.send({ type: 'openURL', url });
+  }
+
+  /** open(_:options:completionHandler:) — the host opens it; success is reported on the main queue. */
+  open(url: string, _options: Record<string, unknown> = {}, completion?: (success: boolean) => void): void {
+    const ok = this.canOpenURL(url);
+    if (ok) this.openURL(url);
+    if (completion) this.kernel.defer(() => completion(ok));
+    this.kernel.requestFrame();
+  }
+
+  /** canOpenURL(_:) — schemes the system handles (web, phone, mail, messages, maps, settings). */
+  canOpenURL(url: string): boolean {
+    return /^(https?|tel|mailto|sms|maps|facetime|app-settings):/i.test(url);
+  }
+
+  /** The app icon's badge (iOS 17 moved it to UNUserNotificationCenter.setBadgeCount; both land here). */
+  applicationIconBadgeNumber = 0;
+
+  /** The Dynamic Type category the user chose (Settings › Display & Brightness › Text Size). */
+  get preferredContentSizeCategory(): string {
+    return this.screen.traitCollection.preferredContentSizeCategory;
+  }
+
+  /**
+   * sendAction(_:to:from:for:) — calls `action` (a method name) on `target`,
+   * or, with no target, on the first responder chain object that has it.
+   */
+  sendAction(action: string, target: object | null, sender: unknown, event: unknown = null): boolean {
+    const call = (o: object | null) => {
+      const method = o ? (o as Record<string, unknown>)[action] : undefined;
+      if (typeof method !== 'function') return false;
+      (method as (sender: unknown, event: unknown) => void).call(o, sender, event);
+      return true;
+    };
+    if (target) return call(target);
+    for (let r: UIResponder | null = UIResponder.currentFirstResponder; r; r = r.next) if (call(r)) return true;
+    return false;
+  }
+
+  get supportsAlternateIcons(): boolean {
+    return false;
+  }
+
+  get isProtectedDataAvailable(): boolean {
+    return true;
   }
 
   // ── status bar ──────────────────────────────────────────────────────
