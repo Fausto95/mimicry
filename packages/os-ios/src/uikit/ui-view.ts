@@ -3,7 +3,7 @@ import { apply, intersect, type Rect } from '@mimicry/os-core';
 import { CALayer } from '../quartz-core/ca-layer';
 import { CGContext } from '../core-graphics/context';
 import {
-  CGAffineTransformIdentity, CGAffineTransformIsIdentity, CGRectZero, UIEdgeInsetsZero, fromMatrix, toMatrix,
+  CGAffineTransformIdentity, CGAffineTransformIsIdentity, CGRectMake, CGRectZero, UIEdgeInsetsZero, fromMatrix, toMatrix,
   type CGAffineTransform, type CGPoint, type CGRect, type CGSize, type UIEdgeInsets,
 } from '../core-graphics/geometry';
 import type { UIColor } from './ui-color';
@@ -13,6 +13,13 @@ import { UIResponder } from './ui-responder';
 import { UITraitCollection, UIUserInterfaceStyle } from './ui-trait-collection';
 import type { UIWindow } from './ui-window';
 import type { UIViewController } from './ui-view-controller';
+import {
+  UIViewAnimationSettings, VIEW_KEYS, addKeyframe, currentAnimationBlock, curveTiming, dampingTiming, inheritedAnimationDuration,
+  perceptualTiming, registerViewLayer, runAnimationBlock, runKeyframeBlock, runTransition, runViewSwap, withoutAnimation,
+  type UIViewAnimationCompletion,
+} from './ui-view-animation';
+import { recordLayerTree, SnapshotLayer } from '../quartz-core/layer-snapshot';
+import { kernelOf } from '../quartz-core/ca-media-time';
 
 export const UIViewNoIntrinsicMetric = -1;
 
@@ -44,6 +51,8 @@ export class UIView extends UIResponder {
   private lastTraits: UITraitCollection | null = null;
   /** @internal the view controller whose root view this is */
   _viewController: UIViewController | null = null;
+  /** @internal running UIView animations that keep touches away from this view */
+  _animationInteractionLocks = 0;
 
   isUserInteractionEnabled = true;
   isMultipleTouchEnabled = false;
@@ -66,6 +75,7 @@ export class UIView extends UIResponder {
       willDraw: () => this.layerWillDraw(),
     };
     this.layer.name = this.constructor.name;
+    registerViewLayer(this, this.layer);
     this.frame = frame;
   }
 
@@ -216,6 +226,7 @@ export class UIView extends UIResponder {
   }
 
   set frame(r: CGRect) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.frame);
     const old = this.layer.frame;
     this.layer.frame = r;
     if (old.size.width !== r.size.width || old.size.height !== r.size.height) this.boundsSizeChanged();
@@ -227,6 +238,7 @@ export class UIView extends UIResponder {
   }
 
   set bounds(r: CGRect) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.bounds);
     const old = this.layer.boundsRect;
     this.layer.boundsRect = r;
     if (old.size.width !== r.size.width || old.size.height !== r.size.height) this.boundsSizeChanged();
@@ -238,6 +250,7 @@ export class UIView extends UIResponder {
   }
 
   set center(p: CGPoint) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.center);
     this.layer.position = p;
     this.layer.setNeedsDisplay();
   }
@@ -247,6 +260,7 @@ export class UIView extends UIResponder {
   }
 
   set transform(t: CGAffineTransform) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.transform);
     this._transform = t;
     this.layer.affineTransform = CGAffineTransformIsIdentity(t) ? null : toMatrix(t);
     this.layer.setNeedsDisplay();
@@ -292,7 +306,10 @@ export class UIView extends UIResponder {
   }
 
   set backgroundColor(c: UIColor | null) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.backgroundColor);
     this._backgroundColor = c;
+    // The layer gets the color now (animations read it); drawing re-resolves it for the current traits.
+    this.layer.backgroundColor = c ? c.resolvedColor(this.traitCollection).rgba : null;
     this.layer.setNeedsDisplay();
   }
 
@@ -301,6 +318,7 @@ export class UIView extends UIResponder {
   }
 
   set alpha(a: number) {
+    currentAnimationBlock()?.willChange(this, this.layer, VIEW_KEYS.alpha);
     this.layer.opacity = Math.max(0, Math.min(1, a));
     this.layer.setNeedsDisplay();
   }
@@ -469,6 +487,7 @@ export class UIView extends UIResponder {
   /** The deepest descendant (or self) that contains `point` (own coordinates) and takes touches. */
   hitTest(point: CGPoint, event: UIEvent | null): UIView | null {
     if (!this.isUserInteractionEnabled || this.isHidden || this.alpha < 0.01) return null;
+    if (this._animationInteractionLocks > 0) return null;
     if (!this.pointInside(point, event)) return null;
     for (let i = this._subviews.length - 1; i >= 0; i--) {
       const sub = this._subviews[i]!;
@@ -515,6 +534,99 @@ export class UIView extends UIResponder {
       if (v.clipsToBounds) visible = intersect(visible, v.layer.windowRect());
     }
     return visible;
+  }
+
+  // ── snapshots ───────────────────────────────────────────────────────
+
+  /**
+   * snapshotView(afterScreenUpdates:): a view showing this view's current
+   * rendering (its content and subviews, as they look now), sized like it.
+   */
+  snapshotView(_afterScreenUpdates = false): UIView | null {
+    const kernel = kernelOf(this.layer.root.host);
+    const snapshot = new SnapshotLayer(recordLayerTree(this.layer, kernel?.viewport.scale ?? 3));
+    const view = new UIView(CGRectMake(0, 0, this.bounds.size.width, this.bounds.size.height));
+    snapshot.setFrame(0, 0, this.bounds.size.width, this.bounds.size.height);
+    view.layer.addSublayer(snapshot);
+    view.isUserInteractionEnabled = false;
+    return view;
+  }
+
+  // ── animations (UIView(UIViewAnimationWithBlocks)) ───────────────────
+
+  /**
+   * animate(withDuration:animations:completion:)
+   * animate(withDuration:delay:options:animations:completion:)
+   * animate(withDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:)
+   * animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) — iOS 17, as an object
+   */
+  static animate(duration: number, animations: () => void, completion?: UIViewAnimationCompletion): void;
+  static animate(duration: number, delay: number, options: number, animations: () => void, completion?: UIViewAnimationCompletion): void;
+  static animate(
+    duration: number, delay: number, dampingRatio: number, initialSpringVelocity: number, options: number,
+    animations: () => void, completion?: UIViewAnimationCompletion,
+  ): void;
+  static animate(
+    spring: { springDuration?: number; bounce?: number; initialSpringVelocity?: number; delay?: number; options?: number },
+    animations: () => void, completion?: UIViewAnimationCompletion,
+  ): void;
+  static animate(...args: unknown[]): void {
+    const fn = (i: number) => (typeof args[i] === 'function' ? (args[i] as never) : undefined);
+    if (typeof args[0] === 'object' && args[0] !== null) {
+      const o = args[0] as { springDuration?: number; bounce?: number; initialSpringVelocity?: number; delay?: number; options?: number };
+      runAnimationBlock(perceptualTiming(o.springDuration ?? 0.5, o.bounce ?? 0, o.initialSpringVelocity ?? 0), o.delay ?? 0, o.options ?? 0, args[1] as () => void, fn(2));
+      return;
+    }
+    const duration = args[0] as number;
+    if (typeof args[1] === 'function') {
+      runAnimationBlock(curveTiming(duration, 0), 0, 0, args[1] as () => void, fn(2));
+    } else if (typeof args[3] === 'function') {
+      const options = (args[2] as number) ?? 0;
+      runAnimationBlock(curveTiming(duration, options), args[1] as number, options, args[3] as () => void, fn(4));
+    } else if (typeof args[5] === 'function') {
+      runAnimationBlock(dampingTiming(duration, args[2] as number, args[3] as number), args[1] as number, (args[4] as number) ?? 0, args[5] as () => void, fn(6));
+    } else {
+      throw new Error('UIView.animate: no animations block');
+    }
+  }
+
+  /** animateKeyframes(withDuration:delay:options:animations:completion:) */
+  static animateKeyframes(duration: number, delay: number, options: number, animations: () => void, completion?: UIViewAnimationCompletion): void {
+    runKeyframeBlock(duration, delay, options, animations, completion);
+  }
+
+  /** addKeyframe(withRelativeStartTime:relativeDuration:animations:) — inside animateKeyframes */
+  static addKeyframe(relativeStartTime: number, relativeDuration: number, animations: () => void): void {
+    addKeyframe(relativeStartTime, relativeDuration, animations);
+  }
+
+  /**
+   * transition(with:duration:options:animations:completion:)
+   * transition(from:to:duration:options:completion:)
+   */
+  static transition(view: UIView, duration: number, options: number, animations: (() => void) | null, completion?: UIViewAnimationCompletion): void;
+  static transition(from: UIView, to: UIView, duration: number, options: number, completion?: UIViewAnimationCompletion): void;
+  static transition(a: UIView, b: UIView | number, c: number, d: number | (() => void) | null, e?: UIViewAnimationCompletion): void {
+    if (b instanceof UIView) runViewSwap(a, b, c, d as number, e);
+    else runTransition(a, b, c, d as (() => void) | null, e);
+  }
+
+  /** performWithoutAnimation(_:) */
+  static performWithoutAnimation(actions: () => void): void {
+    withoutAnimation(actions);
+  }
+
+  static get areAnimationsEnabled(): boolean {
+    return UIViewAnimationSettings.enabled;
+  }
+
+  static setAnimationsEnabled(enabled: boolean): void {
+    UIViewAnimationSettings.enabled = enabled;
+  }
+
+  /** The duration of the animation block being recorded (0 outside one). */
+  static get inheritedAnimationDuration(): number {
+    return inheritedAnimationDuration();
   }
 
   /** CGAffineTransform of the layer (convenience for subclasses). */
