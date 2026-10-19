@@ -2,6 +2,7 @@ import { withAlpha, type CommandWriter, type Radii } from '@mimicry/protocol';
 import { easeOut, type FrameTask, type Kernel } from '@mimicry/os-core';
 import { Canvas, RectF } from './canvas';
 import { Color } from './color';
+import type { Outline } from '../view/outline';
 
 /**
  * android.graphics.drawable: Drawable, ColorDrawable, GradientDrawable and
@@ -87,6 +88,21 @@ export abstract class Drawable {
   /** Draw into `canvas` within getBounds(). */
   abstract draw(canvas: Canvas): void;
 
+  /** The shape a view with this background casts its shadow from (transparent by default). */
+  getOutline(outline: Outline): void {
+    const b = this.bounds;
+    outline.setRect(b.left, b.top, b.right, b.bottom);
+    outline.setAlpha(0);
+  }
+
+  /** Drawable.getOpacity / PixelFormat: whether the drawable is see-through. */
+  getOpacity(): number {
+    return -3; // PixelFormat.TRANSLUCENT
+  }
+
+  /** Drawables tinted with a single color (setTint / setTintList with one color). */
+  setTint(_tint: number | null): void {}
+
   /** Outset of what this drawable paints beyond its bounds (borderless ripples). */
   drawingOutset(): number {
     return 0;
@@ -105,6 +121,12 @@ export class ColorDrawable extends Drawable {
 
   getColor(): number {
     return this.color;
+  }
+
+  override getOutline(outline: Outline): void {
+    const b = this.getBounds();
+    outline.setRect(b.left, b.top, b.right, b.bottom);
+    outline.setAlpha((Color.alpha(this.color) / 255) * (this.alpha / 255));
   }
 
   draw(canvas: Canvas): void {
@@ -149,6 +171,21 @@ export class GradientDrawable extends Drawable {
     this.strokeWidth = width;
     this.strokeColor = color;
     this.invalidateSelf();
+  }
+
+  getColor(): number {
+    return this.color;
+  }
+
+  getCornerRadius(): number {
+    return this.radii[0];
+  }
+
+  override getOutline(outline: Outline): void {
+    const b = this.getBounds();
+    if (this.shape === GradientShape.OVAL) outline.setOval(b.left, b.top, b.right, b.bottom);
+    else outline.setRoundRectRadii(b.left, b.top, b.right, b.bottom, this.radii);
+    outline.setAlpha(Color.alpha(this.color) / 255);
   }
 
   draw(canvas: Canvas): void {
@@ -196,6 +233,18 @@ export class RippleDrawable extends Drawable implements FrameTask {
 
   get isBorderless(): boolean {
     return this.mask === null && this.content === null;
+  }
+
+  override getOutline(outline: Outline): void {
+    if (this.content) this.content.getOutline(outline);
+    else if (this.mask && this.mask !== 'bounded') this.mask.getOutline(outline);
+    else super.getOutline(outline);
+  }
+
+  override setBounds(left: number, top: number, right: number, bottom: number): void {
+    super.setBounds(left, top, right, bottom);
+    this.content?.setBounds(left, top, right, bottom);
+    if (this.mask && this.mask !== 'bounded') this.mask.setBounds(left, top, right, bottom);
   }
 
   setColor(color: number): void {

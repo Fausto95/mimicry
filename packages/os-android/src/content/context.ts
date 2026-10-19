@@ -1,5 +1,7 @@
 import type { Kernel } from '@mimicry/os-core';
 import type { SharedPreferences } from './shared-preferences';
+import { AppCompatDelegate, Theme, type ColorOverride } from './theme';
+import { ANDROID_COLORS } from '../theme';
 
 /**
  * android.content.Context with its Resources (DisplayMetrics, Configuration)
@@ -51,7 +53,7 @@ export class Configuration {
 }
 
 export class Resources {
-  constructor(private readonly kernel: Kernel) {}
+  constructor(private readonly kernel: Kernel, private readonly theme: Theme | null = null) {}
 
   getDisplayMetrics(): DisplayMetrics {
     const v = this.kernel.viewport;
@@ -60,7 +62,7 @@ export class Resources {
 
   getConfiguration(): Configuration {
     const v = this.kernel.viewport;
-    const night = this.kernel.env.appearance === 'dark';
+    const night = AppCompatDelegate.isNight(this.kernel);
     return new Configuration(
       Configuration.UI_MODE_TYPE_NORMAL | (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO),
       v.fontScale,
@@ -75,6 +77,28 @@ export class Resources {
   /** dp → px */
   getDimension(dp: number): number {
     return dp * this.kernel.viewport.scale;
+  }
+
+  /** dp → whole px (rounded, at least 1 for a positive size) */
+  getDimensionPixelSize(dp: number): number {
+    const px = dp * this.kernel.viewport.scale;
+    const rounded = Math.round(px);
+    return rounded === 0 && px > 0 ? 1 : rounded;
+  }
+
+  /**
+   * A color by name: a framework color resource ('@android:color/white')
+   * or a theme attribute ('?attr/colorPrimary', 'colorSurface'), as ARGB.
+   */
+  getColor(name: string, theme: Theme | null = this.theme): number {
+    const resource = ANDROID_COLORS[name];
+    if (resource) {
+      const rgba = resource[AppCompatDelegate.isNight(this.kernel) ? 1 : 0];
+      return ((rgba >>> 8) | ((rgba & 255) << 24)) | 0;
+    }
+    const themed = theme?.resolveColor(name);
+    if (themed != null) return themed;
+    throw new Error(`Resources.NotFoundException: Color resource ${name}`);
   }
 }
 
@@ -123,6 +147,7 @@ export class Choreographer {
 
 export class Context {
   readonly resources: Resources;
+  private readonly theme: Theme;
   readonly mainHandler: Handler;
   readonly choreographer: Choreographer;
   private readonly preferences = new Map<string, SharedPreferences>();
@@ -130,13 +155,29 @@ export class Context {
   static preferencesFactory: ((kernel: Kernel, name: string) => SharedPreferences) | null = null;
 
   constructor(readonly kernel: Kernel, readonly packageName = 'com.mimicry.app') {
-    this.resources = new Resources(kernel);
+    this.theme = new Theme(kernel);
+    this.resources = new Resources(kernel, this.theme);
     this.mainHandler = new Handler(kernel);
     this.choreographer = new Choreographer(kernel);
   }
 
   getResources(): Resources {
     return this.resources;
+  }
+
+  /** Theme.Material3.DayNight, with whatever overlays the app applied. */
+  getTheme(): Theme {
+    return this.theme;
+  }
+
+  /** Apply a theme overlay: color roles or attributes → ARGB (or [light, dark]). */
+  setTheme(colors: Record<string, ColorOverride>): void {
+    this.theme.applyColors(colors);
+  }
+
+  /** ContextCompat.getColor / Context.getColor: a color resource or theme attribute. */
+  getColor(name: string): number {
+    return this.resources.getColor(name, this.theme);
   }
 
   getPackageName(): string {

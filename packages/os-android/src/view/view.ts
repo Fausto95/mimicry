@@ -1,4 +1,6 @@
-import { invert, multiply, rotation, scaling, translation, RenderLayer, type Kernel, type LayerContext, type Matrix } from '@mimicry/os-core';
+import {
+  drawShadows, inflate, invert, multiply, resolveShadows, rotation, scaling, shadowExtent, translation, RenderLayer, type Kernel, type LayerContext, type Matrix,
+} from '@mimicry/os-core';
 import { Canvas, RectF } from '../graphics/canvas';
 import { ColorDrawable, StateSet, type Drawable, type DrawableCallback } from '../graphics/drawable';
 import type { Context } from '../content/context';
@@ -8,6 +10,7 @@ import type { ViewRootImpl } from './view-root';
 import type { WindowInsets } from './window-insets';
 import { FloatProperty } from '../util/property';
 import { ViewPropertyAnimator } from '../animation/view-property-animator';
+import { Outline, ViewOutlineProvider } from './outline';
 
 /**
  * android.view.View: a rectangle in the view tree backed by a RenderNode.
@@ -70,6 +73,9 @@ export type OnTouchListener = (view: View, event: MotionEvent) => boolean;
 
 let nextViewId = 1;
 
+/** Shadow colors are plain ARGB ints; no theme lookups are needed. */
+const NO_COLORS = { appearance: 'light' as const, semantic: () => null };
+
 export class View implements DrawableCallback {
   static readonly VISIBLE = 0;
   static readonly INVISIBLE = 4;
@@ -117,6 +123,8 @@ export class View implements DrawableCallback {
   protected paddingTop = 0;
   protected paddingRight = 0;
   protected paddingBottom = 0;
+  private minWidth = 0;
+  private minHeight = 0;
   private translationX = 0;
   private translationY = 0;
   private translationZ = 0;
@@ -146,6 +154,10 @@ export class View implements DrawableCallback {
   private insetsListener: ((view: View, insets: WindowInsets) => WindowInsets) | null = null;
   private layerType = View.LAYER_TYPE_NONE;
   private propertyAnimator: ViewPropertyAnimator | null = null;
+  private outlineProvider: ViewOutlineProvider | null = ViewOutlineProvider.BACKGROUND;
+  private clipToOutline = false;
+  private ambientShadowColor = 0xff000000 | 0;
+  private spotShadowColor = 0xff000000 | 0;
 
   constructor(readonly context: Context) {
     this.renderNode = new RenderNode(this);
@@ -245,7 +257,7 @@ export class View implements DrawableCallback {
   }
 
   protected onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-    this.setMeasuredDimension(View.getDefaultSize(0, widthMeasureSpec), View.getDefaultSize(0, heightMeasureSpec));
+    this.setMeasuredDimension(View.getDefaultSize(this.getSuggestedMinimumWidth(), widthMeasureSpec), View.getDefaultSize(this.getSuggestedMinimumHeight(), heightMeasureSpec));
   }
 
   protected setMeasuredDimension(width: number, height: number): void {
@@ -298,7 +310,10 @@ export class View implements DrawableCallback {
     this.updateMatrix();
     this.background?.setBounds(0, 0, r - l, b - t);
     this.foreground?.setBounds(0, 0, r - l, b - t);
-    if (resized) this.onSizeChanged(r - l, b - t, oldW, oldH);
+    if (resized) {
+      if (this.clipToOutline) this.invalidateOutline();
+      this.onSizeChanged(r - l, b - t, oldW, oldH);
+    }
     this.invalidate();
   }
 
@@ -342,6 +357,34 @@ export class View implements DrawableCallback {
   getPaddingTop(): number { return this.paddingTop; }
   getPaddingRight(): number { return this.paddingRight; }
   getPaddingBottom(): number { return this.paddingBottom; }
+  getPaddingStart(): number { return this.paddingLeft; }
+  getPaddingEnd(): number { return this.paddingRight; }
+
+  setPaddingRelative(start: number, top: number, end: number, bottom: number): void {
+    this.setPadding(start, top, end, bottom);
+  }
+
+  setMinimumWidth(minWidth: number): void {
+    this.minWidth = minWidth;
+    this.requestLayout();
+  }
+
+  setMinimumHeight(minHeight: number): void {
+    this.minHeight = minHeight;
+    this.requestLayout();
+  }
+
+  getMinimumWidth(): number { return this.minWidth; }
+  getMinimumHeight(): number { return this.minHeight; }
+
+  /** The larger of the minimum width and the background's intrinsic width. */
+  protected getSuggestedMinimumWidth(): number {
+    return Math.max(this.minWidth, this.background?.getIntrinsicWidth() ?? 0);
+  }
+
+  protected getSuggestedMinimumHeight(): number {
+    return Math.max(this.minHeight, this.background?.getIntrinsicHeight() ?? 0);
+  }
 
   // ── transform properties (RenderNode properties) ────────────────────
 
@@ -448,6 +491,7 @@ export class View implements DrawableCallback {
       drawable.setBounds(0, 0, this.getWidth(), this.getHeight());
       if (drawable.isStateful()) drawable.setState(this.drawableState());
     }
+    if (this.clipToOutline) this.invalidateOutline();
     this.invalidate();
   }
 
@@ -475,13 +519,60 @@ export class View implements DrawableCallback {
     return this.foreground;
   }
 
+  /** Clip the view's children to its outline (its rounded corners), as setClipToOutline does. */
   setClipToOutline(clip: boolean): void {
+    this.clipToOutline = clip;
     this.renderNode.masksToBounds = clip;
-    this.invalidate();
+    this.invalidateOutline();
   }
 
   getClipToOutline(): boolean {
-    return this.renderNode.masksToBounds;
+    return this.clipToOutline || this.renderNode.masksToBounds;
+  }
+
+  setOutlineProvider(provider: ViewOutlineProvider | null): void {
+    this.outlineProvider = provider;
+    this.invalidateOutline();
+  }
+
+  getOutlineProvider(): ViewOutlineProvider | null {
+    return this.outlineProvider;
+  }
+
+  /** The outline is computed again (and the clip radii follow it). */
+  invalidateOutline(): void {
+    if (this.clipToOutline) {
+      const outline = this.computeOutline();
+      this.renderNode.cornerRadii = outline && !outline.isEmpty() ? outline.radii : [0, 0, 0, 0];
+    }
+    this.invalidateParent();
+  }
+
+  /** The current outline, or null without a provider. */
+  computeOutline(): Outline | null {
+    const provider = this.outlineProvider;
+    if (!provider) return null;
+    const outline = new Outline();
+    provider.getOutline(this, outline);
+    return outline;
+  }
+
+  setOutlineAmbientShadowColor(color: number): void {
+    this.ambientShadowColor = color;
+    this.invalidate();
+  }
+
+  setOutlineSpotShadowColor(color: number): void {
+    this.spotShadowColor = color;
+    this.invalidate();
+  }
+
+  getOutlineAmbientShadowColor(): number {
+    return this.ambientShadowColor;
+  }
+
+  getOutlineSpotShadowColor(): number {
+    return this.spotShadowColor;
   }
 
   setLayerType(type: number, _paint: unknown = null): void {
@@ -536,6 +627,7 @@ export class View implements DrawableCallback {
   protected drawContent(ctx: LayerContext): void {
     const w = this.getWidth();
     const h = this.getHeight();
+    this.drawElevationShadow(ctx);
     const background = this.background;
     const hasOnDraw = this.onDraw !== View.prototype.onDraw;
     if (!background && !hasOnDraw) return;
@@ -548,6 +640,23 @@ export class View implements DrawableCallback {
       if (hasOnDraw) this.onDraw(canvas);
       writer.restore();
     });
+  }
+
+  /**
+   * The shadow a view with Z > 0 casts from its outline: Material's ambient
+   * and key light, the same model React Native's `elevation` draws with.
+   */
+  protected drawElevationShadow(ctx: LayerContext): void {
+    const z = this.getZ();
+    if (z <= 0 || this.renderNode.hidden) return;
+    const outline = this.computeOutline();
+    if (!outline || outline.isEmpty() || outline.getAlpha() <= 0) return;
+    const shadows = resolveShadows({ elevation: z, shadowColor: this.spotShadowColor }, 'android', NO_COLORS);
+    if (!shadows.length) return;
+    const alpha = outline.getAlpha();
+    const tinted = shadows.map((s) => ({ ...s, color: ((s.color & 0xffffff00) | Math.round((s.color & 255) * alpha)) >>> 0 }));
+    const box = { x: ctx.x + outline.left, y: ctx.y + outline.top, w: outline.right - outline.left, h: outline.bottom - outline.top, radii: outline.radii };
+    ctx.item(inflate(box, shadowExtent(tinted) + 1), (writer) => drawShadows(writer, box, tinted, false));
   }
 
   protected drawOverlay(ctx: LayerContext): void {

@@ -22,3 +22,7 @@ export * from './animation/object-animator';
 export * from './animation/animator-set';
 export * from './animation/view-property-animator';
 export * from './animation/dynamic-animation';
+export * from './os/looper';
+export * from './view/gravity';
+export * from './view/outline';
+export * from './content/theme';

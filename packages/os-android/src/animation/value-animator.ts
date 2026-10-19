@@ -1,5 +1,6 @@
 import type { FrameTask, Kernel } from '@mimicry/os-core';
 import { Property } from '../util/property';
+import { Looper } from '../os/looper';
 import { AccelerateDecelerateInterpolator, type TimeInterpolator } from './interpolators';
 
 /**
@@ -29,7 +30,6 @@ export interface AnimationFrameCallback {
 }
 
 const handlers = new WeakMap<Kernel, AnimationHandler>();
-let mainKernel: Kernel | null = null;
 
 /**
  * android.animation.AnimationHandler: the per-looper list of running
@@ -52,11 +52,11 @@ export class AnimationHandler implements FrameTask {
    * framework's thread-local handler.
    */
   static setMainKernel(kernel: Kernel | null): void {
-    mainKernel = kernel;
+    Looper.prepareMainLooper(kernel);
   }
 
   static getMainKernel(): Kernel | null {
-    return mainKernel;
+    return Looper.getMainKernel();
   }
 
   addAnimationFrameCallback(callback: AnimationFrameCallback): void {
@@ -97,7 +97,7 @@ export class AnimationHandler implements FrameTask {
 }
 
 function resolveKernel(preferred: Kernel | null): Kernel {
-  const kernel = preferred ?? mainKernel;
+  const kernel = preferred ?? Looper.getMainKernel();
   if (!kernel) throw new Error('AndroidRuntimeException: Animators may only be run on Looper threads (no Android has booted)');
   return kernel;
 }
@@ -554,7 +554,7 @@ export class ValueAnimator extends Animator implements AnimationFrameCallback {
 
   /** ValueAnimator.getDurationScale(): the developer option, from the kernel's time scale. */
   static getDurationScale(): number {
-    return mainKernel?.animator.timeScale ?? 1;
+    return Looper.getMainKernel()?.animator.timeScale ?? 1;
   }
 
   static areAnimatorsEnabled(): boolean {
