@@ -15,8 +15,9 @@ yes | "$BIN/sdkmanager" --licenses > /dev/null || true
 "$BIN/avdmanager" list device -c | tee /tmp/avd-devices.txt
 PROFILE="${PROFILE:-$(grep -xm1 -E 'pixel_9|pixel_8|pixel_7|pixel_6|pixel_5|pixel' /tmp/avd-devices.txt || true)}"
 echo "hardware profile: ${PROFILE:-none}"
-echo no | "$BIN/avdmanager" create avd -n oracle -k "$IMAGE" ${PROFILE:+-d "$PROFILE"} --force
-CONFIG="$HOME/.android/avd/oracle.avd/config.ini"
+AVD_DIR="$HOME/oracle.avd"
+echo no | "$BIN/avdmanager" create avd -n oracle -k "$IMAGE" ${PROFILE:+-d "$PROFILE"} -p "$AVD_DIR" --force
+CONFIG="$AVD_DIR/config.ini"
 # Pixel 9: 1080×2424 at 420 dpi (411×923 dp)
 sed -i -e '/^hw.lcd.width/d' -e '/^hw.lcd.height/d' -e '/^hw.lcd.density/d' -e '/^skin./d' -e '/^showDeviceFrame/d' "$CONFIG"
 printf 'hw.lcd.width=1080\nhw.lcd.height=2424\nhw.lcd.density=420\nskin.dynamic=yes\nshowDeviceFrame=no\nhw.keyboard=yes\n' >> "$CONFIG"
