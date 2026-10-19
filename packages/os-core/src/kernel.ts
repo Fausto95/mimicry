@@ -84,6 +84,7 @@ export class Kernel implements LayerHost {
   private readonly handlers = new Map<string, Array<(message: any) => void>>();
   private readonly layoutPasses: Array<() => void> = [];
   private readonly beforePaint: Array<() => void> = [];
+  private readonly beforeInput: Array<() => void> = [];
   private frameRequested = false;
   private painting = false;
   private needsLayout = true;
@@ -193,6 +194,17 @@ export class Kernel implements LayerHost {
   /** Runs right before every paint (mounting: framework state → layer properties). */
   addBeforePaint(fn: () => void): void {
     this.beforePaint.push(fn);
+  }
+
+  /** Runs before the OS routes an input event (frameworks mount pending changes). */
+  addBeforeInput(fn: () => void): void {
+    this.beforeInput.push(fn);
+  }
+
+  /** Bring geometry up to date before hit testing: pending layout, then mounting. */
+  prepareInput(): void {
+    this.layoutIfNeeded();
+    for (const fn of this.beforeInput) fn();
   }
 
   /** Run pending layout now (before hit testing or measuring between frames). */

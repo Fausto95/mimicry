@@ -114,6 +114,8 @@ export class CompoundButton extends View implements FrameTask {
 
   /** Touch slop (dp) outside the bounds a press still counts as inside. */
   protected pressSlop = 20;
+  /** a press started here and was not cancelled */
+  private tracking = false;
 
   override onTouchEvent(event: MotionEvent): boolean {
     if (!this.isEnabled()) return true;
@@ -122,16 +124,19 @@ export class CompoundButton extends View implements FrameTask {
     const inside = x >= -this.pressSlop && y >= -this.pressSlop && x <= this.getWidth() + this.pressSlop && y <= this.getHeight() + this.pressSlop;
     switch (event.getActionMasked()) {
       case MotionEvent.ACTION_DOWN:
+        this.tracking = true;
         this.setPressed(true);
         return true;
       case MotionEvent.ACTION_MOVE:
-        this.setPressed(inside);
+        if (this.tracking) this.setPressed(inside);
         return true;
       case MotionEvent.ACTION_UP:
         this.setPressed(false);
-        if (inside) this.performClick();
+        if (inside && this.tracking) this.performClick();
+        this.tracking = false;
         return true;
       case MotionEvent.ACTION_CANCEL:
+        this.tracking = false;
         this.setPressed(false);
         return true;
     }

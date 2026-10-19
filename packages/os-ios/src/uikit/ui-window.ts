@@ -179,14 +179,14 @@ export class UIWindow extends UIView {
   }
 
   /**
-   * Deliver one touch change: to its gesture recognizers (outermost view's
-   * first), then to the hit view unless a recognizer cancelled it there.
+   * Deliver one touch change: to its gesture recognizers (the hit view's
+   * first, then its ancestors'), then to the hit view unless a recognizer
+   * cancelled it there.
    */
   sendEvent(event: UIEvent, touch: UITouch): void {
     const set = new Set([touch]);
     const phase = touch.phase;
-    for (let i = touch.gestureRecognizers.length - 1; i >= 0; i--) {
-      const r = touch.gestureRecognizers[i]!;
+    for (const r of touch.gestureRecognizers.slice()) {
       if (!r._touches.has(touch)) continue;
       if (r.isFinished && phase !== UITouchPhase.cancelled) continue;
       switch (phase) {

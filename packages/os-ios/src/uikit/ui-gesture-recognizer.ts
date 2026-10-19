@@ -97,9 +97,19 @@ export class UIGestureRecognizer {
   /** @internal set without arbitration */
   _applyState(next: UIGestureRecognizerState): void {
     this._state = next;
-    if (next !== UIGestureRecognizerState.possible && next !== UIGestureRecognizerState.failed) {
-      for (const action of this.actions.slice()) action(this);
-    }
+    this._sendActions();
+  }
+
+  /** @internal set the state only (arbitration in progress) */
+  _setState(next: UIGestureRecognizerState): void {
+    this._state = next;
+  }
+
+  /** @internal tell the targets about the current state */
+  _sendActions(): void {
+    const s = this._state;
+    if (s === UIGestureRecognizerState.possible || s === UIGestureRecognizerState.failed) return;
+    for (const action of this.actions.slice()) action(this);
   }
 
   /** @internal */
@@ -258,15 +268,18 @@ export class GestureEnvironment {
 
   private begin(r: UIGestureRecognizer, next: UIGestureRecognizerState): void {
     r._setPending(null);
-    // It begins: every undecided recognizer it may not run alongside fails.
+    // The new state is visible while the others are asked (their hooks may look at it).
+    r._setState(next);
+    // It begins: every undecided recognizer it may not run alongside fails. Active
+    // ones are asked too — UIKit does, and some act on it (React Native's touch
+    // handler cancels its JS touches when a scroll view's pan begins).
     for (const other of this.recognizers) {
-      if (other === r || other.recognizesSimultaneously(r)) continue;
-      if (other.state === UIGestureRecognizerState.possible && r.canPrevent(other) && other.canBePrevented(r)) {
-        this.fail(other);
-      }
+      if (other === r || other.recognizesSimultaneously(r) || other.isFinished) continue;
+      const prevented = r.canPrevent(other) && other.canBePrevented(r);
+      if (prevented && other.state === UIGestureRecognizerState.possible) this.fail(other);
     }
     if (r.cancelsTouchesInView) this.cancelTouchesInViews(r);
-    r._applyState(next);
+    r._sendActions();
     this.settle();
   }
 

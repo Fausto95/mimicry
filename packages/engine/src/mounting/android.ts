@@ -1,7 +1,7 @@
 import type { Radii } from '@mimicry/protocol';
 import { inflate, parseColor, type LayerContext, type Matrix } from '@mimicry/os-core';
 import {
-  Activity, Android, FrameLayout, HorizontalScrollView, MeasureSpec, OnBackPressedCallback, ProgressBar, ScrollView,
+  Activity, Android, FrameLayout, HorizontalScrollView, MeasureSpec, MotionEvent, OnBackPressedCallback, ProgressBar, ScrollView,
   SwitchCompat, View, ViewGroup, type Context,
 } from '@mimicry/os-android';
 import type { Engine } from '../engine';
@@ -156,8 +156,16 @@ class ReactRootViewContent extends ReactViewGroup {
   protected override drawOverlay(): void {}
 }
 
+/** The views on the hit paths of the pointers down right now. */
+const touchRouting = new Set<unknown>();
+
 function ScrollMixin<T extends abstract new (...args: any[]) => ScrollView>(Base: T) {
   abstract class Mixed extends ReactView(Base) {
+    /** A drag may start only if no gesture handler that excludes it is active. */
+    protected override allowsDrag(): boolean {
+      return this.node.engine.gestures.canScroll(this.node);
+    }
+
     override metrics() {
       return this.node.engine.scrolls.bounds(this.node);
     }
@@ -211,10 +219,20 @@ class ReactHorizontalScrollView extends ScrollMixin(HorizontalScrollView) {
 }
 
 function scrollCallbacks(node: HostNode) {
-  const scrolls = () => node.engine.scrolls;
+  const engine = node.engine;
+  const scrolls = () => engine.scrolls;
   return {
-    onDragStarted: () => scrolls().emitEvent(node, 'onScrollBeginDrag'),
-    onDragEnded: (_v: ScrollView, velocity: { x: number; y: number }) => scrolls().emitEvent(node, 'onScrollEndDrag', { velocity }),
+    onDragStarted: () => {
+      // NativeGestureUtil.notifyNativeGestureStarted: JS loses the touch.
+      engine.input.nativeGestureStarted();
+      engine.focus.dismissForScroll(node);
+      scrolls().emitEvent(node, 'onScrollBeginDrag');
+      engine.gestures.scrollStarted(node);
+    },
+    onDragEnded: (_v: ScrollView, velocity: { x: number; y: number }) => {
+      scrolls().emitEvent(node, 'onScrollEndDrag', { velocity });
+      engine.gestures.scrollEnded(node);
+    },
     onFlingStarted: () => scrolls().emitEvent(node, 'onMomentumScrollBegin'),
     onScrollIdle: () => scrolls().emitEvent(node, 'onMomentumScrollEnd'),
   };
@@ -238,6 +256,21 @@ class ReactSwitch extends ReactView(SwitchCompat) {
 
   setControlPressed(pressed: boolean): void {
     this.setPressed(pressed);
+  }
+
+  cancelControlTouch(): void {
+    this.onTouchEvent(MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, [{ id: 0, x: 0, y: 0 }]));
+  }
+
+  /** A tap toggled it: tell JS, then show whatever value the props settle on. */
+  override performClick(): boolean {
+    const node = this.node;
+    const next = !this.isChecked();
+    this.setChecked(next);
+    node.engine.events.emit(node, 'onChange', { value: next, target: node.id }, node.engine.animator.animationTime);
+    this.value = !!node.props.value;
+    this.setChecked(this.value);
+    return true;
   }
 
   protected override drawContent(ctx: LayerContext): void {
@@ -325,6 +358,57 @@ class ReactRootView extends FrameLayout implements HostContainer {
   }
 
   protected override onLayout(): void {}
+
+  protected override canReceivePointer(child: View): boolean {
+    return touchRouting.has(child);
+  }
+
+  /**
+   * Touches reach, in order: react-native-gesture-handler's arena (its root
+   * view sees events first), the native views (scroll views may intercept,
+   * switches press), then JS (JSTouchDispatcher, which a scroll view that
+   * took over has already cancelled).
+   */
+  override dispatchTouchEvent(ev: MotionEvent): boolean {
+    const input = this.engine.input;
+    const action = ev.getActionMasked();
+    const index = ev.getActionIndex();
+    const time = ev.getEventTime();
+    let path = null;
+    if (action === MotionEvent.ACTION_DOWN || action === MotionEvent.ACTION_POINTER_DOWN) {
+      path = input.pathAt(ev.getRawX(index), ev.getRawY(index));
+      if (action === MotionEvent.ACTION_DOWN) touchRouting.clear();
+      for (const n of path ?? []) if (n.hostView) touchRouting.add(n.hostView);
+    } else if (action === MotionEvent.ACTION_MOVE) {
+      for (let i = 0; i < ev.getPointerCount(); i++) input.feedArena('move', ev.getPointerId(i), ev.getRawX(i), ev.getRawY(i), time);
+    } else if (action === MotionEvent.ACTION_UP || action === MotionEvent.ACTION_POINTER_UP) {
+      input.feedArena('up', ev.getPointerId(index), ev.getRawX(index), ev.getRawY(index), time);
+    }
+
+    super.dispatchTouchEvent(ev);
+
+    switch (action) {
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_POINTER_DOWN: {
+        const stopped = !!path?.some((n) => n.kind === 'scroll' && (n.hostView as unknown as ScrollView | null)?.touchStoppedScrolling);
+        input.down(ev.getPointerId(index), ev.getRawX(index), ev.getRawY(index), time, path, stopped);
+        break;
+      }
+      case MotionEvent.ACTION_MOVE:
+        for (let i = 0; i < ev.getPointerCount(); i++) input.move(ev.getPointerId(i), ev.getRawX(i), ev.getRawY(i), time);
+        break;
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_POINTER_UP:
+        input.up(ev.getPointerId(index), ev.getRawX(index), ev.getRawY(index), time);
+        if (action === MotionEvent.ACTION_UP) touchRouting.clear();
+        break;
+      case MotionEvent.ACTION_CANCEL:
+        for (let i = 0; i < ev.getPointerCount(); i++) input.cancel(ev.getPointerId(i), ev.getRawX(i), ev.getRawY(i), time);
+        touchRouting.clear();
+        break;
+    }
+    return true;
+  }
 
   override orderedChildren(): View[] {
     const out: View[] = [];

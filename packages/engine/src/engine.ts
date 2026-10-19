@@ -131,9 +131,8 @@ export class Engine {
     this.hooks = kernel.hooks;
     this.bundledFonts = kernel.bundledFonts;
     this.hostInputs = kernel.hostInputs;
-    // React Native's touch handling still runs above the OS (see input/pointer.ts).
     const ios = this.env.device.platform === 'ios';
-    this.os = ios ? new IOS(kernel, { routeInput: false }) : new Android(kernel, { routeInput: false });
+    this.os = ios ? new IOS(kernel) : new Android(kernel);
     this.kit = this.os.theme;
     this.yogaConfig = this.yoga.Config.create();
     // React Native rounds layout to the physical pixel grid and runs Yoga in compatibility mode.
@@ -159,15 +158,15 @@ export class Engine {
     kernel.nodeCount = () => this.nodes.size;
     kernel.addLayoutPass(() => this.layout());
     kernel.addBeforePaint(() => this.mounting.sync());
-    kernel.on('pointer', (m) => {
-      this.prepareInput();
-      this.input.handle(m.phase, m.id, m.x, m.y, m.time);
-      this.requestFrame();
-    });
-    kernel.on('wheel', (m) => {
-      this.prepareInput();
-      this.input.wheel(m.x, m.y, m.dx, m.dy);
-    });
+    // Touches reach React Native through the OS (RCTSurfaceTouchHandler / ReactRootView).
+    kernel.addBeforeInput(() => this.mounting.sync());
+    // UIKit routes wheels to UIScrollView; Android has no wheel routing of its own here.
+    if (!ios) {
+      kernel.on('wheel', (m) => {
+        kernel.prepareInput();
+        this.input.wheel(m.x, m.y, m.dx, m.dy);
+      });
+    }
     kernel.on('textChange', (m) => {
       const node = this.nodes.get(m.nodeId);
       if (node) this.behaviors.textChanged(node, m.text, m.selection);
@@ -184,12 +183,6 @@ export class Engine {
     kernel.on('query', (m) => this.send({ type: 'queryResult', requestId: m.requestId, nodes: this.query(m.selector) }));
     // Android's back key goes through the activity (ReactActivity hands it to us); iOS has none.
     if (ios) kernel.on('back', () => this.back());
-  }
-
-  /** Input reads geometry: lay out and mount anything pending first. */
-  private prepareInput(): void {
-    this.kernel.layoutIfNeeded();
-    this.mounting.sync();
   }
 
   private createContainer(name: 'app' | 'system'): RootContainer {

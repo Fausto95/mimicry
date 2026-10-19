@@ -118,7 +118,7 @@ export class WindowManager {
   }
 
   private pointer(phase: 'down' | 'move' | 'up' | 'cancel', id: number, x: number, y: number, time: number): void {
-    this.kernel.layoutIfNeeded();
+    this.kernel.prepareInput();
     if (phase === 'down') {
       if (this.touchWindow.has(id)) return;
       // A second finger goes to the window the gesture started in.

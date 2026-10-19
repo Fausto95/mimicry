@@ -113,7 +113,7 @@ export class UIApplication {
   }
 
   private pointer(phase: 'down' | 'move' | 'up' | 'cancel', id: number, x: number, y: number, time: number): void {
-    this.kernel.layoutIfNeeded();
+    this.kernel.prepareInput();
     if (phase === 'down') {
       if (this.touchWindows.has(id)) return;
       const window = this.windowsTopDown().find((w) => w.hitTest(w.convertPointFrom({ x, y }, null), null));
@@ -132,7 +132,7 @@ export class UIApplication {
   }
 
   private wheel(x: number, y: number, dx: number, dy: number): void {
-    this.kernel.layoutIfNeeded();
+    this.kernel.prepareInput();
     for (const window of this.windowsTopDown()) {
       let view: UIView | null = window.hitTest(window.convertPointFrom({ x, y }, null), null);
       if (!view) continue;

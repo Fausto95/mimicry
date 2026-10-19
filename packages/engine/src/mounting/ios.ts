@@ -1,9 +1,10 @@
 import type { Radii } from '@mimicry/protocol';
 import { inflate, parseColor, type LayerContext, type Matrix } from '@mimicry/os-core';
 import {
-  IOS, UIActivityIndicatorView, UIScrollView, UISwitch, UIView, UIViewController,
-  UIScrollViewContentInsetAdjustmentBehavior, UIScrollViewDecelerationRate, UIScrollViewIndicatorStyle,
-  type CGPoint, type UIEdgeInsets, type UIScrollViewDelegate, type UIWindow,
+  IOS, UIActivityIndicatorView, UIControlEvents, UIGestureRecognizer, UIGestureRecognizerState, UIScrollView, UISwitch,
+  UITouchPhase, UIView, UIViewController, UIScrollViewContentInsetAdjustmentBehavior, UIScrollViewDecelerationRate,
+  UIScrollViewIndicatorStyle,
+  type CGPoint, type UIEdgeInsets, type UIEvent, type UIScrollViewDelegate, type UITouch, type UIWindow,
 } from '@mimicry/os-ios';
 import type { Engine } from '../engine';
 import type { HostNode } from '../tree/node';
@@ -174,17 +175,34 @@ class RCTScrollViewComponentView extends ComponentView(UIScrollView) implements 
     drawNodeOverlay(this.node, ctx);
   }
 
+  /**
+   * The pan may begin only if no gesture handler that excludes it is active
+   * (react-native-gesture-handler's arena decides, after seeing this move).
+   */
+  override gestureRecognizerShouldBegin(recognizer: UIGestureRecognizer): boolean {
+    if (recognizer !== this.panGestureRecognizer) return super.gestureRecognizerShouldBegin(recognizer);
+    feedArena(this.engine, recognizer);
+    return this.engine.gestures.canScroll(this.node);
+  }
+
   // UIScrollViewDelegate → React Native scroll events
   scrollViewDidScroll(): void {
     this.engine.scrolls.didScroll(this.node);
   }
 
   scrollViewWillBeginDragging(): void {
+    this.engine.focus.dismissForScroll(this.node);
     this.engine.scrolls.emitEvent(this.node, 'onScrollBeginDrag');
+    this.engine.gestures.scrollStarted(this.node);
   }
 
   scrollViewWillEndDragging(_s: UIScrollView, velocity: CGPoint): void {
+    feedArena(this.engine, this.panGestureRecognizer);
     this.engine.scrolls.emitEvent(this.node, 'onScrollEndDrag', { velocity: { x: velocity.x, y: velocity.y } });
+  }
+
+  scrollViewDidEndDragging(): void {
+    this.engine.gestures.scrollEnded(this.node);
   }
 
   scrollViewWillBeginDecelerating(): void {
@@ -202,9 +220,11 @@ class RCTSwitchComponentView extends ComponentView(UISwitch) {
 
   constructor(readonly node: HostNode) {
     super();
+    this.addTarget(() => this.valueChanged(), UIControlEvents.valueChanged);
   }
 
   override updateProps(): void {
+    this.isEnabled = !this.node.props.disabled;
     const value = !!this.node.props.value;
     if (this.value === value) return;
     const first = this.value === null;
@@ -212,8 +232,20 @@ class RCTSwitchComponentView extends ComponentView(UISwitch) {
     this.setOn(value, !first);
   }
 
+  /** The user toggled it: tell JS, then show whatever value the props settle on. */
+  private valueChanged(): void {
+    const node = this.node;
+    node.engine.events.emit(node, 'onChange', { value: this.isOn, target: node.id }, node.engine.animator.animationTime);
+    this.value = !!node.props.value;
+    this.setOn(this.value, true);
+  }
+
   setControlPressed(pressed: boolean): void {
     this.isHighlighted = pressed;
+  }
+
+  cancelControlTouch(): void {
+    this.touchesCancelled(new Set(), null as unknown as UIEvent);
   }
 
   protected override drawLayerContent(ctx: LayerContext): void {
@@ -269,6 +301,23 @@ class RCTSurfaceView extends UIView implements HostContainer {
 
   constructor(private readonly engine: Engine) {
     super();
+    this.addGestureRecognizer(new RCTSurfaceTouchHandler(engine));
+  }
+
+  /**
+   * React Native's hit testing (pointerEvents, hitSlop, zIndex, overflow,
+   * text spans) decides which view a touch lands in; UIKit then delivers it
+   * to that view and the recognizers above it.
+   */
+  override hitTest(point: CGPoint, _event: UIEvent | null): UIView | null {
+    const window = this.convertPoint(point, null);
+    const path = this.engine.input.pathAt(window.x, window.y);
+    if (!path) return this;
+    for (let i = path.length - 1; i >= 0; i--) {
+      const view = path[i]!.hostView;
+      if (view && (view as unknown as UIView).window) return view as unknown as UIView;
+    }
+    return this;
   }
 
   mountChild(child: HostView, index: number): void {
@@ -291,6 +340,75 @@ class RCTSurfaceView extends UIView implements HostContainer {
     // Behind a scaled-back presenting app, the window is black (iOS page sheets).
     const fill = this.engine.presentation ? 0x000000ff : this.engine.windowBackground();
     ctx.item({ x: 0, y: 0, w: v.width, h: v.height }, (w) => w.fillRect(0, 0, v.width, v.height, fill));
+  }
+}
+
+/**
+ * RCTSurfaceTouchHandler: a gesture recognizer on the surface that sees
+ * every touch and drives the JS responder system. It never prevents other
+ * recognizers; when one that can cancel it begins (a scroll view's pan), it
+ * cancels the JS touches instead of being prevented — React Native's
+ * canBePreventedByGestureRecognizer.
+ */
+class RCTSurfaceTouchHandler extends UIGestureRecognizer {
+  constructor(private readonly engine: Engine) {
+    super();
+    this.cancelsTouchesInView = false;
+    this.delaysTouchesEnded = false;
+  }
+
+  override touchesBegan(touches: ReadonlySet<UITouch>, _event: UIEvent): void {
+    for (const t of touches) {
+      const p = t.windowLocation;
+      const path = this.engine.input.pathAt(p.x, p.y);
+      const stopped = !!path?.some((n) => n.kind === 'scroll' && (n.hostView as unknown as UIScrollView | null)?.touchStoppedScrolling);
+      this.engine.input.down(t.identifier, p.x, p.y, t.timestamp, path, stopped);
+    }
+    if (this.state === UIGestureRecognizerState.possible) this.state = UIGestureRecognizerState.began;
+  }
+
+  override touchesMoved(touches: ReadonlySet<UITouch>, _event: UIEvent): void {
+    for (const t of touches) {
+      const p = t.windowLocation;
+      this.engine.input.move(t.identifier, p.x, p.y, t.timestamp);
+    }
+    if (this.isActive) this.state = UIGestureRecognizerState.changed;
+  }
+
+  override touchesEnded(touches: ReadonlySet<UITouch>, _event: UIEvent): void {
+    for (const t of touches) {
+      const p = t.windowLocation;
+      this.engine.input.up(t.identifier, p.x, p.y, t.timestamp);
+    }
+    if (this.numberOfTouches === 0 && this.isActive) this.state = UIGestureRecognizerState.ended;
+  }
+
+  override touchesCancelled(touches: ReadonlySet<UITouch>, _event: UIEvent): void {
+    for (const t of touches) {
+      const p = t.windowLocation;
+      this.engine.input.cancel(t.identifier, p.x, p.y, t.timestamp);
+    }
+    if (this.numberOfTouches === 0 && this.isActive) this.state = UIGestureRecognizerState.cancelled;
+  }
+
+  override canPrevent(): boolean {
+    return false;
+  }
+
+  override canBePrevented(by: UIGestureRecognizer): boolean {
+    if (by.state === UIGestureRecognizerState.began || by.state === UIGestureRecognizerState.changed) {
+      this.engine.input.nativeGestureStarted();
+    }
+    return false;
+  }
+}
+
+/** Show the arena a native recognizer's current sample before it decides (deduplicated). */
+function feedArena(engine: Engine, recognizer: UIGestureRecognizer): void {
+  for (const t of recognizer._touches) {
+    const p = t.windowLocation;
+    const phase = t.phase === UITouchPhase.ended ? 'up' : t.phase === UITouchPhase.cancelled ? 'cancel' : t.phase === UITouchPhase.began ? null : 'move';
+    if (phase) engine.input.feedArena(phase, t.identifier, p.x, p.y, t.timestamp);
   }
 }
 

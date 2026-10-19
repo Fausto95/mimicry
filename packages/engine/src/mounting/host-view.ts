@@ -37,6 +37,8 @@ export interface HostView extends HostContainer {
   updateProps(): void;
   /** controls: a finger is down on it (UIControl highlight / View pressed state) */
   setControlPressed?(pressed: boolean): void;
+  /** controls: stop tracking the current touch (a gesture handler took it) */
+  cancelControlTouch?(): void;
   /** the node is gone for good */
   destroy(): void;
 }
