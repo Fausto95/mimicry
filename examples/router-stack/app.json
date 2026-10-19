@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "router-stack",
+    "slug": "router-stack",
+    "scheme": "routerstack",
+    "userInterfaceStyle": "automatic",
+    "ios": { "bundleIdentifier": "com.mimicry.routerstack" },
+    "android": { "package": "com.mimicry.routerstack" },
+    "plugins": ["expo-router"]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "ios": ["examples/expo-template"],
-  "android": ["examples/showcase", "examples/expo-template"],
+  "ios": ["examples/router-stack"],
+  "android": ["examples/router-stack"],
   "motion": false
 }

@@ -1,0 +1,1 @@
+{ "name": "android-details", "device": "pixel-9", "appearance": "light", "steps": [{ "tap": { "testID": "row-1" } }] }
