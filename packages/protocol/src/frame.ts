@@ -1,5 +1,5 @@
 import { hashBytes, hashHi, hashLo, joinHash } from './hash';
-import { CompositeWriter, WordWriter, type ClipSpec } from './writer';
+import { CompositeWriter, WordWriter, type ClipSpec, type Radii } from './writer';
 
 /**
  * Frame wire format (all little-endian, 4-byte aligned):
@@ -109,6 +109,11 @@ export class FrameEncoder {
 
   pop(): void {
     this.composite.pop();
+  }
+
+  /** Blur what is composited beneath, inside a rounded rect of the current layer (see CompositeOp.Backdrop). */
+  backdrop(rect: Bounds, radii: Radii, blur: number, saturation: number): void {
+    this.composite.backdrop(rect.x, rect.y, rect.w, rect.h, radii, blur, saturation);
   }
 
   overlay(record: OverlayRecord): void {

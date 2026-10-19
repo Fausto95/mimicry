@@ -3,6 +3,8 @@ import { localMatrix, stickyOffset } from '../geometry';
 import { apply, invert } from '../style/matrix';
 import type { HostNode } from '../tree/node';
 import { hitTestSvg } from '../svg/query';
+import { textVerticalAlign } from '../layout/layout';
+import { blockOffset, lineOffset } from '../text/text-block';
 
 /**
  * Hit testing in paint order (topmost first), honoring transforms, scroll
@@ -88,6 +90,10 @@ function hitNode(engine: Engine, node: HostNode, lx: number, ly: number): HostNo
       if (path) return [node, ...path];
     }
   }
+  if (node.kind === 'text' && pe !== 'box-only') {
+    const path = inlineViewPath(engine, node, lx, ly);
+    if (path) return [node, ...path];
+  }
   if (inside && pe !== 'box-none') {
     if (node.kind === 'text') return [node, ...spanPath(engine, node, lx, ly)];
     return [node];
@@ -95,28 +101,49 @@ function hitNode(engine: Engine, node: HostNode, lx: number, ly: number): HostNo
   return null;
 }
 
+/** Nodes from just below `text` down to `node` (nested <Text> spans in between). */
+function chainFrom(text: HostNode, node: HostNode): HostNode[] {
+  const chain: HostNode[] = [];
+  let n: HostNode | null = node;
+  while (n && n !== text) {
+    chain.unshift(n);
+    n = n.parent;
+  }
+  return chain;
+}
+
+/** Views inside <Text>, topmost first, at the boxes the line layout gave them. */
+function inlineViewPath(engine: Engine, text: HostNode, lx: number, ly: number): HostNode[] | null {
+  const i = text.insets;
+  const layout = engine.textLayoutFor(text, Math.max(0, text.w - i.left - i.right));
+  for (let l = layout.lines.length - 1; l >= 0; l--) {
+    const runs = layout.lines[l]!.runs;
+    for (let r = runs.length - 1; r >= 0; r--) {
+      const child = runs[r]!.attachment?.node as HostNode | undefined;
+      if (!child) continue;
+      const path = hitNode(engine, child, ...toLocal(child, lx, ly));
+      if (path) return [...chainFrom(text, child.parent!), ...path];
+    }
+  }
+  return null;
+}
+
 /** Nested <Text> nodes under the point, from the outer text down to the span. */
 function spanPath(engine: Engine, text: HostNode, lx: number, ly: number): HostNode[] {
   const i = text.insets;
-  const layout = engine.textLayoutFor(text, Math.max(0, text.w - i.left - i.right));
+  const contentW = Math.max(0, text.w - i.left - i.right);
+  const layout = engine.textLayoutFor(text, contentW);
+  const contentH = Math.max(0, text.h - i.top - i.bottom);
   const cx = lx - i.left;
-  const cy = ly - i.top;
+  const cy = ly - i.top - blockOffset(textVerticalAlign(engine, text), contentH, layout);
   const align = String(text.computed.textAlign ?? 'auto');
-  const contentW = text.w - i.left - i.right;
   for (const line of layout.lines) {
     if (cy < line.y || cy >= line.y + line.height) continue;
-    const offset = align === 'center' ? (contentW - line.width) / 2 : align === 'right' ? contentW - line.width : 0;
+    const offset = lineOffset(align, contentW, line);
     for (const run of line.runs) {
       if (cx >= offset + run.x && cx < offset + run.x + run.width) {
         const source = run.style.source as HostNode;
-        if (!source || source === text) return [];
-        const chain: HostNode[] = [];
-        let n: HostNode | null = source;
-        while (n && n !== text) {
-          chain.unshift(n);
-          n = n.parent;
-        }
-        return chain;
+        return !source || source === text ? [] : chainFrom(text, source);
       }
     }
   }

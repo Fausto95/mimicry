@@ -32,7 +32,10 @@ Every command is a header word `opcode | payloadWords << 16` followed by its pay
 Push  layerId · matrix(6) · opacity · clip(kind, rect, radii)   clip is in the parent's space
 Chunk index
 Pop
+Backdrop  rect(4) · radii(4) · blurRadius · saturation              in the current layer's space
 ```
+
+`Backdrop` blurs and saturates whatever has already been composited beneath it, inside the rounded rect (blur and glass materials). Because the result depends on the content behind it, it is evaluated at composite time and is never part of a cached raster; a tint or highlight over the material is an ordinary chunk drawn after it. Pixels past the surface edge are extended rather than blurred in as transparency.
 
 A layer's content is drawn in paint order: chunks and child layers interleave, so z-order holds across layer boundaries. A layer with opacity < 1 and more than one draw inside is rendered to a surface and composited once, which gives group opacity as on iOS and Android.
 

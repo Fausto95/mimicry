@@ -1,5 +1,5 @@
 import {
-  FrameEncoder, NO_CLIP, OverlayKind, alphaOf, rgba, withAlpha, type CommandWriter, type Radii,
+  FrameEncoder, NO_CLIP, NO_RADII, OverlayKind, alphaOf, rgba, withAlpha, type CommandWriter, type Radii,
 } from '@mimicry/protocol';
 import type { Engine } from '../engine';
 import { localMatrix, ownTransform, stickyOffset, windowMatrix } from '../geometry';
@@ -7,6 +7,8 @@ import { parseColor } from '../style/color';
 import { IDENTITY, inflate, intersect, multiply, transformRect, translation, type Rect } from '../style/matrix';
 import type { HostNode } from '../tree/node';
 import { applyTextTransform } from '../text/text-layout';
+import { blockOffset, lineOffset, verticalAlignOf, type VerticalAlign } from '../text/text-block';
+import { textVerticalAlign } from '../layout/layout';
 import {
   drawBackground, drawBorders, drawShadows, hasRadii, resolveBorders, resolveRadii, resolveShadows, shadowExtent,
   type BoxGeometry,
@@ -184,11 +186,24 @@ function paintContent(node: HostNode, ox: number, oy: number, rec: LayerRecorder
   const borders = resolveBorders(style, colors, engine.kit.platform === 'ios' ? rgba(0, 0, 0, 1) : rgba(0, 0, 0, 1));
   const bordersOnTop = borders && engine.kit.borderAboveChildren;
 
-  const decorated = shadows.length || style.backgroundColor != null || style.experimental_backgroundImage || style.backgroundImage || (borders && !bordersOnTop);
+  const backdrop = backdropOf(node);
+  if (backdrop) {
+    // Shadows sit behind the material; then the blur of everything beneath; then the tint (background).
+    const outset = shadows.filter((s) => !s.inset);
+    if (outset.length) rec.item(inflate(box, shadowExtent(outset) + 1), (w) => drawShadows(w, box, outset, false));
+    const visible = rec.visible(box);
+    if (visible) {
+      rec.flush();
+      const whole = visible.w === box.w && visible.h === box.h;
+      ctx.frame.backdrop(visible, whole ? radii : NO_RADII, backdrop.blur, backdrop.saturation);
+    }
+  }
+
+  const decorated = (backdrop ? shadows.some((s) => s.inset) : shadows.length) || style.backgroundColor != null || style.experimental_backgroundImage || style.backgroundImage || (borders && !bordersOnTop);
   if (decorated) {
     const extent = shadowExtent(shadows);
     rec.item(inflate(box, extent + 1), (w) => {
-      drawShadows(w, box, shadows, false);
+      if (!backdrop) drawShadows(w, box, shadows, false);
       drawBackground(w, box, style, colors);
       drawShadows(w, box, shadows, true);
       if (borders && !bordersOnTop) drawBorders(w, box, borders);
@@ -244,6 +259,25 @@ function paintContent(node: HostNode, ox: number, oy: number, rec: LayerRecorder
   if (bordersOnTop) rec.item(inflate(box, 1), (w) => drawBorders(w, box, borders!));
 }
 
+/**
+ * The `backdrop` host prop: `{ blur, saturation? }` blurs (and saturates)
+ * whatever is painted beneath the view, inside its border radius. Native
+ * views (BlurView, GlassView, glass bars) set it; tints are its backgroundColor.
+ */
+export interface BackdropProp {
+  blur: number;
+  saturation: number;
+}
+
+function backdropOf(node: HostNode): BackdropProp | null {
+  const b = node.props.backdrop as { blur?: number; saturation?: number } | null | undefined;
+  if (!b || typeof b !== 'object') return null;
+  const blur = Math.max(0, Number(b.blur ?? 0));
+  const saturation = Math.max(0, Number(b.saturation ?? 1));
+  if (blur === 0 && saturation === 1) return null;
+  return { blur, saturation };
+}
+
 function contentBox(node: HostNode, ox: number, oy: number): Rect {
   const i = node.insets;
   return { x: ox + i.left, y: oy + i.top, w: Math.max(0, node.w - i.left - i.right), h: Math.max(0, node.h - i.top - i.bottom) };
@@ -254,20 +288,28 @@ function paintText(node: HostNode, ox: number, oy: number, rec: LayerRecorder, c
   const layout = ctx.engine.textLayoutFor(node, content.w);
   if (!layout.lines.length) return;
   const align = String(node.computed.textAlign ?? 'auto');
-  const bounds = inflate({ x: content.x, y: content.y, w: Math.max(content.w, layout.width), h: Math.max(content.h, layout.height) }, 4);
-  rec.item(bounds, (w) => drawTextLines(w, layout.lines, content, align));
+  const block = { ...content, y: content.y + blockOffset(textVerticalAlign(ctx.engine, node), content.h, layout) };
+  const bounds = inflate({ x: block.x, y: block.y, w: Math.max(content.w, layout.width), h: Math.max(content.h, layout.height) }, 4);
+  rec.item(bounds, (w) => drawTextLines(w, layout.lines, block, align));
+  // Inline views, where the layout placed them (layout.ts set their frames).
+  for (const line of layout.lines) {
+    for (const run of line.runs) {
+      const child = run.attachment?.node as HostNode | undefined;
+      if (child) paintNode(child, ox + child.x, oy + child.y, rec, ctx);
+    }
+  }
 }
 
 function drawTextLines(w: CommandWriter, lines: ReturnType<Engine['textLayoutFor']>['lines'], content: Rect, align: string): void {
   let font = '';
   for (const line of lines) {
-    const offset = align === 'center' ? (content.w - line.width) / 2 : align === 'right' ? content.w - line.width : 0;
-    const lx = content.x + offset;
+    const lx = content.x + lineOffset(align, content.w, line);
     const top = content.y + line.y;
     for (const run of line.runs) {
-      if (run.style.background) w.fillRect(lx + run.x, top, run.width, line.height, run.style.background);
+      if (run.style.background && !run.attachment) w.fillRect(lx + run.x, top, run.width, line.height, run.style.background);
     }
     for (const run of line.runs) {
+      if (run.attachment) continue;
       const s = run.style;
       if (s.font !== font) {
         w.font(s.font);
@@ -358,8 +400,7 @@ function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: P
       const layout = engine.inputLayout(node, text, content.w);
       const lineStyle = { ...style, color };
       const lines = layout.lines.map((l) => ({ ...l, runs: l.runs.map((r) => ({ ...r, style: lineStyle })) }));
-      const multiline = !!props.multiline;
-      const top = multiline || props.textAlignVertical === 'top' ? content.y : content.y + (content.h - layout.height) / 2;
+      const top = content.y + blockOffset(inputVerticalAlign(engine, node), content.h, layout);
       rec.item(box, (w) => {
         w.save();
         w.clipRect(content.x, content.y, content.w, content.h);
@@ -373,7 +414,7 @@ function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: P
       const last = layout.lines[layout.lines.length - 1];
       const caretX = content.x + (value ? last?.width ?? 0 : 0);
       const lineH = last?.height ?? style.size * 1.2;
-      const caretY = props.multiline ? content.y + (last?.y ?? 0) : content.y + (content.h - lineH) / 2;
+      const caretY = content.y + blockOffset(inputVerticalAlign(engine, node), content.h, layout) + (last?.y ?? 0);
       const caret = parseColor(props.cursorColor ?? props.selectionColor, engine.colorContext) ?? kit.text.selectionColor(appearance) | 0xff;
       rec.item({ x: caretX - 1, y: caretY, w: 3, h: lineH }, (w) => w.fillRect(caretX, caretY + 1, 2, lineH - 2, caret >>> 0));
     }
@@ -414,6 +455,16 @@ function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: P
       label: props.accessibilityLabel ?? props['aria-label'] ?? props.placeholder ?? null,
     },
   });
+}
+
+/**
+ * Where an input's text sits vertically: iOS centers a single line and
+ * top-aligns multiline; Android centers both unless `textAlignVertical` says
+ * otherwise (the well-known multiline quirk).
+ */
+function inputVerticalAlign(engine: Engine, node: HostNode): VerticalAlign {
+  if (engine.kit.platform === 'android') return verticalAlignOf(node.computed, node.props) ?? 'center';
+  return node.props.multiline ? 'top' : 'center';
 }
 
 /** Window rect of an input after ancestor clipping, or null if hidden or covered. */

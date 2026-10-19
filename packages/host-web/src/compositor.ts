@@ -1,4 +1,5 @@
 import { CommandCursor, CompositeOp, type ChunkRecord, type DecodedFrame } from '@mimicry/protocol';
+import { BackdropPainter } from './backdrop';
 import { execute, type CanvasFactory, type Ctx2D, type ImageSourceProvider } from './execute';
 
 /**
@@ -49,11 +50,13 @@ export class Compositor {
   private readonly budget: number;
   private readonly maxRaster: number;
   private scratch: Array<{ canvas: Raster['canvas']; ctx: Ctx2D }> = [];
+  private readonly backdrops: BackdropPainter;
   stats: CompositorStats = { hits: 0, misses: 0, direct: 0, rasterMs: 0, compositeMs: 0, cachedBytes: 0, cachedChunks: 0 };
 
   constructor(private readonly options: CompositorOptions) {
     this.budget = options.cacheBudget ?? 192 * 1024 * 1024;
     this.maxRaster = options.maxRasterPixels ?? 4096 * 4096;
+    this.backdrops = new BackdropPainter(options.canvases);
   }
 
   /** Drop every raster (e.g. when fonts finish loading). */
@@ -121,6 +124,9 @@ export class Compositor {
       } else if (cursor.op === CompositeOp.Chunk) {
         const chunk = frame.chunks[cursor.u32(0)];
         if (chunk) this.drawChunk(top.ctx, frame, chunk, top.m, top.alpha, pixelRatio, stats);
+      } else if (cursor.op === CompositeOp.Backdrop) {
+        const radii: [number, number, number, number] = [cursor.f32(4), cursor.f32(5), cursor.f32(6), cursor.f32(7)];
+        this.backdrops.draw(top.ctx, top.m, { x: cursor.f32(0), y: cursor.f32(1), w: cursor.f32(2), h: cursor.f32(3), radii, blur: cursor.f32(8), saturation: cursor.f32(9) }, top.alpha);
       } else if (cursor.op === CompositeOp.Pop) {
         const level = stack.pop()!;
         const parent = stack[stack.length - 1]!;
@@ -150,7 +156,7 @@ export class Compositor {
     while (cursor.next()) {
       if (cursor.op === CompositeOp.Push) {
         stack.push({ id: cursor.u32(0), opacity: cursor.f32(7), draws: 0 });
-      } else if (cursor.op === CompositeOp.Chunk) {
+      } else if (cursor.op === CompositeOp.Chunk || cursor.op === CompositeOp.Backdrop) {
         const top = stack[stack.length - 1];
         if (top) top.draws++;
       } else if (cursor.op === CompositeOp.Pop) {

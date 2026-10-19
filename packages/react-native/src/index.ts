@@ -27,6 +27,7 @@ export { resetNativeModules } from './native/registry';
 import { getNativeModule, nativeComponent, nativeCommands } from './native/registry';
 import './native/expo-modules';
 import './native/svg';
+import './native/materials';
 export { DeviceEventEmitter, NativeEventEmitter } from './native/events';
 export {
   registerNativeComponent, registerNativeComponents, registerNativeModule, registerNativeModules,

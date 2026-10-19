@@ -12,7 +12,14 @@ export interface TextEnvironment {
   colors: ColorContext;
   fontScale: number;
   bundledFonts: boolean;
+  /** adjustsFontSizeToFit: shrinks font size, line height and letter spacing (1 = as styled) */
+  fitScale?: number;
 }
+
+/** The size an inline view inside <Text> reserves (measured by the engine before text layout). */
+export type InlineSize = (node: HostNode) => { width: number; height: number };
+
+const OBJECT_REPLACEMENT = '￼';
 
 /** Text props that nested <Text> inherits from its parent <Text>. */
 const INHERITED = [
@@ -31,6 +38,8 @@ export function resolveTextStyle(style: FlatStyle, env: TextEnvironment, source:
   const { kit } = env;
   let scale = allowFontScaling ? env.fontScale : 1;
   if (maxMultiplier && maxMultiplier >= 1) scale = Math.min(scale, maxMultiplier);
+  const fit = env.fitScale ?? 1;
+  scale *= fit;
   const size = (typeof style.fontSize === 'number' ? style.fontSize : kit.text.fontSize) * scale;
   const family = typeof style.fontFamily === 'string' ? style.fontFamily : undefined;
   const weight = style.fontWeight != null ? normalizeWeight(style.fontWeight) : kit.fontWeightFor(family) ?? '400';
@@ -41,7 +50,7 @@ export function resolveTextStyle(style: FlatStyle, env: TextEnvironment, source:
   const shadowColor = parseColor(style.textShadowColor, env.colors);
   const offset = style.textShadowOffset ?? { width: 0, height: 0 };
   const standIn = env.bundledFonts && (!family || family === 'System' || family === 'system-ui') ? kit.standIn?.(size, Number(weight) || 400) : undefined;
-  const letterSpacing = (typeof style.letterSpacing === 'number' ? style.letterSpacing : 0) + (standIn ? round(standIn.tracking * size) : 0);
+  const letterSpacing = (typeof style.letterSpacing === 'number' ? style.letterSpacing * fit : 0) + (standIn ? round(standIn.tracking * size) : 0);
   return {
     font,
     size,
@@ -66,7 +75,7 @@ const round = (n: number) => Math.round(n * 100) / 100;
  * Flattens a <Text> subtree into attributed spans. The top-level text's own
  * backgroundColor paints its box, so it is not a span highlight.
  */
-export function collectSpans(textNode: HostNode, env: TextEnvironment): Span[] {
+export function collectSpans(textNode: HostNode, env: TextEnvironment, inlineSize?: InlineSize): Span[] {
   const spans: Span[] = [];
   const allowScaling = textNode.props.allowFontScaling !== false;
   const maxMultiplier = textNode.props.maxFontSizeMultiplier;
@@ -79,8 +88,11 @@ export function collectSpans(textNode: HostNode, env: TextEnvironment): Span[] {
       } else if (child.kind === 'virtual-text') {
         const merged = inheritTextStyle(inherited, child.computed);
         visit(child, merged, resolveTextStyle(merged, env, child, allowScaling, maxMultiplier));
+      } else if (child.yoga && inlineSize) {
+        // An inline view: a box in the line, in the surrounding span's style (for its baseline).
+        const size = inlineSize(child);
+        spans.push({ text: OBJECT_REPLACEMENT, style, attachment: { node: child, width: size.width, height: size.height } });
       }
-      // inline views inside <Text> are not supported yet (see docs/fidelity.md)
     }
   };
   visit(textNode, rootStyle, resolveTextStyle(rootStyle, env, textNode, allowScaling, maxMultiplier));

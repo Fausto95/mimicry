@@ -150,6 +150,9 @@ export function disassembleComposite(bytes: Uint8Array): string[] {
       out.push(`${pad}chunk ${cursor.u32(0)}`);
     } else if (cursor.op === CompositeOp.Pop) {
       depth--;
+    } else if (cursor.op === CompositeOp.Backdrop) {
+      const r = [0, 1, 2, 3].map((i) => round(cursor.f32(i)));
+      out.push(`${pad}backdrop [${r.join(',')}] blur=${round(cursor.f32(8))} saturation=${round(cursor.f32(9))}`);
     }
   }
   return out;

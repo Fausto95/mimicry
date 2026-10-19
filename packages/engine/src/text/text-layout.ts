@@ -23,9 +23,22 @@ export interface TextStyle {
   source: unknown;
 }
 
+/**
+ * An inline view inside <Text>: a box the line reserves, sitting on the
+ * baseline (its bottom edge on the baseline, as on iOS and Android).
+ */
+export interface TextAttachment {
+  /** the host node the box belongs to */
+  node: unknown;
+  width: number;
+  height: number;
+}
+
 export interface Span {
   text: string;
   style: TextStyle;
+  /** set for an inline view; `text` is U+FFFC */
+  attachment?: TextAttachment;
 }
 
 export interface TextRun {
@@ -33,6 +46,7 @@ export interface TextRun {
   width: number;
   text: string;
   style: TextStyle;
+  attachment?: TextAttachment;
 }
 
 export interface TextLine {
@@ -48,11 +62,19 @@ export interface TextLayout {
   width: number;
   height: number;
   truncated: boolean;
+  /** a word wider than the line had to be broken between characters */
+  brokeWord: boolean;
 }
 
 export interface TextLayoutOptions {
   numberOfLines?: number;
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
+  /**
+   * Break overflowing words at hyphenation points (Android's
+   * `android_hyphenationFrequency`). 'normal' only takes a break that uses a
+   * good part of the remaining line; 'full' takes any break that fits.
+   */
+  hyphenation?: { frequency: 'normal' | 'full'; points: (word: string) => number[] };
 }
 
 interface Token {
@@ -60,6 +82,7 @@ interface Token {
   style: TextStyle;
   kind: 'word' | 'space' | 'newline';
   width: number;
+  attachment?: TextAttachment;
 }
 
 const ELLIPSIS = '…';
@@ -79,6 +102,10 @@ export function applyTextTransform(text: string, transform: TextStyle['transform
 function tokenize(spans: readonly Span[], measurer: TextMeasurer): Token[] {
   const tokens: Token[] = [];
   for (const span of spans) {
+    if (span.attachment) {
+      tokens.push({ text: span.text, style: span.style, kind: 'word', width: span.attachment.width, attachment: span.attachment });
+      continue;
+    }
     const text = applyTextTransform(span.text, span.style.transform);
     for (const match of text.matchAll(TOKEN)) {
       const value = match[0];
@@ -116,8 +143,34 @@ function splitWord(token: Token, available: number, measurer: TextMeasurer): [To
   ];
 }
 
+const HYPHEN = '-';
+
+/** Split a word at the last hyphenation point whose head (plus a hyphen) fits `available`. */
+function hyphenate(token: Token, available: number, measurer: TextMeasurer, options: NonNullable<TextLayoutOptions['hyphenation']>): [Token, Token] | null {
+  if (token.attachment || available <= 0) return null;
+  const points = options.points(token.text);
+  const measure = (t: string) => measurer.width(t, token.style.font, token.style.letterSpacing);
+  for (let i = points.length - 1; i >= 0; i--) {
+    const at = points[i]!;
+    const head = token.text.slice(0, at) + HYPHEN;
+    const width = measure(head);
+    if (width > available + 0.01) continue;
+    // 'normal' avoids a hyphen that leaves most of the line empty anyway.
+    if (options.frequency === 'normal' && width < available * 0.5) return null;
+    const tail = token.text.slice(at);
+    return [{ ...token, text: head, width }, { ...token, text: tail, width: measure(tail) }];
+  }
+  return null;
+}
+
 /** Greedy line breaking: returns token lines. */
-function breakLines(tokens: Token[], maxWidth: number, measurer: TextMeasurer): { lines: Token[][]; endStyles: TextStyle[] } {
+function breakLines(
+  tokens: Token[],
+  maxWidth: number,
+  measurer: TextMeasurer,
+  hyphenation?: TextLayoutOptions['hyphenation'],
+): { lines: Token[][]; endStyles: TextStyle[]; brokeWord: boolean } {
+  let brokeWord = false;
   const lines: Token[][] = [];
   const endStyles: TextStyle[] = [];
   let line: Token[] = [];
@@ -148,13 +201,27 @@ function breakLines(tokens: Token[], maxWidth: number, measurer: TextMeasurer): 
       width += token.width;
       continue;
     }
+    const split = hyphenation ? hyphenate(token, maxWidth - width, measurer, hyphenation) : null;
+    if (split) {
+      line.push(split[0]);
+      finish(token.style);
+      queue.splice(i + 1, 0, split[1]);
+      continue;
+    }
     const hasContent = line.some((t) => t.kind === 'word');
     if (hasContent) {
       finish(token.style);
       i--; // retry this token on the new line
       continue;
     }
+    if (token.attachment) {
+      // an inline view wider than the line overflows it rather than splitting
+      line.push(token);
+      finish(token.style);
+      continue;
+    }
     // A single word wider than the line: break by characters.
+    brokeWord = true;
     const [head, tail] = splitWord(token, maxWidth - width, measurer);
     line.push(head);
     finish(token.style);
@@ -164,20 +231,21 @@ function breakLines(tokens: Token[], maxWidth: number, measurer: TextMeasurer): 
   if (line.length || last?.kind === 'newline' || lines.length === 0) {
     finish(last?.style ?? tokens[0]!.style);
   }
-  return { lines, endStyles };
+  return { lines, endStyles, brokeWord };
 }
 
 function buildRuns(tokens: Token[], measurer: TextMeasurer): TextRun[] {
   const runs: TextRun[] = [];
   for (const token of tokens) {
     const prev = runs[runs.length - 1];
-    if (prev && prev.style === token.style) prev.text += token.text;
+    if (token.attachment) runs.push({ x: 0, width: token.width, text: token.text, style: token.style, attachment: token.attachment });
+    else if (prev && !prev.attachment && prev.style === token.style) prev.text += token.text;
     else runs.push({ x: 0, width: 0, text: token.text, style: token.style });
   }
   let x = 0;
   for (const run of runs) {
     run.x = x;
-    run.width = measurer.width(run.text, run.style.font, run.style.letterSpacing);
+    if (!run.attachment) run.width = measurer.width(run.text, run.style.font, run.style.letterSpacing);
     x += run.width;
   }
   return runs;
@@ -223,9 +291,10 @@ export function layoutText(
   measurer: TextMeasurer,
 ): TextLayout {
   const nonEmpty = spans.filter((s) => s.text.length > 0);
-  if (!nonEmpty.length) return { lines: [], width: 0, height: 0, truncated: false };
+  if (!nonEmpty.length) return { lines: [], width: 0, height: 0, truncated: false, brokeWord: false };
   const tokens = tokenize(nonEmpty, measurer);
-  let { lines: tokenLines, endStyles } = breakLines(tokens, maxWidth, measurer);
+  const broken = breakLines(tokens, maxWidth, measurer, options.hyphenation);
+  let { lines: tokenLines, endStyles } = broken;
   let truncated = false;
   const limit = options.numberOfLines ?? 0;
   if (limit > 0 && tokenLines.length > limit) {
@@ -256,6 +325,12 @@ export function layoutText(
       descent = Math.max(descent, m.descent);
       height = Math.max(height, style.lineHeight ?? m.ascent + m.descent);
     }
+    // Inline views stand on the baseline; a tall one grows the line upwards.
+    const tallest = runs.reduce((max, r) => (r.attachment ? Math.max(max, r.attachment.height) : max), 0);
+    if (tallest > ascent) {
+      height += tallest - ascent;
+      ascent = tallest;
+    }
     // Extra line height is split above and below the glyphs (RN ≥0.72 on both platforms).
     const baseline = y + (height - (ascent + descent)) / 2 + ascent;
     const lineWidth = runs.reduce((s, r) => s + r.width, 0);
@@ -263,5 +338,5 @@ export function layoutText(
     lines.push({ y, height, baseline, width: lineWidth, runs });
     y += height;
   });
-  return { lines, width, height: y, truncated };
+  return { lines, width, height: y, truncated, brokeWord: broken.brokeWord };
 }

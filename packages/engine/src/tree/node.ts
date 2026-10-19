@@ -54,6 +54,7 @@ let nextId = 1;
 const MEASURE_PROPS = [
   'numberOfLines', 'ellipsizeMode', 'allowFontScaling', 'maxFontSizeMultiplier', 'value', 'defaultValue',
   'placeholder', 'multiline', 'secureTextEntry', 'source', 'size',
+  'adjustsFontSizeToFit', 'minimumFontScale', 'android_hyphenationFrequency',
 ];
 const EMPTY: FlatStyle = Object.freeze({}) as FlatStyle;
 

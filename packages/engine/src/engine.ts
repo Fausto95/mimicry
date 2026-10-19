@@ -33,7 +33,8 @@ import type { Matrix } from './style/matrix';
 import { NO_CLIP, type ClipSpec } from '@mimicry/protocol';
 import type { TextMeasurer } from './text/measurer';
 import { collectSpans, resolveTextStyle, type TextEnvironment } from './text/spans';
-import { layoutText, type TextLayout, type TextStyle } from './text/text-layout';
+import { layoutText, type TextLayout, type TextLayoutOptions, type TextStyle } from './text/text-layout';
+import { hyphenationPoints } from './text/text-block';
 import { HostNode } from './tree/node';
 import { batchedUpdates, createFiberRoot, renderInto, type RootContainer } from './tree/reconciler';
 
@@ -90,6 +91,8 @@ export class Engine {
   readonly modals = new Set<HostNode>();
   /** views padded by their safe area insets (`safeAreaEdges`), see layout/safe-area.ts */
   readonly safeAreaNodes = new Set<HostNode>();
+  /** views nested inside <Text> (laid out as inline boxes by the text) */
+  readonly inlineViews = new Set<HostNode>();
   readonly appRoot: RootContainer;
   readonly systemRoot: RootContainer;
   readonly hooks: EngineHooks = {};
@@ -370,6 +373,7 @@ export class Engine {
     this.nodes.delete(node.id);
     this.modals.delete(node);
     this.safeAreaNodes.delete(node);
+    this.inlineViews.delete(node);
     this.images.forget(node);
     this.scrolls.release(node);
   }
@@ -453,15 +457,58 @@ export class Engine {
     if (!node.textLayout) node.textLayout = new Map();
     let layout = node.textLayout.get(key);
     if (!layout) {
-      const spans = collectSpans(node, this.textEnvironment);
-      layout = layoutText(spans, width, {
-        numberOfLines: node.props.numberOfLines,
-        ellipsizeMode: node.props.ellipsizeMode,
-      }, this.measurer);
+      layout = this.computeTextLayout(node, width);
       if (node.textLayout.size > 6) node.textLayout.clear();
       node.textLayout.set(key, layout);
     }
     return layout;
+  }
+
+  private computeTextLayout(node: HostNode, width: number): TextLayout {
+    const props = node.props;
+    const options: TextLayoutOptions = {
+      numberOfLines: props.numberOfLines,
+      ellipsizeMode: props.ellipsizeMode,
+      hyphenation: this.hyphenationFor(node),
+    };
+    const inlineSize = (n: HostNode) => n.native.inlineSize ?? { width: 0, height: 0 };
+    const run = (fitScale: number) =>
+      layoutText(collectSpans(node, fitScale === 1 ? this.textEnvironment : { ...this.textEnvironment, fitScale }, inlineSize), width, options, this.measurer);
+    const layout = run(1);
+    if (!props.adjustsFontSizeToFit || width === Infinity) return layout;
+    // adjustsFontSizeToFit: the largest scale (≥ minimumFontScale) at which the text
+    // fits its lines and box without truncating or breaking a word.
+    const maxHeight = this.fitHeight(node);
+    const fits = (l: TextLayout) => !l.truncated && !l.brokeWord && l.height <= maxHeight + 0.5;
+    if (fits(layout)) return layout;
+    const min = Math.min(1, Math.max(0.01, Number(props.minimumFontScale) || 0.01));
+    let best = run(min);
+    if (!fits(best)) return best;
+    let lo = min;
+    let hi = 1;
+    for (let i = 0; i < 8; i++) {
+      const mid = (lo + hi) / 2;
+      const candidate = run(mid);
+      if (fits(candidate)) {
+        lo = mid;
+        best = candidate;
+      } else hi = mid;
+    }
+    return best;
+  }
+
+  /** The content height a text must fit for adjustsFontSizeToFit (its fixed height, if any). */
+  private fitHeight(node: HostNode): number {
+    const style = node.computed;
+    const fixed = typeof style.height === 'number' ? style.height : typeof style.maxHeight === 'number' ? style.maxHeight : Infinity;
+    return fixed - node.insets.top - node.insets.bottom;
+  }
+
+  /** Android's `android_hyphenationFrequency` ('none' by default; iOS never hyphenates). */
+  private hyphenationFor(node: HostNode): TextLayoutOptions['hyphenation'] {
+    const frequency = node.props.android_hyphenationFrequency;
+    if (this.kit.platform !== 'android' || (frequency !== 'normal' && frequency !== 'full')) return undefined;
+    return { frequency, points: hyphenationPoints };
   }
 
   inputTextStyle(node: HostNode): TextStyle {
