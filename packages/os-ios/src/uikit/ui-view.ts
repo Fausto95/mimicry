@@ -234,6 +234,13 @@ export class UIView extends UIResponder {
     this.layer.setNeedsDisplay();
   }
 
+  /** Mimicry: set the frame only when it differs (layout passes stay cheap and record no animation). */
+  setFrameIfNeeded(frame: CGRect): void {
+    const f = this.frame;
+    if (f.origin.x === frame.origin.x && f.origin.y === frame.origin.y && f.size.width === frame.size.width && f.size.height === frame.size.height) return;
+    this.frame = frame;
+  }
+
   get bounds(): CGRect {
     return this.layer.boundsRect;
   }

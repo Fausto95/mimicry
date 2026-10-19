@@ -41,6 +41,8 @@ export * from './uikit/ui-screen';
 export * from './uikit/ui-application';
 export * from './uikit/ui-scroll-view';
 export * from './uikit/ui-label';
+export * from './uikit/ui-table-view-cell';
+export * from './uikit/ui-table-view';
 export * from './uikit/sf-symbols';
 export * from './uikit/ui-image';
 export * from './uikit/ui-image-view';
