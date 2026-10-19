@@ -1,4 +1,5 @@
 import type { CGPoint, CGRect } from '../core-graphics/geometry';
+import { IndexPath } from '../foundation/index-path';
 import { NSLineBreakMode } from './ns-paragraph-style';
 import { UIColor } from './ui-color';
 import { UIFont, UIFontWeight } from './ui-font';
@@ -30,22 +31,6 @@ export enum UITableViewCellSeparatorStyle { none = 0, singleLine = 1 }
 export enum UITableViewRowAnimation { fade = 0, right = 1, left = 2, top = 3, bottom = 4, none = 5, middle = 6, automatic = 100 }
 
 export const UITableViewAutomaticDimension = -1;
-
-export class IndexPath {
-  constructor(readonly row: number, readonly section: number) {}
-
-  get item(): number {
-    return this.row;
-  }
-
-  isEqual(other: IndexPath | null): boolean {
-    return !!other && other.row === this.row && other.section === this.section;
-  }
-
-  toString(): string {
-    return `[${this.section}, ${this.row}]`;
-  }
-}
 
 export interface UITableViewDataSource {
   numberOfSections?(tableView: UITableView): number;
