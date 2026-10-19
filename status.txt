@@ -1,0 +1,4 @@
+outcome: success
+commit: 51942221d9aaa38340f15c219402ac37d75a5bbe
+platform: ios
+project: examples/router-stack

@@ -1,0 +1,3 @@
+appId: com.mimicry.routerstack
+---
+- tapOn: {"id":"compose"}

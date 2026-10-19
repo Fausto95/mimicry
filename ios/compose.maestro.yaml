@@ -1,0 +1,7 @@
+appId: com.mimicry.routerstack
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: {"id":"compose"}
+- waitForAnimationToEnd

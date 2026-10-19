@@ -1,0 +1,8 @@
+android-compose              — no reference capture
+android-details              — no reference capture
+android-inbox                — no reference capture
+compose                      6.24% 
+details                      0.94% 
+inbox-dark                   9.55% 
+inbox                        9.81% 
+report: /Users/runner/work/mimicry/mimicry/oracle/router-stack/ios-report/index.html
