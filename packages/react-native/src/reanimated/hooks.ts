@@ -1,3 +1,4 @@
+import { maybeEngine } from '../engine-ref';
 import { useEffect, useLayoutEffect, useMemo, useRef, type DependencyList } from 'react';
 import type { HostNode } from '@mimicry/engine';
 import { Mutable, makeMutable, type SharedValue } from './mutable';
@@ -221,6 +222,9 @@ export interface EventHandlerProcessed {
   readonly __reanimatedEventHandler: true;
   readonly eventNames: string[];
   handle(eventName: string, event: unknown): void;
+  /** WorkletEventHandler API: listen to a native view's events by tag (libraries attach to their own views) */
+  registerForEvents(viewTag: number, fallbackEventName?: string): void;
+  unregisterFromEvents(viewTag: number): void;
 }
 
 export function isEventHandler(value: unknown): value is EventHandlerProcessed {
@@ -234,15 +238,35 @@ function propName(eventName: string): string {
   return `on${bare.charAt(0).toUpperCase()}${bare.slice(1)}`;
 }
 
+/**
+ * An event handler object: Animated components route their events to
+ * `handle`; libraries can also attach it to one of their native views by
+ * tag (WorkletEventHandler.registerForEvents).
+ */
+function eventHandler(eventNames: string[], handle: (eventName: string, event: unknown) => void): EventHandlerProcessed {
+  const detach = new Map<number, () => void>();
+  return {
+    __reanimatedEventHandler: true as const,
+    eventNames,
+    handle,
+    registerForEvents(viewTag: number, fallbackEventName?: string) {
+      const engine = maybeEngine();
+      if (!engine || detach.has(viewTag)) return;
+      const listen = eventNames.length ? eventNames : fallbackEventName ? [propName(fallbackEventName)] : [];
+      detach.set(viewTag, engine.events.attach(viewTag, listen, (event) => handle(String(event.eventName ?? listen[0]), event)));
+    },
+    unregisterFromEvents(viewTag: number) {
+      detach.get(viewTag)?.();
+      detach.delete(viewTag);
+    },
+  };
+}
+
 export function useEvent<E>(handler: (event: E) => void, eventNames: string[] = [], _rebuild = false): EventHandlerProcessed {
   const latest = useRef(handler);
   latest.current = handler;
   return useMemo(
-    () => ({
-      __reanimatedEventHandler: true as const,
-      eventNames: eventNames.map(propName),
-      handle: (_name: string, event: unknown) => latest.current(event as E),
-    }),
+    () => eventHandler(eventNames.map(propName), (_name, event) => latest.current(event as E)),
     [eventNames.join(',')], // eslint-disable-line react-hooks/exhaustive-deps
   );
 }
@@ -276,28 +300,21 @@ export function useAnimatedScrollHandler(handlers: ScrollHandlers | ScrollHandle
     const byProp = new Map<string, keyof ScrollHandlers>();
     const initial = typeof handlers === 'function' ? { onScroll: handlers } : handlers ?? {};
     for (const key of Object.keys(initial) as Array<keyof ScrollHandlers>) if (SCROLL_EVENTS[key]) byProp.set(SCROLL_EVENTS[key], key);
-    return {
-      __reanimatedEventHandler: true as const,
-      eventNames: Array.from(byProp.keys()),
-      handle(eventName: string, event: unknown) {
-        const current = latest.current;
-        const set = typeof current === 'function' ? { onScroll: current } : current ?? {};
-        set[byProp.get(eventName)!]?.(event, context);
-      },
-    };
+    return eventHandler(Array.from(byProp.keys()), (eventName, event) => {
+      const current = latest.current;
+      const set = typeof current === 'function' ? { onScroll: current } : current ?? {};
+      set[byProp.get(eventName)!]?.(event, context);
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export function useComposedEventHandler(handlers: Array<EventHandlerProcessed | null>): EventHandlerProcessed {
   const list = handlers.filter(Boolean) as EventHandlerProcessed[];
   return useMemo(
-    () => ({
-      __reanimatedEventHandler: true as const,
-      eventNames: Array.from(new Set(list.flatMap((h) => h.eventNames))),
-      handle(eventName: string, event: unknown) {
+    () =>
+      eventHandler(Array.from(new Set(list.flatMap((h) => h.eventNames))), (eventName, event) => {
         for (const h of list) if (h.eventNames.includes(eventName)) h.handle(eventName, event);
-      },
-    }),
+      }),
     list, // eslint-disable-line react-hooks/exhaustive-deps
   );
 }

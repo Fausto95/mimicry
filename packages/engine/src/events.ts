@@ -53,7 +53,25 @@ export function syntheticEvent<T extends Record<string, unknown>>(
 export type Priority = 'discrete' | 'continuous' | 'default';
 
 export class EventDispatcher {
+  /** handlers attached to a view by tag, outside its props (Reanimated's registerForEvents) */
+  private readonly attached = new Map<number, Set<{ names: ReadonlySet<string>; fn: (event: Record<string, unknown>) => void }>>();
+
   constructor(private readonly report: (error: unknown) => void) {}
+
+  /**
+   * Attach a handler to a view's events by its tag, like Reanimated's
+   * WorkletEventHandler.registerForEvents. Receives the native event payload.
+   */
+  attach(nodeId: number, names: Iterable<string>, fn: (event: Record<string, unknown>) => void): () => void {
+    let set = this.attached.get(nodeId);
+    if (!set) this.attached.set(nodeId, (set = new Set()));
+    const entry = { names: new Set(names), fn };
+    set.add(entry);
+    return () => {
+      set!.delete(entry);
+      if (!set!.size) this.attached.delete(nodeId);
+    };
+  }
 
   /** Calls props[handler] if present. Returns the handler's return value. */
   invoke<R = unknown>(node: HostNode, handler: string, event: unknown, priority: Priority = 'discrete', ...extra: unknown[]): R | undefined {
@@ -77,6 +95,12 @@ export class EventDispatcher {
   }
 
   emit(node: HostNode, handler: string, nativeEvent: Record<string, unknown>, timeStamp: number, priority: Priority = 'discrete'): void {
+    const attached = this.attached.get(node.id);
+    if (attached) {
+      for (const entry of Array.from(attached)) {
+        if (entry.names.has(handler)) this.run(() => entry.fn({ ...nativeEvent, eventName: handler }), priority);
+      }
+    }
     if (typeof node.props[handler] !== 'function') return;
     this.invoke(node, handler, syntheticEvent(handler.replace(/^on/, '').toLowerCase(), node, nativeEvent, timeStamp), priority);
   }

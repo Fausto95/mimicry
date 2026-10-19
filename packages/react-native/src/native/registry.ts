@@ -64,6 +64,27 @@ export function resetNativeModules(): void {
   moduleInstances.clear();
 }
 
+/**
+ * A module Mimicry doesn't implement, for TurboModuleRegistry lookups: every
+ * method is a no-op (promise-returning callers get a resolved promise, so
+ * awaiting works), `getConstants()` is empty. On a device an unlinked module
+ * crashes the app; in a previewer it is more useful to run without it.
+ */
+export function stubNativeModule(name: string): unknown {
+  if (moduleInstances.has(name)) return moduleInstances.get(name);
+  warnOnce(`module:${name}`, `Mimicry has no implementation of the native module "${name}"; its methods do nothing.`);
+  const stub = new Proxy({} as Record<string | symbol, unknown>, {
+    get(target, prop) {
+      if (prop in target) return target[prop];
+      if (typeof prop === 'symbol' || prop === 'then' || prop === 'toJSON' || prop === '$$typeof') return undefined;
+      if (prop === 'getConstants') return () => ({});
+      return () => undefined;
+    },
+  });
+  moduleInstances.set(name, stub);
+  return stub;
+}
+
 export function hasNativeComponent(name: string): boolean {
   return components.has(name);
 }

@@ -24,11 +24,13 @@ export { setActiveEngine, getEngine } from './engine-ref';
 export { setAppConfig, getAppConfig } from './app-context';
 export { resetNativeModules } from './native/registry';
 
-import { getNativeModule, nativeComponent, nativeCommands } from './native/registry';
+import { getNativeModule, nativeComponent, nativeCommands, stubNativeModule } from './native/registry';
 import './native/expo-modules';
 import './native/svg';
 import './native/screens';
 import './native/expo-views';
+export { loadStorage, type StorageSnapshot } from './native/storage';
+import './native/storage';
 import './native/materials';
 export { DeviceEventEmitter, NativeEventEmitter } from './native/events';
 export {
@@ -38,14 +40,8 @@ export {
 
 /** Native modules: implemented in JS by Mimicry (see native/registry.ts). */
 export const TurboModuleRegistry = {
-  get: <T = any>(name: string): T | null => getNativeModule<T>(name),
-  getEnforcing: <T = any>(name: string): T => {
-    const module = getNativeModule<T>(name);
-    if (module == null) {
-      throw new Error(`TurboModuleRegistry.getEnforcing(...): '${name}' could not be found. Mimicry has no implementation of this native module.`);
-    }
-    return module;
-  },
+  get: <T = any>(name: string): T | null => getNativeModule<T>(name) ?? (stubNativeModule(name) as T),
+  getEnforcing: <T = any>(name: string): T => getNativeModule<T>(name) ?? (stubNativeModule(name) as T),
 };
 export const requireNativeComponent = (name: string) => nativeComponent(name);
 export const codegenNativeComponent = (name: string, _options?: unknown) => nativeComponent(name);

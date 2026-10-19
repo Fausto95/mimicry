@@ -61,6 +61,8 @@ export type HostMessage =
       /** 'host' = the host's vsync drives frames; 'virtual' = test runner ticks */
       clock?: 'host' | 'virtual';
       inspector?: boolean;
+      /** the app's persisted key/value storage (MMKV, AsyncStorage…) from earlier runs */
+      storage?: Record<string, Record<string, string>>;
     }
   | { type: 'frame'; time: number }
   | { type: 'pointer'; phase: PointerPhase; id: number; x: number; y: number; time: number }
@@ -129,7 +131,8 @@ export type EngineMessage =
   | { type: 'focusInput'; nodeId: number }
   | { type: 'blurInput'; nodeId: number }
   | { type: 'reloadRequested' }
-  | { type: 'loadFont'; family: string; url: string; weight?: string; style?: string };
+  | { type: 'loadFont'; family: string; url: string; weight?: string; style?: string }
+  | { type: 'storageWrite'; namespace: string; key: string; value: string | null };
 
 export interface Transport<In, Out> {
   send(message: Out, transfer?: Transferable[]): void;

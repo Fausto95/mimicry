@@ -139,6 +139,7 @@ async function main(): Promise<void> {
     workerUrl: manifest.base,
     fonts: manifest.fonts,
     fontMode: 'system',
+    storageKey: `mimicry:storage:${manifest.project.name}`,
     onMessage: handleEngineMessage,
     onFrame: (stats) => {
       latestStats = stats;

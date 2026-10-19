@@ -8,7 +8,7 @@ installRefresh();
 
 import { CanvasTextMeasurer, Engine, RealClock, loadYoga } from '@mimicry/engine';
 import type { EngineMessage, HostMessage } from '@mimicry/protocol';
-import { CAPABILITIES } from '@mimicry/react-native';
+import { CAPABILITIES, loadStorage } from '@mimicry/react-native';
 import { AppRuntime } from './app-runtime';
 
 declare const self: {
@@ -87,6 +87,7 @@ async function boot(message: Extract<HostMessage, { type: 'boot' }>): Promise<vo
     setInterval: (fn, ms) => setInterval(fn, ms),
     clearInterval: (h) => clearInterval(h as number),
   });
+  loadStorage(message.storage);
   runtime.start(message.app);
   send({ type: 'ready', capabilities: CAPABILITIES, platform: engine.platform });
   engine.requestFrame();

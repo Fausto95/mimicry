@@ -45,6 +45,11 @@ class ExpoWebBrowserModule extends NativeModule {
 let systemBackground: string | null = null;
 
 registerNativeModules({
+  // React Native's own modules libraries reach for through spec imports
+  SourceCode: () => ({ getConstants: () => ({ scriptURL: 'http://localhost:8081/index.bundle?platform=' + platform() }) }),
+  PlatformConstants: () => ({ getConstants: () => ({ isTesting: false, reactNativeVersion: { major: 0, minor: 88, patch: 0 }, osVersion: device()?.osVersion, systemName: platform() === 'ios' ? 'iOS' : 'Android', interfaceIdiom: device()?.idiom === 'tablet' ? 'pad' : 'phone' }) }),
+  DeviceInfo: () => ({ getConstants: () => ({ Dimensions: { window: maybeEngine()?.env.window, screen: maybeEngine()?.env.screen } }) }),
+
   ExponentConstants: () => {
     const config = getAppConfig();
     const d = device();
@@ -125,6 +130,18 @@ registerNativeModules({
       }
     },
     getBackgroundColorAsync: async () => systemBackground,
+  }),
+
+  // en-US with the device's settings, like a freshly reset simulator
+  ExpoLocalization: () => ({
+    getLocales: () => [{
+      languageTag: 'en-US', languageCode: 'en', regionCode: 'US', languageRegionCode: 'US', currencyCode: 'USD', currencySymbol: '$',
+      languageCurrencyCode: 'USD', languageCurrencySymbol: '$', decimalSeparator: '.', digitGroupingSeparator: ',', textDirection: 'ltr',
+      measurementSystem: 'us', temperatureUnit: 'fahrenheit', languageScriptCode: null,
+    }],
+    getCalendars: () => [{ calendar: 'gregorian', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC', uses24hourClock: false, firstWeekday: 1 }],
+    addListener: () => {},
+    removeListeners: () => {},
   }),
 
   ExpoKeepAwake: () => ({

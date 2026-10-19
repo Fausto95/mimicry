@@ -18,7 +18,8 @@ interface CacheEntry {
   result: TransformResult;
 }
 
-const REQUIRE = /\brequire\(\s*(['"])([^'"]+)\1\s*\)/g;
+// SWC keeps comments that followed an import inside the call: require("./x" // note\n)
+const REQUIRE = /\brequire\(\s*(['"])([^'"]+)\1(?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*\)/g;
 
 export class Transformer {
   private readonly cache = new Map<string, CacheEntry>();

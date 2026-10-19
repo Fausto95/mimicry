@@ -17,6 +17,8 @@ export interface EngineHostOptions {
   workerUrl: string;
   fonts: FontSpecRecord[];
   fontMode?: 'system' | 'bundled';
+  /** localStorage key under which the app's own storage (MMKV, AsyncStorage…) persists; omit for none */
+  storageKey?: string;
   onMessage?: (message: EngineMessage) => void;
   onFrame?: (stats: { engine: FrameStats; host: CompositorStats }) => void;
 }
@@ -101,7 +103,36 @@ export class EngineHost {
     this.worker = worker;
     worker.onmessage = (e: MessageEvent<EngineMessage>) => this.receive(e.data);
     worker.onerror = (e) => this.options.onMessage?.({ type: 'error', error: { kind: 'runtime', message: e.message || 'Engine worker failed to start' } });
-    this.post({ type: 'boot', environment, app, fonts, fontMode: this.options.fontMode ?? 'system', clock: 'host' });
+    this.post({ type: 'boot', environment, app, fonts, fontMode: this.options.fontMode ?? 'system', clock: 'host', storage: this.readStorage() });
+  }
+
+  // ── app storage ───────────────────────────────────────────────────────
+
+  private readStorage(): Record<string, Record<string, string>> {
+    if (!this.options.storageKey) return {};
+    try {
+      return JSON.parse(localStorage.getItem(this.options.storageKey) ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  private writeStorage(namespace: string, key: string, value: string | null): void {
+    if (!this.options.storageKey) return;
+    const all = this.readStorage();
+    const space = (all[namespace] ??= {});
+    if (value === null) delete space[key];
+    else space[key] = value;
+    try {
+      localStorage.setItem(this.options.storageKey, JSON.stringify(all));
+    } catch {
+      // quota or privacy mode: storage just doesn't persist
+    }
+  }
+
+  /** Erase the app's persisted storage ("delete the app"); takes effect at the next boot. */
+  clearAppData(): void {
+    if (this.options.storageKey) localStorage.removeItem(this.options.storageKey);
   }
 
   setEnvironment(environment: Partial<EnvironmentSpec>, full: EnvironmentSpec): void {
@@ -221,6 +252,9 @@ export class EngineHost {
       case 'openURL':
         window.open(message.url, '_blank', 'noopener,noreferrer');
         break;
+      case 'storageWrite':
+        this.writeStorage(message.namespace, message.key, message.value);
+        return;
       case 'loadFont':
         // A custom font (expo-font): cached rasters drew fallback glyphs, so repaint once it is in.
         void loadDocumentFonts([{ family: message.family, url: message.url, weight: message.weight ?? 'normal', style: message.style ?? 'normal' } as FontSpecRecord]).then(() => {

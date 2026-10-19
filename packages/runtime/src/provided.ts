@@ -21,6 +21,17 @@ import * as Worklets from '@mimicry/react-native/worklets';
  * against these instead of bundling their own copy: one React, one
  * react-native, and the native side of libraries implemented by Mimicry.
  */
+/**
+ * A module with a default export, shaped for both CommonJS interop modes:
+ * Babel-style (`__esModule` → `.default`) and Node-style ESM packages, where
+ * `import Animated from 'react-native-reanimated'` is the whole exports
+ * object — so the default's members are on the exports object as well.
+ */
+function withDefault(ns: Record<string, unknown>): Record<string, unknown> {
+  const fallback = ns.default && typeof ns.default === 'object' ? (ns.default as Record<string, unknown>) : {};
+  return { ...fallback, ...ns, __esModule: true };
+}
+
 export const PROVIDED_MODULES: Record<string, unknown> = {
   react: React,
   'react/jsx-runtime': JSXRuntime,
@@ -38,9 +49,8 @@ export const PROVIDED_MODULES: Record<string, unknown> = {
   'react-native-gesture-handler/ReanimatedDrawerLayout': GestureHandlerDrawerLayout,
   'react-native-gesture-handler/Swipeable': GestureHandlerSwipeable,
   'react-native-gesture-handler/DrawerLayout': GestureHandlerDrawerLayout,
-  // These have a default export: mark them as ES modules for CommonJS interop.
-  'react-native-reanimated': { __esModule: true, ...Reanimated },
-  'react-native-worklets': { __esModule: true, ...Worklets },
+  'react-native-reanimated': withDefault(Reanimated),
+  'react-native-worklets': withDefault(Worklets),
 };
 
 export const PROVIDED_SPECIFIERS = Object.keys(PROVIDED_MODULES);

@@ -6,6 +6,8 @@ import { BackHandler } from './core';
 import { clearErrors, resetSystemUI, showError, SystemUI } from '../system/system-ui';
 import { View } from '../components/primitives';
 import { splash } from '../native/splash';
+import { getNativeModule } from '../native/registry';
+import { FetchXMLHttpRequest } from '../polyfills/xhr';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;
 
@@ -113,6 +115,10 @@ function installGlobals(engine: Engine): void {
   g.setImmediate ??= (fn: (...args: unknown[]) => void, ...args: unknown[]) => setTimeout(() => fn(...args), 0);
   g.clearImmediate ??= (id: unknown) => clearTimeout(id as any);
   g.__DEV__ = true;
+  g.XMLHttpRequest ??= FetchXMLHttpRequest;
+  // The new architecture, as libraries detect it.
+  g.RN$Bridgeless = true;
+  g.__turboModuleProxy ??= (name: string) => getNativeModule(name);
 }
 
 /** Connects the React Native surface to an engine and mounts system UI. */

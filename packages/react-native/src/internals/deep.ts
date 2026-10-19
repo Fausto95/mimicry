@@ -1,6 +1,7 @@
 import React from 'react';
 import * as RN from '../index';
 import { getAssetByID, registerAsset, resolveAssetSource } from './asset-registry';
+import { getNativeModule, stubNativeModule, warnOnce } from '../native/registry';
 
 /**
  * Deep imports into React Native (`react-native/Libraries/…`). Libraries reach
@@ -19,9 +20,17 @@ const DEEP: Record<string, () => unknown> = {
   'Libraries/ReactNative/requireNativeComponent': () => esm(RN.requireNativeComponent),
   'Libraries/Image/AssetRegistry': () => esm({ registerAsset, getAssetByID }, { registerAsset, getAssetByID }),
   '@react-native/assets-registry/registry': () => esm({ registerAsset, getAssetByID }, { registerAsset, getAssetByID }),
-  'Libraries/Image/resolveAssetSource': () => esm(resolveAssetSource),
+  // expo-asset installs a source transformer; Mimicry's asset URIs are already final, so it is accepted and unused.
+  'Libraries/Image/resolveAssetSource': () => {
+    const fn = Object.assign((source: unknown) => resolveAssetSource(source), { setCustomSourceTransformer() {}, addCustomSourceTransformer() {} });
+    return esm(fn, { setCustomSourceTransformer: fn.setCustomSourceTransformer, addCustomSourceTransformer: fn.addCustomSourceTransformer });
+  },
   'Libraries/Image/AssetSourceResolver': () =>
     esm(class AssetSourceResolver {
+      static pickScale(scales: number[], deviceScale: number): number {
+        for (const scale of scales) if (scale >= deviceScale) return scale;
+        return scales[scales.length - 1] ?? 1;
+      }
       constructor(_serverUrl: unknown, _jsbundleUrl: unknown, private readonly asset: { uri?: string; width: number; height: number; scale: number }) {}
       defaultAsset() {
         return { __packager_asset: true, uri: this.asset.uri, width: this.asset.width, height: this.asset.height, scale: this.asset.scale };
@@ -76,15 +85,26 @@ const STYLE_ATTRIBUTES = Object.fromEntries(
     .map((k) => [k, true]),
 );
 
-/** Resolve `react-native/<path>`, or undefined when Mimicry has nothing for it. */
+/**
+ * Resolve `react-native/<path>`. Unknown internals resolve to an empty module
+ * (with one warning) so a library probing an internal it can live without
+ * keeps working; using something from it fails at that use, not at import.
+ */
 export function resolveReactNativeDeep(path: string): unknown {
   const clean = path.replace(/\.(js|ts|tsx)$/, '');
   const exact = DEEP[clean];
   if (exact) return exact();
+  const name = clean.split('/').pop()!;
+  // TurboModule specs: Libraries/.../specs/NativeSourceCode → the 'SourceCode' module
+  const spec = /^Native(\w+)$/.exec(name);
+  if (clean.includes('/specs/') && spec) {
+    const module = getNativeModule(spec[1]!) ?? stubNativeModule(spec[1]!);
+    return esm(module);
+  }
   if (clean.startsWith('Libraries/')) {
-    const name = clean.split('/').pop()!;
     const value = (RN as Record<string, unknown>)[name];
     if (value !== undefined) return esm(value, typeof value === 'object' && value ? (value as Record<string, unknown>) : {});
   }
-  return undefined;
+  warnOnce(`deep:${clean}`, `Mimicry doesn't implement "react-native/${clean}"; importing it gives an empty module.`);
+  return esm(undefined);
 }

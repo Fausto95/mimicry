@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DevSettings, Platform as RNPlatform } from '../apis/core';
 import { EventEmitter as BaseEmitter, type EventSubscription } from '../native/events';
-import { getNativeModule, nativeComponent } from '../native/registry';
+import { getNativeModule, nativeComponent, stubNativeModule } from '../native/registry';
 
 /**
  * expo-modules-core, the JavaScript half of the Expo Modules API. On a device
@@ -72,10 +72,9 @@ export const Platform = {
   isAsyncDebugging: false,
 };
 
+/** Unknown modules are no-op stubs (with one warning) rather than a crash; see native/registry.ts. */
 export function requireNativeModule<T = any>(moduleName: string): T {
-  const module = getNativeModule<T>(moduleName);
-  if (module == null) throw new Error(`Cannot find native module '${moduleName}'. Mimicry has no implementation of it yet.`);
-  return module;
+  return getNativeModule<T>(moduleName) ?? (stubNativeModule(moduleName) as T);
 }
 
 export function requireOptionalNativeModule<T = any>(moduleName: string): T | null {
