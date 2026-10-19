@@ -1,7 +1,7 @@
 import { build, type Plugin } from 'esbuild';
 import flowRemoveTypes from 'flow-remove-types';
 import { readFileSync } from 'node:fs';
-import { basename, extname } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { isProvidedSpecifier, PROVIDED_MODULE_IDS, providedId, type ModuleRecord, type PlatformName } from '@mimicry/protocol';
 import { ASSET_REGISTRY, imageSize, resolveAssetVariant } from './assets';
 import { platformExtensions } from './resolver';
@@ -24,10 +24,27 @@ export interface VendorResult {
   errors: string[];
 }
 
-function mimicryPlugin(): Plugin {
+/**
+ * Metro compiles packages to CommonJS, where importing a name a module
+ * doesn't export is `undefined`; esbuild rejects it for ES modules. Files
+ * that do this (expo-asset's Asset.fx on Android, for one) are converted to
+ * CommonJS with SWC and bundled again.
+ */
+async function toCommonJS(file: string): Promise<string> {
+  const { transform } = await import('@swc/core');
+  const out = await transform(readFileSync(file, 'utf8'), {
+    filename: file,
+    jsc: { parser: /\.tsx?$/.test(file) ? { syntax: 'typescript', tsx: file.endsWith('x') } : { syntax: 'ecmascript', jsx: true }, target: 'es2022' },
+    module: { type: 'commonjs', ignoreDynamic: true },
+  });
+  return out.code;
+}
+
+function mimicryPlugin(cjsFiles: ReadonlySet<string>): Plugin {
   return {
     name: 'mimicry-vendor',
     setup(b) {
+      b.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async (args) => (cjsFiles.has(args.path) ? { contents: await toCommonJS(args.path), loader: 'js' } : undefined));
       // expo-router reads the app directory through Metro's require.context.
       b.onResolve({ filter: /^expo-router\/_ctx(\.[a-z]+)?(\.js)?$/ }, () => ({ path: ROUTER_CONTEXT_ID, external: true }));
       b.onResolve({ filter: /^[^./]/ }, (args) => {
@@ -39,6 +56,13 @@ function mimicryPlugin(): Plugin {
         const source = readFileSync(args.path, 'utf8');
         if (!/@flow\b|^\s*(import|export) type\b|^\s*import typeof\b/m.test(source)) return undefined;
         return { contents: flowRemoveTypes(source, { all: true }).toString(), loader: 'jsx' };
+      });
+      // Other assets packages require (Android vector drawables, media) register by data URL.
+      b.onLoad({ filter: /\.(xml|mp3|mp4|wav|lottie)$/i }, (args) => {
+        const ext = extname(args.path).slice(1).toLowerCase();
+        const mime = { xml: 'text/xml', mp3: 'audio/mpeg', mp4: 'video/mp4', wav: 'audio/wav', lottie: 'application/zip' }[ext] ?? 'application/octet-stream';
+        const asset = { uri: `data:${mime};base64,${readFileSync(args.path).toString('base64')}`, width: 0, height: 0, scale: 1, type: ext, name: basename(args.path, '.' + ext) };
+        return { contents: `module.exports = require(${JSON.stringify(ASSET_REGISTRY)}).registerAsset(${JSON.stringify(asset)});`, loader: 'js' };
       });
       // Fonts inside packages (icon fonts) register as assets for expo-font.
       b.onLoad({ filter: /\.(ttf|otf)$/i }, (args) => {
@@ -66,12 +90,25 @@ function mimicryPlugin(): Plugin {
   };
 }
 
+const MISSING_EXPORT = /^No matching export in "([^"]+)" for import/;
+
 export async function buildVendor(root: string, specifiers: string[], platform: PlatformName): Promise<VendorResult> {
   if (!specifiers.length) return { records: [], errors: [] };
+  const cjsFiles = new Set<string>();
+  for (let attempt = 0; ; attempt++) {
+    const result = await bundleVendor(root, specifiers, platform, cjsFiles);
+    const retry = attempt < 4 && result.missingExports.filter((f) => !cjsFiles.has(f));
+    if (!retry || !retry.length) return result;
+    for (const f of retry) cjsFiles.add(f);
+  }
+}
+
+async function bundleVendor(root: string, specifiers: string[], platform: PlatformName, cjsFiles: ReadonlySet<string>): Promise<VendorResult & { missingExports: string[] }> {
   const entry = `module.exports = {\n${specifiers.map((s) => `  ${JSON.stringify(s)}: function () { return require(${JSON.stringify(s)}); },`).join('\n')}\n};`;
   try {
     const result = await build({
       stdin: { contents: entry, resolveDir: root, sourcefile: 'mimicry-vendor.js', loader: 'js' },
+      absWorkingDir: root,
       bundle: true,
       write: false,
       format: 'cjs',
@@ -80,10 +117,9 @@ export async function buildVendor(root: string, specifiers: string[], platform: 
       mainFields: ['react-native', 'browser', 'module', 'main'],
       conditions: ['react-native', 'browser', 'import', 'require', 'default'],
       resolveExtensions: platformExtensions(platform),
-      plugins: [mimicryPlugin()],
+      plugins: [mimicryPlugin(cjsFiles)],
       loader: {
-        '.js': 'jsx', '.css': 'empty', '.svg': 'empty', '.mp4': 'empty', '.mp3': 'empty',
-        '.wav': 'empty', '.lottie': 'empty', '.html': 'text', '.md': 'text',
+        '.js': 'jsx', '.css': 'empty', '.svg': 'empty', '.html': 'text', '.md': 'text',
       },
       define: {
         __DEV__: 'true',
@@ -104,18 +140,18 @@ export async function buildVendor(root: string, specifiers: string[], platform: 
     for (const s of specifiers) {
       records.push({ id: `vendor:${s}`, code: `module.exports = require(${JSON.stringify(VENDOR_BUNDLE_ID)})[${JSON.stringify(s)}]();`, deps: { [VENDOR_BUNDLE_ID]: VENDOR_BUNDLE_ID } });
     }
-    return { records, errors: [] };
+    return { records, errors: [], missingExports: [] };
   } catch (error) {
-    const errors = ((error as { errors?: Array<{ text: string; location?: { file: string; line: number } }> }).errors ?? []).map(
-      (e) => `${e.location ? `${e.location.file}:${e.location.line}: ` : ''}${e.text}`,
-    );
+    const raw = (error as { errors?: Array<{ text: string; location?: { file: string; line: number } | null }> }).errors ?? [];
+    const missingExports = raw.filter((e) => MISSING_EXPORT.test(e.text) && e.location).map((e) => resolve(root, e.location!.file));
+    const errors = raw.map((e) => `${e.location ? `${e.location.file}:${e.location.line}: ` : ''}${e.text}`);
     const message = errors.length ? errors.join('\n') : String(error);
     const records = specifiers.map((s) => ({
       id: `vendor:${s}`,
       code: `var e = new Error(${JSON.stringify(`Could not bundle "${s}":\n${message}`)}); throw e;`,
       deps: {},
     }));
-    return { records, errors: [message] };
+    return { records, errors: [message], missingExports };
   }
 }
 

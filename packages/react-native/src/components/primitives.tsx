@@ -93,9 +93,11 @@ Object.assign(Image, {
   async queryCache() {
     return {};
   },
-  resolveAssetSource(source: unknown) {
-    return resolveAssetSource(source);
-  },
+  resolveAssetSource: Object.assign((source: unknown) => resolveAssetSource(source), {
+    // expo-asset installs a transformer; Mimicry's asset URIs are already final.
+    setCustomSourceTransformer() {},
+    addCustomSourceTransformer() {},
+  }),
 } satisfies ImageStatics);
 
 export const ImageBackground = forwardRef<any, AnyProps>(function ImageBackground(props, ref) {
