@@ -186,7 +186,15 @@ export class ScrollView extends FrameLayout implements FrameTask {
         if (this.horizontal && child.getMeasuredWidth() < width - padW) child.measure(fixedW, hSpec);
       }
     }
-    this.setMeasuredDimension(width, height);
+    // Not exactly sized (wrap_content): as big as the content, up to the limit, like FrameLayout.
+    const padW = this.getPaddingLeft() + this.getPaddingRight();
+    const padH = this.getPaddingTop() + this.getPaddingBottom();
+    const contentW = (child?.getMeasuredWidth() ?? 0) + padW;
+    const contentH = (child?.getMeasuredHeight() ?? 0) + padH;
+    this.setMeasuredDimension(
+      MeasureSpec.getMode(widthMeasureSpec) === MeasureSpec.EXACTLY ? width : View.resolveSize(contentW, widthMeasureSpec),
+      MeasureSpec.getMode(heightMeasureSpec) === MeasureSpec.EXACTLY ? height : View.resolveSize(contentH, heightMeasureSpec),
+    );
   }
 
   // ── programmatic scrolling ──────────────────────────────────────────

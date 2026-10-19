@@ -50,3 +50,5 @@ export * from './material/snackbar';
 export * from './widget/seek-bar';
 export * from './widget/toast';
 export * from './widget/recycler-view';
+export * from './app/dialog';
+export * from './material/alert-dialog';
