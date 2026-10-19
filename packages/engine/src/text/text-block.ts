@@ -1,6 +1,9 @@
-import { hyphenateSync } from 'hyphen/en-us';
+// CommonJS package: take the default export so Node's ESM loader and bundlers agree.
+import enUs from 'hyphen/en-us';
 import type { FlatStyle } from '../style/flatten';
 import type { TextLayout, TextLine } from './text-layout';
+
+const { hyphenateSync } = enUs;
 
 /**
  * Where a laid-out paragraph sits inside its text box: horizontal alignment
