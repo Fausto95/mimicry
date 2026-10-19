@@ -1,5 +1,9 @@
 import type { CommandWriter, Radii } from '@mimicry/protocol';
 import { Color } from './color';
+import { Typeface, type FontMetrics } from '../text/typeface';
+import { Looper } from '../os/looper';
+
+export { Typeface };
 
 /**
  * android.graphics: RectF, Paint, Path and Canvas. A Canvas records into the
@@ -42,38 +46,6 @@ export enum PaintStyle { FILL = 0, STROKE = 1, FILL_AND_STROKE = 2 }
 export enum PaintCap { BUTT = 0, ROUND = 1, SQUARE = 2 }
 export enum PaintJoin { MITER = 0, ROUND = 1, BEVEL = 2 }
 export enum PaintAlign { LEFT = 0, CENTER = 1, RIGHT = 2 }
-
-export class Typeface {
-  static readonly DEFAULT = new Typeface('Roboto', 400, false);
-  static readonly DEFAULT_BOLD = new Typeface('Roboto', 700, false);
-  static readonly SANS_SERIF = new Typeface('Roboto', 400, false);
-  static readonly SERIF = new Typeface('Noto Serif', 400, false);
-  static readonly MONOSPACE = new Typeface('Roboto Mono', 400, false);
-  static readonly NORMAL = 0;
-  static readonly BOLD = 1;
-  static readonly ITALIC = 2;
-  static readonly BOLD_ITALIC = 3;
-
-  constructor(readonly family: string, readonly weight: number, readonly italic: boolean) {}
-
-  static create(family: string | Typeface | null, style: number): Typeface {
-    const name = family instanceof Typeface ? family.family : family ?? 'Roboto';
-    return new Typeface(name, style & Typeface.BOLD ? 700 : 400, (style & Typeface.ITALIC) !== 0);
-  }
-
-  /** Typeface.create(Typeface, weight, italic) (API 28) */
-  static createWeighted(family: Typeface, weight: number, italic: boolean): Typeface {
-    return new Typeface(family.family, weight, italic);
-  }
-
-  isBold(): boolean {
-    return this.weight >= 600;
-  }
-
-  isItalic(): boolean {
-    return this.italic;
-  }
-}
 
 export class Paint {
   static readonly ANTI_ALIAS_FLAG = 1;
@@ -162,8 +134,39 @@ export class Paint {
 
   /** css font for the text renderer */
   get cssFont(): string {
-    const t = this.typeface;
-    return `${t.italic ? 'italic ' : ''}${t.weight} ${this.textSize}px "${t.family}", Roboto, sans-serif`;
+    return this.typeface.css(this.textSize);
+  }
+
+  /** Advance width of `text` (dp), measured by the kernel's font rasterizer. */
+  measureText(text: string, start = 0, end = text.length): number {
+    const kernel = Looper.requireMainKernel();
+    return kernel.measurer.width(text.slice(start, end), this.cssFont, this.letterSpacing * this.textSize);
+  }
+
+  /** Paint.getFontMetrics (dp; negative above the baseline). */
+  getFontMetrics(): FontMetrics {
+    const kernel = Looper.getMainKernel();
+    return this.typeface.metrics(this.textSize, kernel?.viewport.scale ?? 1, kernel?.measurer ?? null);
+  }
+
+  /** The recommended line spacing: descent − ascent. */
+  getFontSpacing(): number {
+    const m = this.getFontMetrics();
+    return m.descent - m.ascent;
+  }
+
+  /** Copy every attribute of `other` (Paint.set). */
+  set(other: Paint): void {
+    this.setColor(other.getColor());
+    this.setStyle(other.getStyle());
+    this.setStrokeWidth(other.getStrokeWidth());
+    this.setStrokeCap(other.getStrokeCap());
+    this.setStrokeJoin(other.getStrokeJoin());
+    this.setTextSize(other.getTextSize());
+    this.setTypeface(other.getTypeface());
+    this.setTextAlign(other.getTextAlign());
+    this.setLetterSpacing(other.getLetterSpacing());
+    this.shadow = other.shadow ? { ...other.shadow } : null;
   }
 
   get rgba(): number {
@@ -171,29 +174,56 @@ export class Paint {
   }
 }
 
-type PathOp = (w: CommandWriter) => void;
+/** A recorded path segment (the path keeps data so it can be approximated and replayed). */
+export type PathSegment =
+  | { op: 'M' | 'L'; x: number; y: number }
+  | { op: 'Q'; x1: number; y1: number; x: number; y: number }
+  | { op: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number }
+  | { op: 'A'; cx: number; cy: number; r: number; a0: number; a1: number; ccw: boolean }
+  | { op: 'Z' };
 
 export enum PathDirection { CW = 0, CCW = 1 }
 export enum PathFillType { WINDING = 0, EVEN_ODD = 1 }
 
 export class Path {
-  private ops: PathOp[] = [];
+  private segments: PathSegment[] = [];
   private fillType = PathFillType.WINDING;
+  private lastX = 0;
+  private lastY = 0;
 
   reset(): void {
-    this.ops = [];
+    this.segments = [];
+    this.lastX = 0;
+    this.lastY = 0;
+  }
+  isEmpty(): boolean {
+    return this.segments.length === 0;
   }
   moveTo(x: number, y: number): void {
-    this.ops.push((w) => w.moveTo(x, y));
+    this.segments.push({ op: 'M', x, y });
+    this.lastX = x;
+    this.lastY = y;
+  }
+  rMoveTo(dx: number, dy: number): void {
+    this.moveTo(this.lastX + dx, this.lastY + dy);
   }
   lineTo(x: number, y: number): void {
-    this.ops.push((w) => w.lineTo(x, y));
+    this.segments.push({ op: 'L', x, y });
+    this.lastX = x;
+    this.lastY = y;
+  }
+  rLineTo(dx: number, dy: number): void {
+    this.lineTo(this.lastX + dx, this.lastY + dy);
   }
   quadTo(x1: number, y1: number, x2: number, y2: number): void {
-    this.ops.push((w) => w.quadTo(x1, y1, x2, y2));
+    this.segments.push({ op: 'Q', x1, y1, x: x2, y: y2 });
+    this.lastX = x2;
+    this.lastY = y2;
   }
   cubicTo(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): void {
-    this.ops.push((w) => w.cubicTo(x1, y1, x2, y2, x3, y3));
+    this.segments.push({ op: 'C', x1, y1, x2, y2, x: x3, y: y3 });
+    this.lastX = x3;
+    this.lastY = y3;
   }
   /** arcTo(oval, startAngle°, sweepAngle°) on a circle inscribed in oval */
   arcTo(oval: RectF, startAngle: number, sweepAngle: number): void {
@@ -202,7 +232,9 @@ export class Path {
     const r = Math.min(oval.width(), oval.height()) / 2;
     const a0 = (startAngle * Math.PI) / 180;
     const a1 = ((startAngle + sweepAngle) * Math.PI) / 180;
-    this.ops.push((w) => w.arc(cx, cy, r, a0, a1, sweepAngle < 0));
+    this.segments.push({ op: 'A', cx, cy, r, a0, a1, ccw: sweepAngle < 0 });
+    this.lastX = cx + Math.cos(a1) * r;
+    this.lastY = cy + Math.sin(a1) * r;
   }
   addRect(left: number, top: number, right: number, bottom: number, _dir: PathDirection = PathDirection.CW): void {
     this.moveTo(left, top);
@@ -212,8 +244,12 @@ export class Path {
     this.close();
   }
   addCircle(x: number, y: number, radius: number, _dir: PathDirection = PathDirection.CW): void {
-    this.ops.push((w) => w.moveTo(x + radius, y).arc(x, y, radius, 0, Math.PI * 2));
+    this.moveTo(x + radius, y);
+    this.segments.push({ op: 'A', cx: x, cy: y, r: radius, a0: 0, a1: Math.PI * 2, ccw: false });
     this.close();
+  }
+  addOval(oval: RectF, dir: PathDirection = PathDirection.CW): void {
+    this.addCircle(oval.centerX(), oval.centerY(), Math.min(oval.width(), oval.height()) / 2, dir);
   }
   addRoundRect(rect: RectF, radii: number[] | number, _dir: PathDirection = PathDirection.CW): void {
     const r: number[] = typeof radii === 'number' ? [radii, radii, radii, radii, radii, radii, radii, radii] : radii;
@@ -232,8 +268,14 @@ export class Path {
     if (tl) this.quadTo(x, y, x + tl, y);
     this.close();
   }
+  addPath(other: Path, dx = 0, dy = 0): void {
+    for (const s of other.segments) this.segments.push(offsetSegment(s, dx, dy));
+  }
+  offset(dx: number, dy: number): void {
+    this.segments = this.segments.map((s) => offsetSegment(s, dx, dy));
+  }
   close(): void {
-    this.ops.push((w) => w.closePath());
+    this.segments.push({ op: 'Z' });
   }
   setFillType(type: PathFillType): void {
     this.fillType = type;
@@ -241,10 +283,104 @@ export class Path {
   getFillType(): PathFillType {
     return this.fillType;
   }
+  /** The recorded segments, in order. */
+  getSegments(): readonly PathSegment[] {
+    return this.segments;
+  }
+
+  /**
+   * Path.approximate(acceptableError): the path flattened to line segments,
+   * as [fraction, x, y] triples where fraction is the length along the path.
+   */
+  approximate(acceptableError: number): number[] {
+    const pts: Array<[number, number]> = [];
+    let x = 0;
+    let y = 0;
+    let sx = 0;
+    let sy = 0;
+    const steps = Math.max(8, Math.ceil(1 / Math.max(1e-4, acceptableError)));
+    for (const s of this.segments) {
+      switch (s.op) {
+        case 'M':
+          x = sx = s.x;
+          y = sy = s.y;
+          pts.push([x, y]);
+          break;
+        case 'L':
+          x = s.x;
+          y = s.y;
+          pts.push([x, y]);
+          break;
+        case 'Q':
+          for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const u = 1 - t;
+            pts.push([u * u * x + 2 * u * t * s.x1 + t * t * s.x, u * u * y + 2 * u * t * s.y1 + t * t * s.y]);
+          }
+          x = s.x;
+          y = s.y;
+          break;
+        case 'C':
+          for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const u = 1 - t;
+            pts.push([
+              u * u * u * x + 3 * u * u * t * s.x1 + 3 * u * t * t * s.x2 + t * t * t * s.x,
+              u * u * u * y + 3 * u * u * t * s.y1 + 3 * u * t * t * s.y2 + t * t * t * s.y,
+            ]);
+          }
+          x = s.x;
+          y = s.y;
+          break;
+        case 'A':
+          for (let i = 0; i <= steps; i++) {
+            const a = s.a0 + ((s.a1 - s.a0) * i) / steps;
+            pts.push([s.cx + Math.cos(a) * s.r, s.cy + Math.sin(a) * s.r]);
+          }
+          [x, y] = pts[pts.length - 1]!;
+          break;
+        case 'Z':
+          x = sx;
+          y = sy;
+          pts.push([x, y]);
+          break;
+      }
+    }
+    let total = 0;
+    const lengths = [0];
+    for (let i = 1; i < pts.length; i++) {
+      total += Math.hypot(pts[i]![0] - pts[i - 1]![0], pts[i]![1] - pts[i - 1]![1]);
+      lengths.push(total);
+    }
+    const out: number[] = [];
+    pts.forEach((p, i) => out.push(total > 0 ? lengths[i]! / total : 0, p[0], p[1]));
+    return out;
+  }
+
   /** @internal */
   write(w: CommandWriter): void {
     w.pathBegin();
-    for (const op of this.ops) op(w);
+    for (const s of this.segments) {
+      switch (s.op) {
+        case 'M': w.moveTo(s.x, s.y); break;
+        case 'L': w.lineTo(s.x, s.y); break;
+        case 'Q': w.quadTo(s.x1, s.y1, s.x, s.y); break;
+        case 'C': w.cubicTo(s.x1, s.y1, s.x2, s.y2, s.x, s.y); break;
+        case 'A': w.arc(s.cx, s.cy, s.r, s.a0, s.a1, s.ccw); break;
+        case 'Z': w.closePath(); break;
+      }
+    }
+  }
+}
+
+function offsetSegment(s: PathSegment, dx: number, dy: number): PathSegment {
+  switch (s.op) {
+    case 'M':
+    case 'L': return { op: s.op, x: s.x + dx, y: s.y + dy };
+    case 'Q': return { op: 'Q', x1: s.x1 + dx, y1: s.y1 + dy, x: s.x + dx, y: s.y + dy };
+    case 'C': return { op: 'C', x1: s.x1 + dx, y1: s.y1 + dy, x2: s.x2 + dx, y2: s.y2 + dy, x: s.x + dx, y: s.y + dy };
+    case 'A': return { ...s, cx: s.cx + dx, cy: s.cy + dy };
+    case 'Z': return s;
   }
 }
 
@@ -299,6 +435,13 @@ export class Canvas {
     if (px || py) this.translate(px, py);
     this.w.transform(Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), 0, 0);
     if (px || py) this.translate(-px, -py);
+  }
+
+  /** Pre-concatenate an android.graphics.Matrix (anything with its affine values). */
+  concat(matrix: { readonly affine: readonly number[] } | null): void {
+    if (!matrix) return;
+    const m = matrix.affine;
+    this.w.transform(m[0]!, m[1]!, m[2]!, m[3]!, m[4]!, m[5]!);
   }
 
   clipRect(left: number, top: number, right: number, bottom: number): boolean {

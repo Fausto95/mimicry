@@ -1,11 +1,16 @@
-import { invert, multiply, rotation, scaling, translation, RenderLayer, type Kernel, type LayerContext, type Matrix } from '@mimicry/os-core';
+import {
+  drawShadows, inflate, invert, multiply, resolveShadows, rotation, scaling, shadowExtent, translation, RenderLayer, type Kernel, type LayerContext, type Matrix,
+} from '@mimicry/os-core';
 import { Canvas, RectF } from '../graphics/canvas';
 import { ColorDrawable, StateSet, type Drawable, type DrawableCallback } from '../graphics/drawable';
-import type { Context } from '../content/context';
+import type { Configuration, Context } from '../content/context';
 import { MotionEvent, ViewConfiguration } from './motion-event';
 import type { ViewGroup } from './view-group';
 import type { ViewRootImpl } from './view-root';
 import type { WindowInsets } from './window-insets';
+import { FloatProperty } from '../util/property';
+import { ViewPropertyAnimator } from '../animation/view-property-animator';
+import { Outline, ViewOutlineProvider } from './outline';
 
 /**
  * android.view.View: a rectangle in the view tree backed by a RenderNode.
@@ -65,8 +70,12 @@ export class LayoutParams {
 export type OnClickListener = (view: View) => void;
 export type OnLongClickListener = (view: View) => boolean;
 export type OnTouchListener = (view: View, event: MotionEvent) => boolean;
+export type OnLayoutChangeListener = (view: View, left: number, top: number, right: number, bottom: number, oldLeft: number, oldTop: number, oldRight: number, oldBottom: number) => void;
 
 let nextViewId = 1;
+
+/** Shadow colors are plain ARGB ints; no theme lookups are needed. */
+const NO_COLORS = { appearance: 'light' as const, semantic: () => null };
 
 export class View implements DrawableCallback {
   static readonly VISIBLE = 0;
@@ -76,9 +85,30 @@ export class View implements DrawableCallback {
   static readonly LAYER_TYPE_NONE = 0;
   static readonly LAYER_TYPE_SOFTWARE = 1;
   static readonly LAYER_TYPE_HARDWARE = 2;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_AUTO = 0;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_YES = 1;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_NO = 2;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS = 4;
+  static readonly ACCESSIBILITY_LIVE_REGION_NONE = 0;
+  static readonly ACCESSIBILITY_LIVE_REGION_POLITE = 1;
+  static readonly ACCESSIBILITY_LIVE_REGION_ASSERTIVE = 2;
   static generateViewId(): number {
     return nextViewId++;
   }
+
+  // android.view.View's Property constants (ObjectAnimator, SpringAnimation)
+  static readonly ALPHA = new FloatProperty<View>('alpha', (v) => v.getAlpha(), (v, x) => v.setAlpha(x));
+  static readonly TRANSLATION_X = new FloatProperty<View>('translationX', (v) => v.getTranslationX(), (v, x) => v.setTranslationX(x));
+  static readonly TRANSLATION_Y = new FloatProperty<View>('translationY', (v) => v.getTranslationY(), (v, x) => v.setTranslationY(x));
+  static readonly TRANSLATION_Z = new FloatProperty<View>('translationZ', (v) => v.getTranslationZ(), (v, x) => v.setTranslationZ(x));
+  static readonly X = new FloatProperty<View>('x', (v) => v.getX(), (v, x) => v.setX(x));
+  static readonly Y = new FloatProperty<View>('y', (v) => v.getY(), (v, x) => v.setY(x));
+  static readonly Z = new FloatProperty<View>('z', (v) => v.getZ(), (v, x) => v.setZ(x));
+  static readonly ROTATION = new FloatProperty<View>('rotation', (v) => v.getRotation(), (v, x) => v.setRotation(x));
+  static readonly ROTATION_X = new FloatProperty<View>('rotationX', (v) => v.getRotationX(), (v, x) => v.setRotationX(x));
+  static readonly ROTATION_Y = new FloatProperty<View>('rotationY', (v) => v.getRotationY(), (v, x) => v.setRotationY(x));
+  static readonly SCALE_X = new FloatProperty<View>('scaleX', (v) => v.getScaleX(), (v, x) => v.setScaleX(x));
+  static readonly SCALE_Y = new FloatProperty<View>('scaleY', (v) => v.getScaleY(), (v, x) => v.setScaleY(x));
 
   readonly renderNode: RenderNode;
   /** @internal */
@@ -101,11 +131,15 @@ export class View implements DrawableCallback {
   protected paddingTop = 0;
   protected paddingRight = 0;
   protected paddingBottom = 0;
+  private minWidth = 0;
+  private minHeight = 0;
   private translationX = 0;
   private translationY = 0;
   private translationZ = 0;
   private elevation = 0;
   private rotation = 0;
+  private rotationX = 0;
+  private rotationY = 0;
   private scaleX = 1;
   private scaleY = 1;
   private pivotX: number | null = null;
@@ -115,10 +149,24 @@ export class View implements DrawableCallback {
   private foreground: Drawable | null = null;
   private enabled = true;
   private pressed = false;
+  private selected = false;
+  private activated = false;
+  private focused = false;
   private clickable = false;
   private longClickable = false;
   private focusable = false;
   private contentDescription: string | null = null;
+  private readonly a11y = {
+    important: View.IMPORTANT_FOR_ACCESSIBILITY_AUTO,
+    stateDescription: null as string | null,
+    heading: false,
+    paneTitle: null as string | null,
+    liveRegion: View.ACCESSIBILITY_LIVE_REGION_NONE,
+    labelFor: View.NO_ID,
+    screenReaderFocusable: false,
+    tooltip: null as string | null,
+  };
+  private transitionName: string | null = null;
   private onClick: OnClickListener | null = null;
   private onLongClick: OnLongClickListener | null = null;
   private onTouch: OnTouchListener | null = null;
@@ -127,6 +175,11 @@ export class View implements DrawableCallback {
   private touchDown: { x: number; y: number } | null = null;
   private insetsListener: ((view: View, insets: WindowInsets) => WindowInsets) | null = null;
   private layerType = View.LAYER_TYPE_NONE;
+  private propertyAnimator: ViewPropertyAnimator | null = null;
+  private outlineProvider: ViewOutlineProvider | null = ViewOutlineProvider.BACKGROUND;
+  private clipToOutline = false;
+  private ambientShadowColor = 0xff000000 | 0;
+  private spotShadowColor = 0xff000000 | 0;
 
   constructor(readonly context: Context) {
     this.renderNode = new RenderNode(this);
@@ -165,6 +218,113 @@ export class View implements DrawableCallback {
 
   getContentDescription(): string | null {
     return this.contentDescription;
+  }
+
+  // ── accessibility ───────────────────────────────────────────────────
+  // Property plumbing only: Mimicry has no accessibility service, so these
+  // are stored and read back (and resolved the way the framework resolves
+  // them) but nothing announces or traverses them.
+
+  setImportantForAccessibility(mode: number): void {
+    this.a11y.important = mode;
+  }
+
+  getImportantForAccessibility(): number {
+    return this.a11y.important;
+  }
+
+  /**
+   * AUTO and YES count, unless this view says NO, or an ancestor (or this
+   * view) hides its descendants.
+   */
+  isImportantForAccessibility(): boolean {
+    const mode = this.a11y.important;
+    if (mode === View.IMPORTANT_FOR_ACCESSIBILITY_NO || mode === View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS) return false;
+    for (let p = this._parent; p; p = p._parent) {
+      if (p.a11y.important === View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS) return false;
+    }
+    return true;
+  }
+
+  setStateDescription(description: string | null): void {
+    this.a11y.stateDescription = description;
+  }
+
+  getStateDescription(): string | null {
+    return this.a11y.stateDescription;
+  }
+
+  setAccessibilityHeading(heading: boolean): void {
+    this.a11y.heading = heading;
+  }
+
+  isAccessibilityHeading(): boolean {
+    return this.a11y.heading;
+  }
+
+  setAccessibilityPaneTitle(title: string | null): void {
+    this.a11y.paneTitle = title;
+  }
+
+  getAccessibilityPaneTitle(): string | null {
+    return this.a11y.paneTitle;
+  }
+
+  setAccessibilityLiveRegion(mode: number): void {
+    this.a11y.liveRegion = mode;
+  }
+
+  getAccessibilityLiveRegion(): number {
+    return this.a11y.liveRegion;
+  }
+
+  setLabelFor(id: number): void {
+    this.a11y.labelFor = id;
+  }
+
+  getLabelFor(): number {
+    return this.a11y.labelFor;
+  }
+
+  setScreenReaderFocusable(focusable: boolean): void {
+    this.a11y.screenReaderFocusable = focusable;
+  }
+
+  isScreenReaderFocusable(): boolean {
+    return this.a11y.screenReaderFocusable;
+  }
+
+  setTooltipText(text: string | null): void {
+    this.a11y.tooltip = text;
+  }
+
+  getTooltipText(): string | null {
+    return this.a11y.tooltip;
+  }
+
+  /** The class name accessibility services see (widgets override it). */
+  getAccessibilityClassName(): string {
+    return 'android.view.View';
+  }
+
+  /** No screen reader runs: the announcement is dropped. */
+  announceForAccessibility(_text: string): void {}
+
+  setTransitionName(name: string | null): void {
+    this.transitionName = name;
+  }
+
+  getTransitionName(): string | null {
+    return this.transitionName;
+  }
+
+  // ── configuration ───────────────────────────────────────────────────
+
+  /** Called when the activity handles a configuration change itself (android:configChanges). */
+  protected onConfigurationChanged(_newConfig: Configuration): void {}
+
+  dispatchConfigurationChanged(newConfig: Configuration): void {
+    this.onConfigurationChanged(newConfig);
   }
 
   // ── tree ────────────────────────────────────────────────────────────
@@ -226,7 +386,7 @@ export class View implements DrawableCallback {
   }
 
   protected onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-    this.setMeasuredDimension(View.getDefaultSize(0, widthMeasureSpec), View.getDefaultSize(0, heightMeasureSpec));
+    this.setMeasuredDimension(View.getDefaultSize(this.getSuggestedMinimumWidth(), widthMeasureSpec), View.getDefaultSize(this.getSuggestedMinimumHeight(), heightMeasureSpec));
   }
 
   protected setMeasuredDimension(width: number, height: number): void {
@@ -256,12 +416,33 @@ export class View implements DrawableCallback {
   }
 
   layout(l: number, t: number, r: number, b: number): void {
-    const changed = l !== this.mLeft || t !== this.mTop || r !== this.mRight || b !== this.mBottom;
+    const oldL = this.mLeft;
+    const oldT = this.mTop;
+    const oldR = this.mRight;
+    const oldB = this.mBottom;
+    const changed = l !== oldL || t !== oldT || r !== oldR || b !== oldB;
     this.setFrame(l, t, r, b);
     if (changed || this.layoutRequested) {
       this.layoutRequested = false;
       this.onLayout(changed, l, t, r, b);
+      for (const listener of this.layoutChangeListeners.slice()) listener(this, l, t, r, b, oldL, oldT, oldR, oldB);
     }
+  }
+
+  private layoutChangeListeners: OnLayoutChangeListener[] = [];
+
+  /** Called after a layout pass that laid this view out (its bounds may or may not have changed). */
+  addOnLayoutChangeListener(listener: OnLayoutChangeListener): void {
+    if (!this.layoutChangeListeners.includes(listener)) this.layoutChangeListeners.push(listener);
+  }
+
+  removeOnLayoutChangeListener(listener: OnLayoutChangeListener): void {
+    this.layoutChangeListeners = this.layoutChangeListeners.filter((l) => l !== listener);
+  }
+
+  /** ViewCompat.isLaidOut: has the view been through a layout since it was attached? */
+  isLaidOut(): boolean {
+    return this.isAttachedToWindow() && !this.layoutRequested && (this.getWidth() > 0 || this.getHeight() > 0);
   }
 
   protected onLayout(_changed: boolean, _l: number, _t: number, _r: number, _b: number): void {}
@@ -279,7 +460,10 @@ export class View implements DrawableCallback {
     this.updateMatrix();
     this.background?.setBounds(0, 0, r - l, b - t);
     this.foreground?.setBounds(0, 0, r - l, b - t);
-    if (resized) this.onSizeChanged(r - l, b - t, oldW, oldH);
+    if (resized) {
+      if (this.clipToOutline) this.invalidateOutline();
+      this.onSizeChanged(r - l, b - t, oldW, oldH);
+    }
     this.invalidate();
   }
 
@@ -323,6 +507,34 @@ export class View implements DrawableCallback {
   getPaddingTop(): number { return this.paddingTop; }
   getPaddingRight(): number { return this.paddingRight; }
   getPaddingBottom(): number { return this.paddingBottom; }
+  getPaddingStart(): number { return this.paddingLeft; }
+  getPaddingEnd(): number { return this.paddingRight; }
+
+  setPaddingRelative(start: number, top: number, end: number, bottom: number): void {
+    this.setPadding(start, top, end, bottom);
+  }
+
+  setMinimumWidth(minWidth: number): void {
+    this.minWidth = minWidth;
+    this.requestLayout();
+  }
+
+  setMinimumHeight(minHeight: number): void {
+    this.minHeight = minHeight;
+    this.requestLayout();
+  }
+
+  getMinimumWidth(): number { return this.minWidth; }
+  getMinimumHeight(): number { return this.minHeight; }
+
+  /** The larger of the minimum width and the background's intrinsic width. */
+  protected getSuggestedMinimumWidth(): number {
+    return Math.max(this.minWidth, this.background?.getIntrinsicWidth() ?? 0);
+  }
+
+  protected getSuggestedMinimumHeight(): number {
+    return Math.max(this.minHeight, this.background?.getIntrinsicHeight() ?? 0);
+  }
 
   // ── transform properties (RenderNode properties) ────────────────────
 
@@ -351,6 +563,18 @@ export class View implements DrawableCallback {
   setScaleY(v: number): void { this.scaleY = v; this.updateMatrix(); }
   setPivotX(v: number): void { this.pivotX = v; this.updateMatrix(); }
   setPivotY(v: number): void { this.pivotY = v; this.updateMatrix(); }
+  setZ(z: number): void { this.setTranslationZ(z - this.elevation); }
+  /** Stored only: the render tree is 2D, so 3D rotations are not drawn. */
+  getRotationX(): number { return this.rotationX; }
+  getRotationY(): number { return this.rotationY; }
+  setRotationX(degrees: number): void { this.rotationX = degrees; }
+  setRotationY(degrees: number): void { this.rotationY = degrees; }
+
+  /** The view's ViewPropertyAnimator (one per view, reused). */
+  animate(): ViewPropertyAnimator {
+    this.propertyAnimator ??= new ViewPropertyAnimator(this);
+    return this.propertyAnimator;
+  }
 
   setAlpha(alpha: number): void {
     this.renderNode.opacity = Math.max(0, Math.min(1, alpha));
@@ -417,6 +641,7 @@ export class View implements DrawableCallback {
       drawable.setBounds(0, 0, this.getWidth(), this.getHeight());
       if (drawable.isStateful()) drawable.setState(this.drawableState());
     }
+    if (this.clipToOutline) this.invalidateOutline();
     this.invalidate();
   }
 
@@ -444,16 +669,63 @@ export class View implements DrawableCallback {
     return this.foreground;
   }
 
+  /** Clip the view's children to its outline (its rounded corners), as setClipToOutline does. */
   setClipToOutline(clip: boolean): void {
+    this.clipToOutline = clip;
     this.renderNode.masksToBounds = clip;
-    this.invalidate();
+    this.invalidateOutline();
   }
 
   getClipToOutline(): boolean {
-    return this.renderNode.masksToBounds;
+    return this.clipToOutline || this.renderNode.masksToBounds;
   }
 
-  setLayerType(type: number): void {
+  setOutlineProvider(provider: ViewOutlineProvider | null): void {
+    this.outlineProvider = provider;
+    this.invalidateOutline();
+  }
+
+  getOutlineProvider(): ViewOutlineProvider | null {
+    return this.outlineProvider;
+  }
+
+  /** The outline is computed again (and the clip radii follow it). */
+  invalidateOutline(): void {
+    if (this.clipToOutline) {
+      const outline = this.computeOutline();
+      this.renderNode.cornerRadii = outline && !outline.isEmpty() ? outline.radii : [0, 0, 0, 0];
+    }
+    this.invalidateParent();
+  }
+
+  /** The current outline, or null without a provider. */
+  computeOutline(): Outline | null {
+    const provider = this.outlineProvider;
+    if (!provider) return null;
+    const outline = new Outline();
+    provider.getOutline(this, outline);
+    return outline;
+  }
+
+  setOutlineAmbientShadowColor(color: number): void {
+    this.ambientShadowColor = color;
+    this.invalidate();
+  }
+
+  setOutlineSpotShadowColor(color: number): void {
+    this.spotShadowColor = color;
+    this.invalidate();
+  }
+
+  getOutlineAmbientShadowColor(): number {
+    return this.ambientShadowColor;
+  }
+
+  getOutlineSpotShadowColor(): number {
+    return this.spotShadowColor;
+  }
+
+  setLayerType(type: number, _paint: unknown = null): void {
     this.layerType = type;
     this.renderNode.composited = type === View.LAYER_TYPE_HARDWARE;
   }
@@ -505,6 +777,7 @@ export class View implements DrawableCallback {
   protected drawContent(ctx: LayerContext): void {
     const w = this.getWidth();
     const h = this.getHeight();
+    this.drawElevationShadow(ctx);
     const background = this.background;
     const hasOnDraw = this.onDraw !== View.prototype.onDraw;
     if (!background && !hasOnDraw) return;
@@ -517,6 +790,23 @@ export class View implements DrawableCallback {
       if (hasOnDraw) this.onDraw(canvas);
       writer.restore();
     });
+  }
+
+  /**
+   * The shadow a view with Z > 0 casts from its outline: Material's ambient
+   * and key light, the same model React Native's `elevation` draws with.
+   */
+  protected drawElevationShadow(ctx: LayerContext): void {
+    const z = this.getZ();
+    if (z <= 0 || this.renderNode.hidden) return;
+    const outline = this.computeOutline();
+    if (!outline || outline.isEmpty() || outline.getAlpha() <= 0) return;
+    const shadows = resolveShadows({ elevation: z, shadowColor: this.spotShadowColor }, 'android', NO_COLORS);
+    if (!shadows.length) return;
+    const alpha = outline.getAlpha();
+    const tinted = shadows.map((s) => ({ ...s, color: ((s.color & 0xffffff00) | Math.round((s.color & 255) * alpha)) >>> 0 }));
+    const box = { x: ctx.x + outline.left, y: ctx.y + outline.top, w: outline.right - outline.left, h: outline.bottom - outline.top, radii: outline.radii };
+    ctx.item(inflate(box, shadowExtent(tinted) + 1), (writer) => drawShadows(writer, box, tinted, false));
   }
 
   protected drawOverlay(ctx: LayerContext): void {
@@ -583,7 +873,59 @@ export class View implements DrawableCallback {
     const s: string[] = [];
     if (this.enabled) s.push(StateSet.enabled);
     if (this.pressed) s.push(StateSet.pressed);
+    if (this.selected) s.push(StateSet.selected);
+    if (this.activated) s.push(StateSet.activated);
+    if (this.focused) s.push(StateSet.focused);
     return s;
+  }
+
+  /** The view's state names (state_enabled, state_pressed, state_checked…). */
+  getDrawableState(): string[] {
+    return this.drawableState();
+  }
+
+  isSelected(): boolean {
+    return this.selected;
+  }
+
+  setSelected(selected: boolean): void {
+    if (this.selected === selected) return;
+    this.selected = selected;
+    this.refreshDrawableState();
+    this.dispatchSetSelected(selected);
+  }
+
+  protected dispatchSetSelected(_selected: boolean): void {}
+
+  isActivated(): boolean {
+    return this.activated;
+  }
+
+  setActivated(activated: boolean): void {
+    if (this.activated === activated) return;
+    this.activated = activated;
+    this.refreshDrawableState();
+    this.dispatchSetActivated(activated);
+  }
+
+  protected dispatchSetActivated(_activated: boolean): void {}
+
+  isFocused(): boolean {
+    return this.focused;
+  }
+
+  /** Mimicry has no keyboard focus traversal; focus is a state views can be put in. */
+  requestFocus(): boolean {
+    if (!this.focusable || this.focused) return this.focused;
+    this.focused = true;
+    this.refreshDrawableState();
+    return true;
+  }
+
+  clearFocus(): void {
+    if (!this.focused) return;
+    this.focused = false;
+    this.refreshDrawableState();
   }
 
   isClickable(): boolean {
@@ -766,7 +1108,25 @@ export class View implements DrawableCallback {
   }
 
   onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+    if (this.fitsSystemWindows) {
+      // the legacy fitSystemWindows: pad by the system bars and consume them
+      const bars = insets.getInsets(0x1 | 0x2 | 0x4 | 0x80);
+      this.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+      return insets.consumeSystemWindowInsets();
+    }
     return insets;
+  }
+
+  private fitsSystemWindows = false;
+
+  /** Pad this view by the system bars (and consume them) when insets are applied. */
+  setFitsSystemWindows(fits: boolean): void {
+    this.fitsSystemWindows = fits;
+    this.requestApplyInsets();
+  }
+
+  getFitsSystemWindows(): boolean {
+    return this.fitsSystemWindows;
   }
 
   getRootWindowInsets(): WindowInsets | null {
@@ -775,6 +1135,23 @@ export class View implements DrawableCallback {
 
   requestApplyInsets(): void {
     this._attachInfo?.requestApplyInsets();
+  }
+
+  // ── haptics ─────────────────────────────────────────────────────────
+
+  private hapticFeedbackEnabled = true;
+
+  setHapticFeedbackEnabled(enabled: boolean): void {
+    this.hapticFeedbackEnabled = enabled;
+  }
+
+  isHapticFeedbackEnabled(): boolean {
+    return this.hapticFeedbackEnabled;
+  }
+
+  /** A haptic (HapticFeedbackConstants): there is no motor, so it only reports whether it would play. */
+  performHapticFeedback(_feedbackConstant: number, flags = 0): boolean {
+    return this.hapticFeedbackEnabled || (flags & 1) !== 0;
   }
 
   // ── posting ─────────────────────────────────────────────────────────

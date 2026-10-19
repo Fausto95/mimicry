@@ -25,6 +25,10 @@ export interface ScrollViewCallbacks {
 }
 
 export class ScrollView extends FrameLayout implements FrameTask {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.ScrollView';
+  }
+
   static readonly OVER_SCROLL_ALWAYS = 0;
   static readonly OVER_SCROLL_IF_CONTENT_SCROLLS = 1;
   static readonly OVER_SCROLL_NEVER = 2;
@@ -73,6 +77,10 @@ export class ScrollView extends FrameLayout implements FrameTask {
 
   get physics(): ScrollPhysics {
     return androidKit.scroll;
+  }
+
+  override shouldDelayChildPressedState(): boolean {
+    return true;
   }
 
   setOnScrollChangeListener(listener: OnScrollChangeListener | null): void {
@@ -182,7 +190,15 @@ export class ScrollView extends FrameLayout implements FrameTask {
         if (this.horizontal && child.getMeasuredWidth() < width - padW) child.measure(fixedW, hSpec);
       }
     }
-    this.setMeasuredDimension(width, height);
+    // Not exactly sized (wrap_content): as big as the content, up to the limit, like FrameLayout.
+    const padW = this.getPaddingLeft() + this.getPaddingRight();
+    const padH = this.getPaddingTop() + this.getPaddingBottom();
+    const contentW = (child?.getMeasuredWidth() ?? 0) + padW;
+    const contentH = (child?.getMeasuredHeight() ?? 0) + padH;
+    this.setMeasuredDimension(
+      MeasureSpec.getMode(widthMeasureSpec) === MeasureSpec.EXACTLY ? width : View.resolveSize(contentW, widthMeasureSpec),
+      MeasureSpec.getMode(heightMeasureSpec) === MeasureSpec.EXACTLY ? height : View.resolveSize(contentH, heightMeasureSpec),
+    );
   }
 
   // ── programmatic scrolling ──────────────────────────────────────────
@@ -332,6 +348,15 @@ export class ScrollView extends FrameLayout implements FrameTask {
 
   protected override onScrollChanged(l: number, t: number, oldl: number, oldt: number): void {
     this.scrollListener?.(this, l, t, oldl, oldt);
+    for (const observer of Array.from(this.scrollObservers)) observer(this, l, t, oldl, oldt);
+  }
+
+  private readonly scrollObservers = new Set<OnScrollChangeListener>();
+
+  /** @internal framework observers (an AppBarLayout lifting on scroll) beside the app's listener */
+  addScrollObserver(observer: OnScrollChangeListener): () => void {
+    this.scrollObservers.add(observer);
+    return () => this.scrollObservers.delete(observer);
   }
 
   override getScrollX(): number {
@@ -435,5 +460,9 @@ class BarLayer extends RenderLayer {
 }
 
 export class HorizontalScrollView extends ScrollView {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.HorizontalScrollView';
+  }
+
   protected override readonly horizontal: boolean = true;
 }
