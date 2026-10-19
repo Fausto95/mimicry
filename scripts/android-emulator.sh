@@ -10,12 +10,16 @@ export PATH="$SDK/platform-tools:$SDK/emulator:$PATH"
 
 yes | "$BIN/sdkmanager" --licenses > /dev/null || true
 "$BIN/sdkmanager" --install "platform-tools" "emulator" "$IMAGE" > /dev/null
-PROFILE="${PROFILE:-}"
-if [ -z "$PROFILE" ]; then
-  if "$BIN/avdmanager" list device -c | grep -qx pixel_9; then PROFILE=pixel_9; else PROFILE=pixel_8; fi
-fi
-echo "hardware profile: $PROFILE"
-echo no | "$BIN/avdmanager" create avd -n oracle -k "$IMAGE" -d "$PROFILE" --force
+# Any Pixel profile will do: the screen is set to Pixel 9's below (older
+# command-line tools on the runners don't know newer device ids).
+"$BIN/avdmanager" list device -c | tee /tmp/avd-devices.txt
+PROFILE="${PROFILE:-$(grep -xm1 -E 'pixel_9|pixel_8|pixel_7|pixel_6|pixel_5|pixel' /tmp/avd-devices.txt || true)}"
+echo "hardware profile: ${PROFILE:-none}"
+echo no | "$BIN/avdmanager" create avd -n oracle -k "$IMAGE" ${PROFILE:+-d "$PROFILE"} --force
+CONFIG="$HOME/.android/avd/oracle.avd/config.ini"
+# Pixel 9: 1080×2424 at 420 dpi (411×923 dp)
+sed -i -e '/^hw.lcd.width/d' -e '/^hw.lcd.height/d' -e '/^hw.lcd.density/d' -e '/^skin./d' -e '/^showDeviceFrame/d' "$CONFIG"
+printf 'hw.lcd.width=1080\nhw.lcd.height=2424\nhw.lcd.density=420\nskin.dynamic=yes\nshowDeviceFrame=no\nhw.keyboard=yes\n' >> "$CONFIG"
 LOG="${EMULATOR_LOG:-${RUNNER_TEMP:-/tmp}/emulator.log}"
 nohup emulator -avd oracle -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -no-metrics -camera-back none > "$LOG" 2>&1 &
 adb wait-for-device
