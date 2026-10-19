@@ -82,27 +82,16 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
-      - name: Pick a Pixel 9 hardware profile
-        id: profile
-        run: |
-          AVD="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
-          "$AVD" list device -c | tee "$RUNNER_TEMP/devices.txt"
-          if grep -qx pixel_9 "$RUNNER_TEMP/devices.txt"; then echo "profile=pixel_9" >> "$GITHUB_OUTPUT"; else echo "profile=pixel_8" >> "$GITHUB_OUTPUT"; fi
       - name: Build, boot emulator, capture and compare
         id: run
         continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
         env:
           PROJECT: ${{ matrix.project }}
           MOTION: ${{ needs.plan.outputs.motion }}
-        with:
-          api-level: 36
-          target: google_apis
-          arch: x86_64
-          profile: ${{ steps.profile.outputs.profile }}
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: bash -c 'set -o pipefail; bash scripts/oracle-android.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"'
+          EMULATOR_LOG: ${{ runner.temp }}/emulator.log
+        run: |
+          set -o pipefail
+          bash scripts/oracle-android.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"
       - name: Publish results
         if: always()
         env:

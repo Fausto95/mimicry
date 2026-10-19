@@ -8,3 +8,4 @@ artifacts/
 *.log
 .expo/
 node_modules
+.claude/

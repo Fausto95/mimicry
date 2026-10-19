@@ -8,6 +8,7 @@ OUT="$RUNNER_TEMP/results"
 rm -rf "$OUT" && mkdir -p "$OUT"
 cp -R "oracle/$NAME/." "$OUT/" 2>/dev/null || true
 tail -c 120000 "$RUNNER_TEMP/oracle-log.txt" > "$OUT/log-tail.txt" 2>/dev/null || true
+tail -c 40000 "$RUNNER_TEMP/emulator.log" > "$OUT/emulator-log-tail.txt" 2>/dev/null || true
 { echo "outcome: ${OUTCOME:-unknown}"; echo "commit: $GITHUB_SHA"; echo "platform: $PLATFORM"; echo "project: ${PROJECT:-}"; } > "$OUT/status.txt"
 cd "$OUT"
 git init -q

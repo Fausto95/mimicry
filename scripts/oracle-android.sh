@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Builds a project for Android, captures its oracle scenes on the running
-# emulator and runs `mimicry oracle` against them. Expects exactly one
-# emulator booted (the oracle workflow starts it).
+# Builds a project for Android, boots an emulator (unless one is running),
+# captures the oracle scenes and runs `mimicry oracle` against them.
 #   PROJECT=examples/showcase bash scripts/oracle-android.sh
 set -euxo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -19,10 +18,8 @@ APP_ID="$(node -p 'require("./app.json").expo.android.package')"
 (cd android && ./gradlew --no-daemon -q assembleRelease -PreactNativeArchitectures=x86_64)
 APK="$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)"
 
-adb wait-for-device
-adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 1; done'
-adb shell wm size
-adb shell wm density
+export PATH="${ANDROID_HOME:-}/platform-tools:$PATH"
+if ! adb get-state > /dev/null 2>&1; then bash "$ROOT/scripts/android-emulator.sh"; fi
 # Gesture navigation, like a Pixel out of the box
 adb shell cmd overlay enable com.android.internal.systemui.navbar.gestural || true
 adb install -r "$APK"
