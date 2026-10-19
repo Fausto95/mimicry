@@ -437,6 +437,13 @@ export class Canvas {
     if (px || py) this.translate(-px, -py);
   }
 
+  /** Pre-concatenate an android.graphics.Matrix (anything with its affine values). */
+  concat(matrix: { readonly affine: readonly number[] } | null): void {
+    if (!matrix) return;
+    const m = matrix.affine;
+    this.w.transform(m[0]!, m[1]!, m[2]!, m[3]!, m[4]!, m[5]!);
+  }
+
   clipRect(left: number, top: number, right: number, bottom: number): boolean {
     this.w.clipRect(left, top, right - left, bottom - top);
     return true;

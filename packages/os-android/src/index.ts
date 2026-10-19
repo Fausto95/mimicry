@@ -33,3 +33,7 @@ export * from './text/spanned';
 export * from './text/static-layout';
 export * from './text/text-utils';
 export * from './widget/text-view';
+export * from './graphics/matrix';
+export * from './graphics/bitmap';
+export * from './graphics/icon-drawable';
+export * from './widget/image-view';
