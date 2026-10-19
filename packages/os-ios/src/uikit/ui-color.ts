@@ -38,6 +38,11 @@ export class UIColor {
     return new ResolvedColor(this.provider(traits));
   }
 
+  /** The color as a CGColor (packed RGBA), resolved for the light appearance like UITraitCollection.current at launch. */
+  get cgColor(): number {
+    return this.provider(null) >>> 0;
+  }
+
   withAlphaComponent(alpha: number): UIColor {
     return new UIColor((traits) => withAlpha(this.provider(traits) | 0xff, alpha) >>> 0);
   }

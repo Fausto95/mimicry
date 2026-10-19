@@ -1,5 +1,7 @@
 import type { Clock, Kernel } from '@mimicry/os-core';
 import type { CGRect } from '../core-graphics/geometry';
+import { CAEnvironment } from '../quartz-core/ca-media-time';
+import { CATransaction } from '../quartz-core/ca-transaction';
 import { UITouchPhase } from './ui-event';
 import { UIScreen } from './ui-screen';
 import type { UIView } from './ui-view';
@@ -43,6 +45,9 @@ export class UIApplication {
 
   constructor(readonly kernel: Kernel, options: { routeInput?: boolean } = {}) {
     UIApplication.current = this;
+    CAEnvironment.kernel = kernel;
+    // A transaction left open on another device's run loop must not swallow this one's.
+    CATransaction._reset();
     this.screen = new UIScreen(kernel);
     if (options.routeInput !== false) {
       kernel.on('pointer', (m) => {
