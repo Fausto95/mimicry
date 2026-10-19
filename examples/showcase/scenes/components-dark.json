@@ -1,0 +1,1 @@
+{ "name": "components-dark", "device": "iphone-17-pro", "appearance": "dark", "steps": [{ "tap": { "testID": "tab-components" } }] }

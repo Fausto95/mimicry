@@ -1,0 +1,1 @@
+{ "name": "android-components-dark", "device": "pixel-9", "appearance": "dark", "steps": [{ "tap": { "testID": "tab-components" } }] }

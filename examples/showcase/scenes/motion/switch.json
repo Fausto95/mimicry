@@ -1,0 +1,1 @@
+{ "name": "switch", "device": "iphone-17-pro", "steps": [{ "tap": { "testID": "tab-components" } }], "trigger": { "tap": { "testID": "sync" } }, "duration": 600 }

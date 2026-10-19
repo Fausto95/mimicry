@@ -1,0 +1,1 @@
+{ "name": "collapsible", "device": "iphone-17-pro", "steps": [{ "tap": { "text": "Explore" } }], "trigger": { "tap": { "text": "File-based routing" } }, "duration": 600 }

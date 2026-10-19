@@ -1,0 +1,6 @@
+{
+  "name": "mimicry-svg-fixture",
+  "private": true,
+  "main": "index.tsx",
+  "dependencies": { "react-native-svg": "15.16.0" }
+}

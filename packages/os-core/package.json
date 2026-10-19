@@ -1,0 +1,13 @@
+{
+  "name": "@mimicry/os-core",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mimicry/protocol": "0.3.0",
+    "hyphen": "^1.14.1"
+  }
+}

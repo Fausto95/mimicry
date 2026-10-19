@@ -1,0 +1,7 @@
+{
+  "name": "spring",
+  "device": "pixel-9",
+  "duration": 700,
+  "every": 100,
+  "steps": [{ "tap": { "testID": "tab-motion" } }, { "wait": 100 }, { "tap": { "testID": "spring-card" } }]
+}

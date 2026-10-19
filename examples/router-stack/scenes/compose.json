@@ -1,0 +1,1 @@
+{ "name": "compose", "device": "iphone-17-pro", "appearance": "light", "steps": [{ "tap": { "testID": "compose" } }] }

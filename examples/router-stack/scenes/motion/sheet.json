@@ -1,0 +1,1 @@
+{ "name": "sheet", "device": "iphone-17-pro", "trigger": { "tap": { "testID": "compose" } }, "duration": 1000 }

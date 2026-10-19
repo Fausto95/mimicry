@@ -1,0 +1,8 @@
+{
+  "name": "@mimicry/host-web",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@mimicry/protocol": "0.3.0" }
+}

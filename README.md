@@ -1,72 +1,108 @@
 # Mimicry
 
-**Run an Expo app inside an iOS- or Android-like simulator implemented entirely in the browser.**
+**A browser-native simulator for React Native apps.** Mimicry runs your Expo / React Native app in a browser tab and draws it as an iPhone or an Android phone. It needs no Mac, Xcode, Android Studio or VM.
 
-Mimicry is a Dactyl-inspired browser-native UI project. The goal is to reimplement the key behaviors and appearance of UIKit, SwiftUI, Android Views and Jetpack Compose **on the web**, with no iOS Simulator, Android Emulator, Mac or native device required to run the preview.
+Mimicry takes the architecture [Dactyl](https://dactyl.dev/blog/how-dactyl-works/) built for SwiftUI and applies it to React Native:
 
-> **Alpha:** Today's implementation runs an actual **Expo JavaScript application via Metro's web bundle**. Its React Native host views are provided by React Native Web and supported Expo UI controls are replaced with Mimicry's own platform-styled components. The simulator shell (status bar, safe areas, device presets, rotation, appearance) is entirely browser-rendered. This is **not** an iOS binary, an APK, Apple UIKit or actual Compose running under WebAssembly; native fidelity is incomplete.
+- A **reimplementation of the platform**, not a stream from a real simulator. Mimicry models the operating systems themselves — UIKit, Core Animation and Foundation on iOS; the View system, widgets and app components on Android — on a small kernel, and runs frameworks on them through **adapters**. React Native's adapter is its Fabric: React reconciles into a shadow tree, [Yoga](https://yogalayout.dev) lays it out, and it mounts into `UIView`s and Android `View`s. Lynx, NativeScript and Vector can plug in the same way ([docs/adapters.md](docs/adapters.md)).
+- A **binary draw-command stream**. Layout and text are fully resolved before a single command is written. A thin host paints the stream on Canvas2D and caches each chunk's raster by content hash, so scrolling and transform or opacity animations cost compositing, not painting.
+- A **base/side module split**. The engine, React and `react-native` form one content-addressed base module that the browser loads once. Your app compiles per file into a small side module, and edits hot-swap under the running app with Fast Refresh, so state survives.
+- **Native controls at resolved rectangles.** Like Dactyl's Compose host mounting real Material widgets, the browser host mounts real `<input>`s exactly where the engine laid out each `TextInput`, so IME, selection and autofill are native.
+- **A deterministic test loop.** The same engine runs headless in Node on a virtual clock, which gives you golden images, filmstrips with synthetic taps, and layout-tree diffs. Real simulator screenshots are used only as an offline oracle.
 
-## Run the included Expo demo
+```
+App.tsx ──compile──▶ side module ──link──▶ base module (Web Worker)
+                                            React → shadow tree → Yoga → mount (adapter)
+                                            UIKit / Android View system (OS models)
+                                            kernel: layers → render server
+                                                        │ binary frame (chunks + layers + overlays)
+                                                        ▼
+                                            host: Canvas2D compositor + raster cache + native inputs
+```
 
-Requires Node 22.13+ and npm. **No Xcode or Android SDK.**
+![Showcase on iOS and Android](docs/images/showcase.png)
+
+## Quick start
+
+Requires Node 22.13+.
 
 ```sh
 git clone https://github.com/Fausto95/mimicry.git
 cd mimicry
 npm install
-npm run dev
+npm run dev            # Studio for examples/showcase at http://127.0.0.1:5173
 ```
 
-Open **http://127.0.0.1:5173**. Mimicry starts Expo/Metro on **http://localhost:8081** automatically. The demo uses a standard Expo SDK 58 `App.tsx`, React Native components and the official `@expo/ui` imports. It supports counters, text input, app navigation, sliders, switches, buttons and a simulated sheet.
-
-Use the platform tabs to switch between Cupertino-inspired and Material3-inspired controls. Change device presets and appearance, rotate, or reload. Inspect events and build output on the right. Metro provides Fast Refresh when editing the Expo app.
-
-### How the Expo UI emulation works
-
-The demo has a Metro resolver extension:
-
-```js
-const { getDefaultConfig } = require('expo/metro-config');
-const { withMimicry } = require('../../packages/runtime/metro.cjs');
-
-module.exports = withMimicry(getDefaultConfig(__dirname));
-```
-
-When Metro targets **web**, Mimicry redirects `@expo/ui`, `@expo/ui/swift-ui`, and `@expo/ui/jetpack-compose` imports into its own components. When Metro targets **ios/android**, these imports still resolve normally to real Expo UI native implementations. The rest of the Expo app is unchanged. This is a deliberately limited adapter, not comprehensive native API compatibility.
-
-### Preview another Expo application
-
-1. Install `react-dom`, `react-native-web`, and `@expo/metro-runtime` in the app if web support isn't configured.
-2. Add the `withMimicry` resolver extension to its `metro.config.js` (update the require path).
-3. Run Mimicry pointing to its Expo app folder:
+To point it at your own app (a classic Expo entry: `index.ts` with `registerRootComponent`, or `App.tsx`):
 
 ```sh
-MIMICRY_EXPO_PROJECT=/absolute/path/to/my-expo-app npm run dev
+node packages/cli/bin/mimicry.js dev path/to/your-app
 ```
 
-Or launch Expo's web server yourself and run only the Studio:
+You don't need to add anything to the app. `react-native`, `react`, `expo`, `expo-status-bar`, `react-native-safe-area-context` and `expo-linear-gradient` come from the base module. Other packages are prebundled with esbuild.
+
+## What the Studio gives you
+
+- Switch iOS ↔ Android (each platform compiles its own module graph, so `*.ios.tsx` and `*.android.tsx` resolve like Metro), change devices (iPhone 17 Pro, 16e, SE, iPad Air, Pixel 9, Galaxy S25, Pixel Tablet), toggle light/dark, rotate, use Android back, slow animations 10×, and take device-resolution screenshots.
+- **Inspect**: the React component tree with host types and test IDs. Hover a row to outline the element on the device, or pick an element on screen.
+- **Engine**: per-frame layout and encode time, raster time, chunk cache hit rate, composited layers, frame stream size.
+- **Logs**: the app's console output, build errors and runtime errors. Render errors also appear in the device as a LogBox-style screen.
+
+## Headless testing
+
+```ts
+import { launch } from '@mimicry/testing';
+
+const { session } = await launch('examples/showcase', { device: 'pixel-9', appearance: 'dark' });
+session.tap({ testID: 'tab-motion' });
+session.scroll({ testID: 'motion-scroll' }, { dy: 300 }).settle();
+const png = session.screenshot();              // device resolution, deterministic
+const frames = session.filmstrip({ duration: 600, every: 100 });
+const tree = session.layout();                 // compact layout tree for snapshot diffs
+```
+
+From the command line:
 
 ```sh
-MIMICRY_APP_URL=http://localhost:8081 npm run dev:studio
+mimicry render examples/showcase --scene examples/showcase/scenes/components-dark.json --out shot.png
+mimicry filmstrip examples/showcase --scene examples/showcase/scenes/spring.json --out film/
+mimicry oracle examples/showcase --scenes examples/showcase/scenes --reference oracle/ios --out report/
+mimicry diff a.png b.png --out diff.png
 ```
 
-Browser-compatible modules work. App code that depends on native-only APIs or iOS/Android-only source resolution needs corresponding Mimicry shims.
+`scripts/capture-oracle.mjs` captures the reference screenshots on a real iOS Simulator (macOS) from the same scene files.
 
-### Development
+## Repository layout
+
+| Package | Role |
+| --- | --- |
+| `@mimicry/protocol` | Frame format, opcodes, writer/reader, engine↔host messages, device descriptors |
+| `@mimicry/os-core` | The kernel: frame loop, render layers and render server, text layout, fonts, images, storage, keyboard, scroll kinetics, the framework adapter contract |
+| `@mimicry/os-ios` | iOS: UIKit, Core Animation, Foundation ([docs/os-ios.md](docs/os-ios.md)) |
+| `@mimicry/os-android` | Android: android.view, widget, app, animation, androidx ([docs/os-android.md](docs/os-android.md)) |
+| `@mimicry/device` | Boots a kernel with the OS a device descriptor names |
+| `@mimicry/react-native-fabric` | React Native's native side: React host config, shadow tree, Yoga, mounting into OS views, touch handling, gesture arena, SVG |
+| `@mimicry/react-native` | The `react-native` API surface (components, Animated, Alert, …) plus Expo/community shims |
+| `@mimicry/runtime` | Module linker with Fast Refresh, app runtime, the React Native adapter, the Web Worker entry (base module) |
+| `@mimicry/host-web` | Canvas2D executor + compositor with raster cache, native input overlays, `EngineHost` |
+| `@mimicry/compiler` | Base module build, per-file side module compiler (SWC), resolver, vendor prebundle |
+| `@mimicry/studio` | The browser UI around the device |
+| `@mimicry/cli` | `mimicry dev / render / filmstrip / oracle / diff` and the dev server |
+| `@mimicry/testing` | Headless sessions, bare devices (`createDevice`), filmstrips, pixel diffs |
+
+Read more in [docs/architecture.md](docs/architecture.md), [docs/adapters.md](docs/adapters.md), [docs/protocol.md](docs/protocol.md) and [docs/fidelity.md](docs/fidelity.md).
+
+## Development
 
 ```sh
-npm run check
-npm test
-npm run typecheck --workspace @mimicry/expo-demo
-npm run export:web --workspace @mimicry/expo-demo
+npm test               # unit, e2e, golden and filmstrip tests (Vitest)
+npm run typecheck
+npm run goldens:update # after an intentional visual change
+npm run test:browser   # Studio smoke test in Chromium (needs `npm run dev` on :5180, see the file)
 ```
 
-Environment options: `MIMICRY_PORT` (default `5173`), `MIMICRY_EXPO_PORT` (default `8081`), `MIMICRY_EXPO_PROJECT` (demo by default), `MIMICRY_APP_URL` (external browser app URL, disables auto-start).
+## Status
 
-## The vision beyond this MVP
-
-A framework reimplementation with semantic retained trees, platform-specific layout systems, draw-command generation, Canvas/Wasm rendering, gesture/animation simulation, runtime native-module shims, and visual diffs against real OS screenshots collected *offline*. The **real simulator is a test oracle, never a runtime dependency**.
-
-[Read the architecture and fidelity roadmap](docs/architecture.md).
+Alpha. It renders and runs real Expo apps built from core React Native components, with both platform kits, Animated, scrolling, modals, alerts and Fast Refresh. The fidelity table in [docs/fidelity.md](docs/fidelity.md) lists what is approximate and what is missing (virtualized lists, sticky headers, multi-touch, inline views in text, native modules, expo-router, among others).
 
 License: not yet selected.

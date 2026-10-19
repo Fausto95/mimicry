@@ -1,0 +1,1 @@
+{ "name": "android-push", "device": "pixel-9", "trigger": { "tap": { "testID": "row-1" } }, "duration": 1000 }

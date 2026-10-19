@@ -1,0 +1,1 @@
+{ "name": "android-compose", "device": "pixel-9", "appearance": "light", "steps": [{ "tap": { "testID": "compose" } }] }

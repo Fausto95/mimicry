@@ -1,0 +1,1 @@
+{ "name": "android-sheet", "device": "pixel-9", "trigger": { "tap": { "testID": "compose" } }, "duration": 1000 }
