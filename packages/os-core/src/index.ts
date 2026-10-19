@@ -17,3 +17,5 @@ export * from './render/layer';
 export * from './render/render-server';
 export * from './services/images';
 export * from './kernel';
+export * from './input/scroll-kinetics';
+export * from './os';

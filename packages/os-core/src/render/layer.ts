@@ -90,6 +90,18 @@ export class RenderLayer {
    */
   scrollsContent = false;
 
+  // ── drawing (the render server calls these while it records a frame) ──
+
+  /** Content under the sublayers. Subclasses draw their own properties, then the delegate's content. */
+  drawContent(ctx: LayerContext): void {
+    this.delegate?.drawLayer?.(this, ctx);
+  }
+
+  /** Content above the sublayers. */
+  drawOverlay(ctx: LayerContext): void {
+    this.delegate?.drawLayerOverlay?.(this, ctx);
+  }
+
   // ── tree ──────────────────────────────────────────────────────────────
 
   addSublayer(layer: RenderLayer): void {

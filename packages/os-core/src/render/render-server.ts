@@ -92,9 +92,8 @@ class Pass {
   }
 
   private content(layer: RenderLayer, ox: number, oy: number, rec: LayerRecorder): void {
-    const delegate = layer.delegate;
-    const ctx = delegate ? this.context(rec, ox, oy) : null;
-    delegate?.drawLayer?.(layer, ctx!);
+    const ctx = this.context(rec, ox, oy);
+    layer.drawContent(ctx);
     if (layer.scrollsContent) {
       this.scrolled(layer, ox, oy, rec);
     } else if (layer.sublayers.length) {
@@ -106,7 +105,7 @@ class Pass {
       if (clip) rec.popClip();
     }
     for (const fixed of layer.fixedSublayers) this.layer(fixed, ox + fixed.x, oy + fixed.y, rec);
-    delegate?.drawLayerOverlay?.(layer, ctx!);
+    layer.drawOverlay(ctx);
   }
 
   /** Scrolled content: one composited layer at the content offset, tiled by what is visible. */
