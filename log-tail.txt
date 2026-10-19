@@ -1,0 +1,65 @@
++++ dirname scripts/oracle-ios.sh
+++ cd scripts/..
+++ pwd
++ ROOT=/Users/runner/work/mimicry/mimicry
++ PROJECT=examples/showcase
+++ basename examples/showcase
++ NAME=showcase
++ OUT=/Users/runner/work/mimicry/mimicry/oracle/showcase
++ cd /Users/runner/work/mimicry/mimicry
+++ sort -V
+++ tail -1
+++ ls -d /Applications/Xcode_26.0.1.app /Applications/Xcode_26.0.app /Applications/Xcode_26.1.1.app /Applications/Xcode_26.1.app /Applications/Xcode_26.2.0.app /Applications/Xcode_26.2.app /Applications/Xcode_26.3.0.app /Applications/Xcode_26.3.app /Applications/Xcode_26.4.1.app /Applications/Xcode_26.4.app /Applications/Xcode_26.5.0.app /Applications/Xcode_26.5.app /Applications/Xcode_26.6.0.app /Applications/Xcode_26.6.app
++ XCODE=/Applications/Xcode_26.6.0.app
++ '[' -n /Applications/Xcode_26.6.0.app ']'
++ sudo xcode-select -s /Applications/Xcode_26.6.0.app
++ xcodebuild -version
+Xcode 26.6
+Build version 17F113
++ xcrun simctl list runtimes
+== Runtimes ==
+iOS 26.2 (26.2 - 23C54) - com.apple.CoreSimulator.SimRuntime.iOS-26-2
+iOS 26.4 (26.4.1 - 23E254a) - com.apple.CoreSimulator.SimRuntime.iOS-26-4
+iOS 26.5 (26.5 - 23F77) - com.apple.CoreSimulator.SimRuntime.iOS-26-5
+tvOS 26.2 (26.2 - 23K51) - com.apple.CoreSimulator.SimRuntime.tvOS-26-2
+tvOS 26.4 (26.4 - 23L243a) - com.apple.CoreSimulator.SimRuntime.tvOS-26-4
+tvOS 26.5 (26.5 - 23L470) - com.apple.CoreSimulator.SimRuntime.tvOS-26-5
+watchOS 26.2 (26.2 - 23S303) - com.apple.CoreSimulator.SimRuntime.watchOS-26-2
+watchOS 26.4 (26.4 - 23T240b) - com.apple.CoreSimulator.SimRuntime.watchOS-26-4
+watchOS 26.5 (26.5 - 23T570) - com.apple.CoreSimulator.SimRuntime.watchOS-26-5
+visionOS 26.2 (26.2 - 23N301) - com.apple.CoreSimulator.SimRuntime.xrOS-26-2
+visionOS 26.4 (26.4.1 - 23O249a) - com.apple.CoreSimulator.SimRuntime.xrOS-26-4
+visionOS 26.5 (26.5 - 23O470) - com.apple.CoreSimulator.SimRuntime.xrOS-26-5
++ '[' -d node_modules ']'
++ npm ci --no-audit --no-fund
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+npm error
+npm error Missing: @mimicry/device@0.3.0 from lock file
+npm error Missing: @mimicry/device@0.3.0 from lock file
+npm error Missing: @mimicry/os-android@0.3.0 from lock file
+npm error Missing: @mimicry/os-android@0.3.0 from lock file
+npm error Missing: @mimicry/os-core@0.3.0 from lock file
+npm error Missing: @mimicry/os-core@0.3.0 from lock file
+npm error Missing: @mimicry/os-ios@0.3.0 from lock file
+npm error Missing: @mimicry/os-ios@0.3.0 from lock file
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: /Users/runner/.npm/_logs/2026-10-19T12_59_05_369Z-debug-0.log

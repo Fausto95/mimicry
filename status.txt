@@ -1,0 +1,4 @@
+outcome: failure
+commit: 5e20961251cae9c07ebb60203af16cc22576da93
+platform: ios
+project: examples/showcase
