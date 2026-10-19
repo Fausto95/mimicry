@@ -5,6 +5,7 @@ import { ColorDrawable } from '../graphics/drawable';
 import { LayoutParams, View } from '../view/view';
 import { FrameLayout } from '../view/view-group';
 import { WindowLayoutParams, WindowType, type WindowManager } from '../view/window-manager';
+import { FragmentManager } from './fragment';
 
 /**
  * android.app.Activity and its PhoneWindow: the decor view (a FrameLayout
@@ -118,10 +119,21 @@ export class PhoneWindow {
   }
 }
 
+/** Lifecycle.State values, aligned with the fragment states. */
+export const LifecycleState = {
+  DESTROYED: -2,
+  INITIALIZED: -1,
+  CREATED: 1,
+  STARTED: 5,
+  RESUMED: 7,
+} as const;
+
 export class Activity extends Context {
   private window: PhoneWindow | null = null;
   readonly onBackPressedDispatcher: OnBackPressedDispatcher;
   private finished = false;
+  private lifecycleState: number = LifecycleState.INITIALIZED;
+  private fragments: FragmentManager | null = null;
 
   constructor(kernel: Kernel, private readonly windowManager: WindowManager) {
     super(kernel);
@@ -145,12 +157,34 @@ export class Activity extends Context {
   launch(): void {
     const window = this.getWindow();
     this.onCreate(null);
+    this.moveTo(LifecycleState.CREATED);
     this.windowManager.addView(window.decorView, new WindowLayoutParams(WindowType.TYPE_BASE_APPLICATION), () => {
       this.onBackPressed();
       return true;
     });
     this.onStart();
+    this.moveTo(LifecycleState.STARTED);
     this.onResume();
+    this.moveTo(LifecycleState.RESUMED);
+  }
+
+  private moveTo(state: number): void {
+    this.lifecycleState = state;
+    this.fragments?.dispatchState(state);
+  }
+
+  /** The activity's Lifecycle.State (LifecycleState). */
+  getLifecycleState(): number {
+    return this.lifecycleState;
+  }
+
+  /** The FragmentManager of this (Fragment)Activity. */
+  getSupportFragmentManager(): FragmentManager {
+    if (!this.fragments) {
+      this.fragments = new FragmentManager(this);
+      this.fragments.dispatchState(this.lifecycleState);
+    }
+    return this.fragments;
   }
 
   protected onCreate(_savedInstanceState: unknown): void {}
@@ -177,9 +211,13 @@ export class Activity extends Context {
   finish(): void {
     if (this.finished) return;
     this.finished = true;
+    this.moveTo(LifecycleState.STARTED);
     this.onPause();
+    this.moveTo(LifecycleState.CREATED);
     this.onStop();
+    this.moveTo(LifecycleState.INITIALIZED);
     this.onDestroy();
+    this.moveTo(LifecycleState.DESTROYED);
     this.kernel.warnOnce('activity-finish', 'Back pressed with no handler (the app would exit).');
   }
 

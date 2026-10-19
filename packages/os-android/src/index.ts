@@ -52,3 +52,4 @@ export * from './widget/toast';
 export * from './widget/recycler-view';
 export * from './app/dialog';
 export * from './material/alert-dialog';
+export * from './app/fragment';
