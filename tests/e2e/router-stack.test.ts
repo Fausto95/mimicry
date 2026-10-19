@@ -37,6 +37,17 @@ describe.skipIf(!installed)('native stack (expo-router + react-native-screens)',
     s.dispose();
   });
 
+  it('collapses the large title as the list scrolls', async () => {
+    const app = await launch(project, { device: 'iphone-17-pro' });
+    const s = app.session;
+    const largeTitle = () => s.find({ text: 'Inbox' }).reduce((a, b) => (a.rect.h > b.rect.h ? a : b));
+    expect(largeTitle().rect.h).toBeGreaterThan(30);
+    s.drag({ testID: 'row-4' }, { dx: 0, dy: -150 }, { duration: 300 });
+    s.settle();
+    expect(s.find({ text: 'Inbox' }).every((n) => n.rect.h < 25)).toBe(true);
+    s.dispose();
+  });
+
   it('presents a modal and dismisses it from JS', async () => {
     const app = await launch(project, { device: 'iphone-17-pro' });
     const s = app.session;

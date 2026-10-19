@@ -27,11 +27,13 @@ const facades = new Map<string, React.ComponentType<any>>();
 const warned = new Set<string>();
 
 export function registerNativeComponent(name: string, impl: NativeComponentImpl): void {
+  // Bundlers rename functions (ExpoImage → ExpoImage2); the inspector shows the native name.
+  (impl as { displayName?: string }).displayName ??= name;
   components.set(name, impl);
 }
 
 export function registerNativeComponents(map: Record<string, NativeComponentImpl>): void {
-  for (const [name, impl] of Object.entries(map)) components.set(name, impl);
+  for (const [name, impl] of Object.entries(map)) registerNativeComponent(name, impl);
 }
 
 /** Register a native module. The factory runs on first lookup (per app run). */

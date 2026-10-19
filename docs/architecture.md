@@ -39,7 +39,28 @@ The engine has no DOM dependency. In Node, the same engine runs in-process on a 
 
 **Input.** Pointer events are hit-tested in paint order (zIndex, Android elevation, `pointerEvents`, `hitSlop`, transforms, scroll offsets, clipping). Taps on nested text resolve to the span's node. The Gesture Responder System runs as on device: capture/bubble negotiation, grant, move, termination requests, release. Scroll views are native: past the touch slop they take the gesture and terminate the JS responder, which cancels a press inside a list exactly like a `UIScrollView` does.
 
+**Safe areas** follow UIKit's model (`layout/safe-area.ts`). The window's insets come from the device descriptor; containers add their own with `additionalSafeAreaInsets` — a tab bar controller its tab bar, a navigation controller its bar — and a view's insets are where its frame overlaps the unsafe region around its nearest container. Views that pad themselves by their insets (`SafeAreaView` from react-native-safe-area-context, RNSSafeAreaView) are resolved inside layout with an extra Yoga pass, so there is no first frame with the wrong padding. Scroll views with `contentInsetAdjustmentBehavior` adjust their content inset the same way.
+
+**Gestures.** `input/gestures/` implements react-native-gesture-handler's model in the engine: recognizers attached to host nodes (pan, tap, long press, fling, pinch, rotation, native, manual) run RNGH's state machine in an arena that applies simultaneous / require-to-fail / blocks relations. An activating gesture claims the touch and cancels the JS responder and other gestures; a scroll view starting to drag is its native gesture activating.
+
 **Animation.** Everything that "reads something live this frame" registers with the `Animator`: Animated values, scroll momentum and rubber banding, switch transitions, spinners, ripples and modal presentation. Animated writes resolved values straight onto host nodes as style overrides, which behaves like `useNativeDriver: true` for every animation, so React doesn't re-render per frame. When nothing is live, the engine stops requesting frames.
+
+## Libraries: their JavaScript, Mimicry's native side
+
+Real apps are mostly libraries. Mimicry runs each library's own published JavaScript (prebundled from the app's `node_modules`) and implements what that JavaScript expects from the platform:
+
+```
+ app code ─▶ expo-router ─▶ @react-navigation/native-stack ─▶ react-native-screens (JS)
+                                                                 │ codegenNativeComponent('RNSScreenStack')
+                                                                 ▼
+                          @mimicry/react-native  native/registry ─▶ native/screens/stack.tsx
+ expo-constants (JS) ── requireNativeModule('ExponentConstants') ─▶ native/expo-modules.ts
+```
+
+- **Native components** (`codegenNativeComponent`, `requireNativeComponent`, Expo's `requireNativeView`) resolve through `native/registry.ts` to React components written against Mimicry's primitives and engine: react-native-screens' stack, screens, navigation bars and tabs; react-native-svg's RNSVG* elements (engine `m-svg` nodes painted by `engine/src/svg`); expo-image, expo-symbols, expo-blur and expo-glass-effect. An unknown native view renders its children in a plain view and logs one warning.
+- **Native modules** (`TurboModuleRegistry`, `NativeModules`, Expo's `requireNativeModule`) are plain objects: Constants from the resolved app config, Device from the device descriptor, SplashScreen, FontLoader (custom fonts reach the worker, the host canvas and headless Node), Linking, WebBrowser, SystemUI and others. `expo-modules-core` itself is implemented natively.
+- **Libraries whose native half is the point** — Reanimated (JSI worklets), react-native-worklets and Gesture Handler — are provided modules reimplemented on the engine: shared values and animations run on the engine's frame clock and write styles onto host nodes like the native driver; layout animations keep exiting nodes painted until they finish (`tree/exit.ts`).
+- The compiler supplies what Metro would: expo-router's `require.context` over the app directory, `react-native/Libraries/…` deep imports, Flow stripping, assets registered with numeric ids, CSS as empty modules, and the app config.
 
 ## Frame loop
 
@@ -65,4 +86,6 @@ Switching between iOS and Android re-boots the worker with the other platform's 
 
 - **Headless sessions** (`@mimicry/testing`): `render(<App/>)` or `launch(projectDir)` on a virtual clock. Use `tap`, `drag`, `scroll`, `type`, `back` and `setEnvironment` to drive the app, `advance` and `settle` to move time, `screenshot` (device resolution) to capture, `layout()` for tree dumps, and `filmstrip()` for frame sequences with timed actions. Same inputs give the same pixels.
 - **Goldens** (`tests/golden`) cover iOS, Android and iPad in light and dark.
-- **Oracle** (`mimicry oracle`): renders scene files and diffs them against screenshots captured on real simulators by `scripts/capture-oracle.mjs`, then writes an HTML report. This is the Dactyl development loop: render, diff against the platform, fix the kit, repeat.
+- **Oracle** (`mimicry oracle`): renders scene files and diffs them against screenshots captured on real simulators and emulators by `scripts/capture-oracle.mjs`, then writes an HTML report. This is the Dactyl development loop: render, diff against the platform, fix the kit, repeat. `.github/workflows/oracle.yml` runs it for every example on an iOS simulator (macOS runner) and an Android emulator (Linux, KVM).
+- **Motion oracle** (`mimicry oracle --motion`): `scripts/capture-motion.mjs` screen-records a scene's trigger on the device; Mimicry replays it at 60 fps on the virtual clock; both recordings are reduced to progress curves (how far each frame is from the motion's start to its end), which compares easing and timing independently of how the pixels look.
+- Callbacks React Native delivers asynchronously (onLayout, cached image loads) go through `engine.defer()`: a microtask in the browser, drained inside `act()` by headless sessions so they land on virtual time.

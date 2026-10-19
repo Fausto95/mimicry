@@ -44,6 +44,16 @@ const rubber = (overshoot: number, dimension: number, c: number) =>
 
 export class ScrollManager implements FrameTask {
   private readonly active = new Set<HostNode>();
+  private readonly observers = new Set<(node: HostNode) => void>();
+
+  /**
+   * Native-side observers of scroll position (e.g. a navigation bar
+   * collapsing its large title), called whenever any scroll view moves.
+   */
+  observe(listener: (node: HostNode) => void): () => void {
+    this.observers.add(listener);
+    return () => this.observers.delete(listener);
+  }
 
   constructor(private readonly engine: Engine) {}
 
@@ -434,6 +444,7 @@ export class ScrollManager implements FrameTask {
     const s = this.ensure(node);
     if (s.lastEmitted && s.lastEmitted.x === s.x && s.lastEmitted.y === s.y) return;
     s.lastEmitted = { x: s.x, y: s.y };
+    for (const observer of Array.from(this.observers)) observer(node);
     this.emitEvent(node, 'onScroll', { velocity: { x: s.vx, y: s.vy } }, 'continuous');
   }
 

@@ -26,6 +26,8 @@ export interface ScreenApi {
   presentation: string;
   /** whether the screen sits inside a stack (has a navigation bar at all) */
   inStack: boolean;
+  /** the screen's host view (navigation bars find the scroll view they track under it) */
+  host: React.RefObject<HostNode | null>;
 }
 
 export const ScreenContext = createContext<ScreenApi | null>(null);
@@ -88,6 +90,7 @@ export const Screen = forwardRef<any, any>(function Screen(props, ref) {
     baseInsets: insets,
     presentation: stackPresentation,
     inStack: !!item,
+    host,
   }), [insets, stackPresentation, item]);
 
   const hidden = item ? !item.visible : activityState === 0;

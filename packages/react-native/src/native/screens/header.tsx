@@ -1,4 +1,7 @@
-import React, { createContext, forwardRef, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import React, { createContext, forwardRef, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { HostNode } from '@mimicry/engine';
+import { Animated } from '../../animated';
+import { AnimatedValue } from '../../animated/animated';
 import { Platform } from '../../apis/core';
 import { Pressable, Text, View } from '../../components/primitives';
 import { maybeEngine } from '../../engine-ref';
@@ -58,6 +61,8 @@ export const HeaderConfig = forwardRef<any, any>(function HeaderConfig(props, re
     tint: props.color,
   }), [props.color]);
 
+  const collapse = useLargeTitleCollapse(large && !hidden ? screen?.host : undefined);
+
   if (hidden || !screen) return null;
   const top = screen.baseInsets.top;
   const index = item?.index ?? 0;
@@ -95,16 +100,27 @@ export const HeaderConfig = forwardRef<any, any>(function HeaderConfig(props, re
         style: { position: 'absolute', left: 0, right: 0, top: 0, paddingTop: top, backgroundColor: background, zIndex: 10 },
       },
         React.createElement(View, { pointerEvents: 'box-none', style: { height: BAR.ios.height, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' } },
-          !large && !hasCenter && title
-            ? React.createElement(Text, {
+          !hasCenter && title
+            ? React.createElement(Animated.Text as any, {
                 numberOfLines: 1,
-                style: { fontSize: props.titleFontSize ?? BAR.ios.titleSize, fontWeight: props.titleFontWeight ?? '600', fontFamily: props.titleFontFamily, color: titleColor, maxWidth: '60%' },
+                style: {
+                  fontSize: props.titleFontSize ?? BAR.ios.titleSize, fontWeight: props.titleFontWeight ?? '600', fontFamily: props.titleFontFamily, color: titleColor, maxWidth: '60%',
+                  // with a large title, the inline title appears once the large one has scrolled away
+                  opacity: large ? collapse.interpolate({ inputRange: [0.85, 1], outputRange: [0, 1], extrapolate: 'clamp' }) : 1,
+                },
               }, title)
             : null,
           backButton,
           props.children),
         large
-          ? React.createElement(View, { pointerEvents: 'none', style: { height: BAR.ios.largeTitleHeight, paddingHorizontal: BAR.ios.sideInset, justifyContent: 'flex-end', paddingBottom: 8, backgroundColor: props.largeTitleBackgroundColor } },
+          ? React.createElement(Animated.View as any, {
+              pointerEvents: 'none',
+              style: {
+                // the large title scrolls up under the bar with the content
+                height: collapse.interpolate({ inputRange: [0, 1], outputRange: [BAR.ios.largeTitleHeight, 0], extrapolate: 'clamp' }),
+                overflow: 'hidden', paddingHorizontal: BAR.ios.sideInset, justifyContent: 'flex-end', paddingBottom: 8, backgroundColor: props.largeTitleBackgroundColor,
+              },
+            },
               React.createElement(Text, {
                 numberOfLines: 1,
                 style: { fontSize: props.largeTitleFontSize ?? BAR.ios.largeTitleSize, fontWeight: props.largeTitleFontWeight ?? '700', fontFamily: props.largeTitleFontFamily, color: props.largeTitleColor ?? titleColor },
@@ -146,6 +162,37 @@ export const HeaderConfig = forwardRef<any, any>(function HeaderConfig(props, re
           : React.createElement(View, { style: { flex: 1 } }),
         props.children)));
 });
+
+/**
+ * How far a large title has collapsed (0 = expanded, 1 = inline): follows the
+ * first vertical scroll view in the screen, like UINavigationController
+ * tracking its view controller's content scroll view.
+ */
+function useLargeTitleCollapse(host: React.RefObject<HostNode | null> | undefined): AnimatedValue {
+  const value = useRef(new AnimatedValue(0)).current;
+  useEffect(() => {
+    const engine = maybeEngine();
+    if (!host || !engine) return;
+    let tracked: HostNode | null = null;
+    const isTracked = (node: HostNode) => {
+      if (tracked) return node === tracked;
+      if (node.props.horizontal) return false;
+      for (let p: HostNode | null = node.parent; p; p = p.parent) {
+        if (p === host.current) {
+          tracked = node;
+          return true;
+        }
+      }
+      return false;
+    };
+    return engine.scrolls.observe((node) => {
+      if (!isTracked(node) || !node.scroll) return;
+      const rest = engine.scrolls.bounds(node).minY;
+      value.setValue(Math.max(0, Math.min(1, (node.scroll.y - rest) / BAR.ios.largeTitleHeight)));
+    });
+  }, [host, value]);
+  return value;
+}
 
 /** RNSScreenStackHeaderSubview: custom content for the bar's left / center / right / back slot. */
 export const HeaderSubview = forwardRef<any, any>(function HeaderSubview(props, ref) {
