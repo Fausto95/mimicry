@@ -56,6 +56,11 @@ jobs:
           PROJECT: ${{ matrix.project }}
           OUTCOME: ${{ steps.run.outcome }}
         run: bash scripts/oracle-publish.sh ios
+      # The capture step continues on error so its results still publish;
+      # the job reports the failure here.
+      - name: Fail if the capture failed
+        if: steps.run.outcome != 'success'
+        run: exit 1
 
   android:
     needs: plan
@@ -99,3 +104,8 @@ jobs:
           PROJECT: ${{ matrix.project }}
           OUTCOME: ${{ steps.run.outcome }}
         run: bash scripts/oracle-publish.sh android
+      # The capture step continues on error so its results still publish;
+      # the job reports the failure here.
+      - name: Fail if the capture failed
+        if: steps.run.outcome != 'success'
+        run: exit 1
