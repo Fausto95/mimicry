@@ -1,7 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 
-export const ASSET_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+/** Where asset modules register themselves, as with Metro's asset plugin. */
+export const ASSET_REGISTRY = '@react-native/assets-registry/registry';
+
+export const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+export const FONT_EXTENSIONS = new Set(['.ttf', '.otf']);
+export const ASSET_EXTENSIONS = new Set([...IMAGE_EXTENSIONS, ...FONT_EXTENSIONS]);
 
 export const isAsset = (file: string) => ASSET_EXTENSIONS.has(extname(file).toLowerCase());
 
@@ -63,6 +68,11 @@ export function resolveAssetVariant(file: string): { file: string; scale: number
 }
 
 export function assetModule(file: string, url: (absolutePath: string) => string): string {
+  const ext = extname(file).toLowerCase();
+  if (FONT_EXTENSIONS.has(ext)) {
+    const asset = { __packager_asset: true, uri: url(file), width: 0, height: 0, scale: 1, type: ext.slice(1), name: basename(file, ext) };
+    return `module.exports = require(${JSON.stringify(ASSET_REGISTRY)}).registerAsset(${JSON.stringify(asset)});`;
+  }
   const variant = resolveAssetVariant(file);
   const size = imageSize(readFileSync(variant.file)) ?? { width: 0, height: 0 };
   const asset = {
@@ -72,5 +82,5 @@ export function assetModule(file: string, url: (absolutePath: string) => string)
     height: size.height / variant.scale,
     scale: variant.scale,
   };
-  return `module.exports = ${JSON.stringify(asset)};`;
+  return `module.exports = require(${JSON.stringify(ASSET_REGISTRY)}).registerAsset(${JSON.stringify(asset)});`;
 }

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import type { PlatformName } from '@mimicry/protocol';
-import { PROVIDED_MODULE_IDS } from '@mimicry/protocol';
+import { isProvidedSpecifier } from '@mimicry/protocol';
 import { isAsset } from './assets';
 
 /**
@@ -50,17 +50,13 @@ interface PathAlias {
 
 export class Resolver {
   private readonly aliases: PathAlias[];
-  private readonly provided = new Set<string>(PROVIDED_MODULE_IDS);
 
   constructor(readonly root: string) {
     this.aliases = readPathAliases(root);
   }
 
   resolve(specifier: string, fromFile: string, platform: PlatformName): Resolution {
-    if (this.provided.has(specifier)) return { kind: 'provided', specifier };
-    if (specifier.startsWith('react-native/')) {
-      return { kind: 'error', message: `Deep import "${specifier}" reaches into React Native internals, which Mimicry does not implement. Import from "react-native" instead.` };
-    }
+    if (isProvidedSpecifier(specifier)) return { kind: 'provided', specifier };
     if (specifier.startsWith('.') || isAbsolute(specifier)) {
       const base = isAbsolute(specifier) ? specifier : resolve(dirname(fromFile), specifier);
       return this.resolvePath(base, platform) ?? { kind: 'error', message: `Unable to resolve "${specifier}" from "${fromFile.replace(this.root + '/', '')}".` };
@@ -81,7 +77,7 @@ export class Resolver {
     if (isAsset(base)) return existsSync(base) || existsAnyVariant(base) ? { kind: 'asset', path: base } : null;
     const exts = platformExtensions(platform);
     // explicit extension
-    if (/\.(tsx?|jsx?|mjs|cjs|json)$/.test(base) && isFile(base)) return { kind: 'file', path: base };
+    if (/\.(tsx?|jsx?|mjs|cjs|json|css)$/.test(base) && isFile(base)) return { kind: 'file', path: base };
     for (const ext of exts) {
       if (isFile(base + ext)) return { kind: 'file', path: base + ext };
     }

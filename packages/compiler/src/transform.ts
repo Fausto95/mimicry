@@ -37,6 +37,8 @@ export class Transformer {
   }
 
   async transformSource(file: string, source: string): Promise<TransformResult> {
+    // CSS is web-only; on native, Expo's Metro config resolves it to an empty module.
+    if (file.endsWith('.css')) return { code: file.endsWith('.module.css') ? 'module.exports = new Proxy({}, { get: function (_t, k) { return k; } });' : 'module.exports = {};', requires: [] };
     if (file.endsWith('.json')) {
       try {
         JSON.parse(source);

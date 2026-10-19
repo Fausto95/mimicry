@@ -5,6 +5,7 @@ import { getEngine, setActiveEngine } from '../engine-ref';
 import { BackHandler } from './core';
 import { clearErrors, resetSystemUI, showError, SystemUI } from '../system/system-ui';
 import { View } from '../components/primitives';
+import { splash } from '../native/splash';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;
 
@@ -96,4 +97,6 @@ export function runRegisteredApp(): void {
   const key = AppRegistry.__lastKey;
   if (!key) throw new Error('No component was registered. The entry file should call registerRootComponent(App) or AppRegistry.registerComponent(...).');
   AppRegistry.runApplication(key);
+  // The launch screen goes away with the first frame unless the app asked to keep it.
+  queueMicrotask(() => splash.firstFrame());
 }

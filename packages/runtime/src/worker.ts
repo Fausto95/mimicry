@@ -74,6 +74,12 @@ async function boot(message: Extract<HostMessage, { type: 'boot' }>): Promise<vo
     send,
     bundledFonts: message.fontMode === 'bundled',
     hostInputs: true,
+    loadFont: async (family, url, descriptors) => {
+      if (!FontFaceCtor || !self.fonts) return;
+      const face = new FontFaceCtor(family, `url(${url})`, { weight: descriptors.weight ?? 'normal', style: descriptors.style ?? 'normal' });
+      self.fonts.add(face);
+      await face.load();
+    },
   });
   runtime = new AppRuntime(engine, {
     setTimeout: (fn, ms) => setTimeout(fn, ms),

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { flattenStyle, parseColor } from '@mimicry/engine';
 import { getEngine, maybeEngine } from '../engine-ref';
+import { getNativeModule, hasNativeComponent, hasNativeModule } from '../native/registry';
 
 // ── Platform ───────────────────────────────────────────────────────────────
 
@@ -230,15 +231,23 @@ export const InteractionManager = {
   setDeadline() {},
 };
 
-export const NativeModules: Record<string, unknown> = new Proxy({}, {
+export const NativeModules: Record<string, any> = new Proxy({}, {
   get(_t, name) {
-    return undefined;
+    return typeof name === 'string' ? getNativeModule(name) ?? undefined : undefined;
+  },
+  has(_t, name) {
+    return typeof name === 'string' && hasNativeModule(name);
   },
 });
 
 export const UIManager = {
-  getViewManagerConfig: () => null,
-  hasViewManagerConfig: () => false,
+  getViewManagerConfig: (name: string) => (hasNativeComponent(name) ? { Commands: {}, Constants: {}, NativeProps: {} } : null),
+  hasViewManagerConfig: (name: string) => hasNativeComponent(name),
+  dispatchViewManagerCommand(ref: any, command: string | number, args: unknown[] = []) {
+    const target = typeof ref === 'number' ? maybeEngine()?.nodes.get(ref) : ref;
+    const fn = (target as any)?.[command];
+    if (typeof fn === 'function') fn.apply(target, args);
+  },
   setLayoutAnimationEnabledExperimental() {},
   measure(node: any, cb: any) {
     node?.measure?.(cb);

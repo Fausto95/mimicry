@@ -12,6 +12,8 @@ export interface FontMetrics {
 export interface TextMeasurer {
   width(text: string, font: string, letterSpacing: number): number;
   metrics(font: string): FontMetrics;
+  /** forget cached measurements (a font finished loading) */
+  invalidate?(): void;
 }
 
 /** The subset of CanvasRenderingContext2D the measurer needs. */
@@ -48,6 +50,13 @@ export class CanvasTextMeasurer implements TextMeasurer {
       this.ctx.letterSpacing = `${spacing}px`;
       this.currentSpacing = spacing;
     }
+  }
+
+  invalidate(): void {
+    this.widths.clear();
+    this.metricsCache.clear();
+    this.entries = 0;
+    this.currentFont = '';
   }
 
   width(text: string, font: string, letterSpacing: number): number {

@@ -23,6 +23,8 @@ export interface AppBundle {
   env?: Record<string, string>;
   /** content hash of the whole graph, for logging */
   hash?: string;
+  /** the resolved Expo app config (`expo` key of app.json / app.config.*), what Constants.expoConfig reports */
+  config?: Record<string, unknown>;
 }
 
 export interface EnvironmentSpec {
@@ -126,7 +128,8 @@ export type EngineMessage =
   | { type: 'openURL'; url: string }
   | { type: 'focusInput'; nodeId: number }
   | { type: 'blurInput'; nodeId: number }
-  | { type: 'reloadRequested' };
+  | { type: 'reloadRequested' }
+  | { type: 'loadFont'; family: string; url: string; weight?: string; style?: string };
 
 export interface Transport<In, Out> {
   send(message: Out, transfer?: Transferable[]): void;
@@ -140,10 +143,24 @@ export const PROVIDED_MODULE_IDS = [
   'react/jsx-dev-runtime',
   'react-native',
   'expo',
+  'expo-modules-core',
   'expo-status-bar',
-  'react-native-safe-area-context',
   'expo-linear-gradient',
+  'react-native-safe-area-context',
+  '@expo/metro-runtime',
+  '@react-native/assets-registry/registry',
 ] as const;
+
+/**
+ * Packages whose deep imports the base also provides (`react-native/Libraries/…`).
+ * The runtime maps known subpaths and reports the rest when they are required.
+ */
+export const PROVIDED_PREFIXES = ['react-native/', 'expo-modules-core/', 'react-native-safe-area-context/'] as const;
+
+const providedSet = new Set<string>(PROVIDED_MODULE_IDS);
+export function isProvidedSpecifier(specifier: string): boolean {
+  return providedSet.has(specifier) || PROVIDED_PREFIXES.some((p) => specifier.startsWith(p));
+}
 
 /** Dependency-map value for a provided module. */
 export const providedId = (specifier: string) => `provided:${specifier}`;

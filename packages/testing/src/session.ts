@@ -326,6 +326,11 @@ export async function createHeadlessEngine(options: SessionOptions = {}): Promis
       fontScale: options.fontScale,
     },
     send: (m) => (session ? session.receive(m) : queue.push(m)),
+    loadFont: async (family, url) => {
+      const bytes = await defaultImageBytes(url);
+      if (!bytes) throw new Error(`Cannot load font ${family} from ${url}`);
+      GlobalFonts.register(bytes, family);
+    },
   });
   session = new Session(engine, clock, options);
   for (const m of queue) session.receive(m);

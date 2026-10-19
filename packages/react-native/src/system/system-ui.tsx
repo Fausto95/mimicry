@@ -1,7 +1,8 @@
 import React, { useSyncExternalStore } from 'react';
 import type { EngineError } from '@mimicry/protocol';
 import { maybeEngine } from '../engine-ref';
-import { Pressable, Text, View } from '../components/primitives';
+import { Image, Pressable, Text, View } from '../components/primitives';
+import { splash, splashConfig } from '../native/splash';
 import { ScrollView } from '../components/lists';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;
@@ -172,6 +173,22 @@ function ErrorOverlay({ error, count }: { error: EngineError; count: number }) {
         h(Text, { style: { color: 'white', fontSize: 15, fontWeight: '600' } }, 'Reload'))));
 }
 
+/** The launch screen from the expo-splash-screen config, until the app hides it. */
+function SplashOverlay() {
+  const visible = useSyncExternalStore((cb) => splash.subscribe(cb), () => splash.visible);
+  const engine = maybeEngine();
+  if (!visible || !engine) return null;
+  const config = splashConfig(engine.env.appearance);
+  if (!config) return null;
+  const image = config.image;
+  const width = config.resizeMode === 'native' && image ? image.width : config.imageWidth;
+  const height = image && image.width ? (width * image.height) / image.width : width;
+  return h(View, {
+    testID: 'splash-screen',
+    style: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: config.backgroundColor, alignItems: 'center', justifyContent: 'center' },
+  }, image ? h(Image, { source: { uri: image.uri, width: image.width, height: image.height }, style: { width, height }, resizeMode: 'contain' }) : null);
+}
+
 export function SystemUI() {
   const pendingAlerts = useSyncExternalStore(alerts.subscribe, alerts.get);
   const pendingErrors = useSyncExternalStore(errors.subscribe, errors.get);
@@ -180,6 +197,7 @@ export function SystemUI() {
   const tokens = (engine?.kit.tokens ?? {}) as Record<string, any>;
   const alert = pendingAlerts[0];
   return h(React.Fragment, null,
+    h(SplashOverlay, null),
     alert ? h(engine?.platform === 'android' ? AndroidAlert : IOSAlert, { key: alert.id, alert, dark, tokens }) : null,
     pendingErrors[0] ? h(ErrorOverlay, { error: pendingErrors[0], count: pendingErrors.length }) : null);
 }
@@ -187,4 +205,5 @@ export function SystemUI() {
 export function resetSystemUI(): void {
   alerts.set([]);
   errors.set([]);
+  splash.reset();
 }

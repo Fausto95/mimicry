@@ -101,7 +101,7 @@ async function render(args: string[]): Promise<void> {
   for (const step of scene?.steps ?? []) runStep(app.session, step);
   await app.session.ready();
   await writeFile(values.out!, app.session.screenshot());
-  for (const e of app.session.errors) console.error(`${e.kind} error: ${e.message}`);
+  for (const e of app.session.errors) console.error(`${e.kind} error: ${e.message}${process.env.MIMICRY_DEBUG && e.stack ? `\n${e.stack}${e.componentStack ?? ''}` : ''}`);
   console.log(`wrote ${values.out}`);
   app.session.dispose();
 }

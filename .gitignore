@@ -7,3 +7,4 @@ artifacts/
 .DS_Store
 *.log
 .expo/
+node_modules

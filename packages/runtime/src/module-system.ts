@@ -54,8 +54,12 @@ export class ModuleSystem {
   /** modules whose last evaluation threw; a fix must re-run them */
   private readonly failed = new Set<string>();
 
+  /**
+   * @param provided resolves a provided specifier (`react-native`, or a deep
+   *   `react-native/Libraries/…` path) to its module, or returns undefined.
+   */
   constructor(
-    private readonly provided: Record<string, unknown>,
+    private readonly provided: (specifier: string) => unknown,
     private readonly scope: ModuleScope,
   ) {}
 
@@ -103,7 +107,8 @@ export class ModuleSystem {
     const localRequire = (specifier: string) => {
       const target = record.deps[specifier];
       if (target === undefined) {
-        if (specifier in this.provided) return this.provided[specifier];
+        const provided = this.provided(specifier);
+        if (provided !== undefined) return provided;
         throw new ModuleError(`Unable to resolve "${specifier}" from "${id}".`, id);
       }
       if (target.startsWith('error:')) throw new ModuleError(target.slice('error:'.length), id);
@@ -130,8 +135,9 @@ export class ModuleSystem {
   }
 
   private providedModule(specifier: string): unknown {
-    if (!(specifier in this.provided)) throw new ModuleError(`The base module does not provide "${specifier}".`);
-    return this.provided[specifier];
+    const module = this.provided(specifier);
+    if (module === undefined) throw new ModuleError(`The base module does not provide "${specifier}".`);
+    return module;
   }
 
   /** Forget every instance (a full reload re-executes the entry). */

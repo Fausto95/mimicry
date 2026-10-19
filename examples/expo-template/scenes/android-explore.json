@@ -1,0 +1,1 @@
+{ "name": "android-explore", "device": "pixel-9", "appearance": "light", "steps": [{ "tap": { "text": "Explore" } }] }

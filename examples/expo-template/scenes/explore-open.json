@@ -1,0 +1,1 @@
+{ "name": "explore-open", "device": "iphone-17-pro", "appearance": "light", "steps": [{ "tap": { "text": "Explore" } }, { "tap": { "text": "File-based routing" } }] }

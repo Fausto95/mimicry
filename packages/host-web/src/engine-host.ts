@@ -1,5 +1,5 @@
 import {
-  decodeFrame, type AppBundle, type EngineMessage, type EnvironmentSpec, type FontSpecRecord, type FrameStats,
+  decodeFrame, type DecodedFrame, type AppBundle, type EngineMessage, type EnvironmentSpec, type FontSpecRecord, type FrameStats,
   type HostMessage, type InspectorNode, type ModuleRecord, type Viewport, resolveViewport,
 } from '@mimicry/protocol';
 import { Compositor, type CompositorStats } from './compositor';
@@ -51,6 +51,7 @@ export class EngineHost {
   private readonly overlays: OverlayLayer;
   private readonly images = new Map<string, HTMLImageElement>();
   private viewport: Viewport | null = null;
+  private lastFrame: DecodedFrame | null = null;
   private zoom = 1;
   private frameScheduled = false;
   private requestId = 1;
@@ -200,6 +201,7 @@ export class EngineHost {
         return;
       case 'frame': {
         const frame = decodeFrame(message.buffer);
+        this.lastFrame = frame;
         const v = this.viewport;
         if (!v) return;
         const host = this.compositor.paint(this.ctx, frame, v.scale, this.canvas.width, this.canvas.height);
@@ -219,6 +221,14 @@ export class EngineHost {
       case 'openURL':
         window.open(message.url, '_blank', 'noopener,noreferrer');
         break;
+      case 'loadFont':
+        // A custom font (expo-font): cached rasters drew fallback glyphs, so repaint once it is in.
+        void loadDocumentFonts([{ family: message.family, url: message.url, weight: message.weight ?? 'normal', style: message.style ?? 'normal' } as FontSpecRecord]).then(() => {
+          this.compositor.invalidateAll();
+          const v = this.viewport;
+          if (this.lastFrame && v) this.compositor.paint(this.ctx, this.lastFrame, v.scale, this.canvas.width, this.canvas.height);
+        });
+        return;
       case 'inspectResult':
       case 'hitTestResult':
       case 'queryResult': {

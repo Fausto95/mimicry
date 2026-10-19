@@ -1,8 +1,8 @@
 import type { Engine } from '@mimicry/engine';
 import type { AppBundle, ModuleRecord } from '@mimicry/protocol';
-import { AppRegistry, clearErrors, installReactNative, runRegisteredApp } from '@mimicry/react-native';
+import { AppRegistry, clearErrors, installReactNative, resetNativeModules, runRegisteredApp, setAppConfig } from '@mimicry/react-native';
 import { ModuleSystem, type ModuleScope } from './module-system';
-import { PROVIDED_MODULES } from './provided';
+import { resolveProvided } from './provided';
 import { installRefresh } from './refresh';
 
 /**
@@ -29,7 +29,7 @@ export class AppRuntime {
     const animator = this.engine.animator;
     const owned = this.owned;
     const t = this.timers;
-    return new ModuleSystem(PROVIDED_MODULES, {
+    return new ModuleSystem(resolveProvided, {
       setTimeout: (fn, ms) => {
         const handle: unknown = t.setTimeout(() => {
           owned.timeouts.delete(handle);
@@ -70,7 +70,9 @@ export class AppRuntime {
 
   start(bundle: AppBundle): void {
     this.bundle = bundle;
-    this.modules = this.createModules(bundle.env ?? {});
+    this.modules = this.createModules({ EXPO_OS: bundle.platform, ...bundle.env });
+    setAppConfig(bundle.config);
+    resetNativeModules();
     this.wrap(() => installReactNative(this.engine));
     this.modules.load(bundle.modules);
     this.wrap(() => {

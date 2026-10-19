@@ -28,7 +28,7 @@ import { iosKit } from './platform/ios';
 import type { PlatformKit } from './platform/kit';
 import { Animator } from './runtime/animator';
 import type { Clock } from './runtime/clock';
-import type { ColorContext } from './style/color';
+import { parseColor, type ColorContext } from './style/color';
 import type { Matrix } from './style/matrix';
 import { NO_CLIP, type ClipSpec } from '@mimicry/protocol';
 import type { TextMeasurer } from './text/measurer';
@@ -50,6 +50,12 @@ export interface EngineOptions {
    * hosts have none, so the engine draws focused inputs and their caret.
    */
   hostInputs?: boolean;
+  /**
+   * Makes a font available to the engine's text measurer (a FontFace in the
+   * worker, a registered file headless). The host is told separately so its
+   * canvas can draw it.
+   */
+  loadFont?: (family: string, url: string, descriptors: { weight?: string; style?: string }) => Promise<void>;
 }
 
 export interface EngineHooks {
@@ -99,6 +105,9 @@ export class Engine {
   private lastFrameTime = 0;
   private framesPainted = 0;
   private destroyed = false;
+  private rootBackground: number | null = null;
+  private readonly fonts = new Set<string>();
+  private readonly fontLoader: EngineOptions['loadFont'];
 
   constructor(options: EngineOptions) {
     this.yoga = options.yoga;
@@ -107,6 +116,7 @@ export class Engine {
     this.sendMessage = options.send;
     this.bundledFonts = !!options.bundledFonts;
     this.hostInputs = options.hostInputs ?? false;
+    this.fontLoader = options.loadFont;
     this.env = new EnvironmentStore(options.environment);
     this.kit = this.env.device.platform === 'ios' ? iosKit : androidKit;
     this.yogaConfig = this.yoga.Config.create();
@@ -391,10 +401,33 @@ export class Engine {
     return this.colorCache;
   }
 
+  /** The root view's background (expo-system-ui's setBackgroundColorAsync). */
+  setRootBackground(color: unknown): void {
+    this.rootBackground = color == null ? null : parseColor(color, this.colorContext);
+    this.markPaint();
+  }
+
   windowBackground(): number {
+    if (this.rootBackground != null) return this.rootBackground;
     const dark = this.env.appearance === 'dark';
     if (this.kit.platform === 'ios') return dark ? rgba(0, 0, 0) : rgba(255, 255, 255);
     return dark ? rgba(18, 18, 18) : rgba(255, 255, 255);
+  }
+
+  // ── fonts ─────────────────────────────────────────────────────────────
+
+  /** Register a custom font (expo-font). Resolves once text can measure with it. */
+  async loadFont(family: string, url: string, descriptors: { weight?: string; style?: string } = {}): Promise<void> {
+    await this.fontLoader?.(family, url, descriptors);
+    this.send({ type: 'loadFont', family, url, weight: descriptors.weight, style: descriptors.style });
+    this.fonts.add(family);
+    this.measurer.invalidate?.();
+    for (const node of this.nodes.values()) if (node.kind === 'text' || node.kind === 'input') node.invalidateText();
+    this.invalidateLayout();
+  }
+
+  loadedFonts(): string[] {
+    return Array.from(this.fonts);
   }
 
   // ── text ──────────────────────────────────────────────────────────────

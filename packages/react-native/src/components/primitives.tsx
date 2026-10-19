@@ -3,6 +3,7 @@ import { HostType, parseColor } from '@mimicry/engine';
 import { getEngine, maybeEngine } from '../engine-ref';
 import { Platform } from '../apis/core';
 import { mergeRefs, usePressability } from './pressability';
+import { normalizeImageSource, resolveAssetSource } from '../internals/asset-registry';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;
 
@@ -49,7 +50,7 @@ export const Text = forwardRef<any, AnyProps>(function Text(props, ref) {
 // ── Image ──────────────────────────────────────────────────────────────────
 
 function normalizeSource(props: AnyProps) {
-  if (props.source != null) return props.source;
+  if (props.source != null) return normalizeImageSource(props.source);
   if (props.src) return { uri: props.src };
   return undefined;
 }
@@ -93,7 +94,7 @@ Object.assign(Image, {
     return {};
   },
   resolveAssetSource(source: unknown) {
-    return source;
+    return resolveAssetSource(source);
   },
 } satisfies ImageStatics);
 

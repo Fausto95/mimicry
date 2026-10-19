@@ -21,20 +21,32 @@ export { Animated, Easing, useAnimatedValue } from './animated';
 export { Alert, clearErrors } from './system/system-ui';
 export { AppRegistry, registerRootComponent, installReactNative, runRegisteredApp, CAPABILITIES } from './apis/app-registry';
 export { setActiveEngine, getEngine } from './engine-ref';
+export { setAppConfig, getAppConfig } from './app-context';
+export { resetNativeModules } from './native/registry';
 
-import { Platform as P } from './apis/core';
-/** Vendor-specific placeholders some libraries probe for. */
-export const TurboModuleRegistry = { get: () => null, getEnforcing: (name: string) => { throw new Error(`Native module ${name} is not available in Mimicry`); } };
-export const requireNativeComponent = (name: string) => {
-  throw new Error(`requireNativeComponent('${name}'): native components need a Mimicry implementation (Platform: ${P.OS}).`);
+import { getNativeModule, nativeComponent, nativeCommands } from './native/registry';
+import './native/expo-modules';
+export { DeviceEventEmitter, NativeEventEmitter } from './native/events';
+export {
+  registerNativeComponent, registerNativeComponents, registerNativeModule, registerNativeModules,
+  getNativeModule, hasNativeComponent, hasNativeModule,
+} from './native/registry';
+
+/** Native modules: implemented in JS by Mimicry (see native/registry.ts). */
+export const TurboModuleRegistry = {
+  get: <T = any>(name: string): T | null => getNativeModule<T>(name),
+  getEnforcing: <T = any>(name: string): T => {
+    const module = getNativeModule<T>(name);
+    if (module == null) {
+      throw new Error(`TurboModuleRegistry.getEnforcing(...): '${name}' could not be found. Mimicry has no implementation of this native module.`);
+    }
+    return module;
+  },
 };
-export const codegenNativeComponent = requireNativeComponent;
-export const NativeEventEmitter = class {
-  addListener() { return { remove() {} }; }
-  removeAllListeners() {}
-  listenerCount() { return 0; }
-};
-export const DeviceEventEmitter = new NativeEventEmitter();
+export const requireNativeComponent = (name: string) => nativeComponent(name);
+export const codegenNativeComponent = (name: string, _options?: unknown) => nativeComponent(name);
+export const codegenNativeCommands = nativeCommands;
+export const unstable_batchedUpdates = <A, R>(fn: (a: A) => R, a: A): R => fn(a);
 
 import * as Primitives from './components/primitives';
 import * as Touchables from './components/touchables';
@@ -50,3 +62,12 @@ for (const [name, component] of Object.entries({ ...Primitives, ...Touchables, .
     }
   }
 }
+
+/** `NativeComponentRegistry.get(name, viewConfig)`: same lookup as codegenNativeComponent. */
+export const NativeComponentRegistry = {
+  get: (name: string, _viewConfigProvider?: unknown) => nativeComponent(name),
+  getWithFallback_DEPRECATED: (name: string, _viewConfigProvider?: unknown) => nativeComponent(name),
+  setRuntimeConfigProvider() {},
+  unstable_hasStaticViewConfig: (name: string) => hasNativeComponentInternal(name),
+};
+import { hasNativeComponent as hasNativeComponentInternal } from './native/registry';
