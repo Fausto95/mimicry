@@ -1,7 +1,7 @@
 name: Web Engine
 on:
   push:
-    branches: [main, feat/browser-native-runtime]
+    branches: [main, mimicry-browser-runtime]
   pull_request:
 jobs:
   browser:
@@ -18,3 +18,11 @@ jobs:
       - run: npm run typecheck --workspace @mimicry/expo-demo
       - run: npx tsc --project packages/runtime/tsconfig.json
       - run: npm run export:web --workspace @mimicry/expo-demo
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-preview-screenshot
+          path: artifacts/mimicry-browser-smoke.png
+          if-no-files-found: ignore
