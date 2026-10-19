@@ -59,6 +59,20 @@ const maestro = (file, lines) => {
   run('maestro', [...(platform === 'android' && device ? ['--device', device] : []), 'test', file]);
 };
 
+/**
+ * Wait for the recorder to finish writing, but never forever: it may have
+ * exited already (a failed start), or ignore SIGINT.
+ */
+async function stopped(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const exited = new Promise((r) => child.once('exit', r));
+  const timedOut = sleep(15000).then(() => 'timeout');
+  if ((await Promise.race([exited, timedOut])) === 'timeout') {
+    console.warn('recorder did not stop; killing it');
+    child.kill('SIGKILL');
+  }
+}
+
 for (const file of readdirSync(dir).filter((f) => f.endsWith('.json')).sort()) {
   const scene = JSON.parse(readFileSync(join(dir, file), 'utf8'));
   const isIOS = /^(iphone|ipad)/.test(scene.device ?? 'iphone');
@@ -82,7 +96,7 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith('.json')).sort()) {
   await sleep((scene.duration ?? 1000) + 800);
   if (platform === 'ios') recorder.kill('SIGINT');
   else execFileSync('adb', adbArgs('shell', 'pkill', '-INT', 'screenrecord'));
-  await new Promise((r) => recorder.once('exit', r));
+  await stopped(recorder);
   if (platform === 'android') {
     await sleep(1000);
     run('adb', adbArgs('pull', '/sdcard/motion.mp4', video));
