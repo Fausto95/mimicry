@@ -1,5 +1,5 @@
 export { Engine, textContent, type EngineOptions, type EngineHooks } from './engine';
-export { HostNode, HostType, type NodeKind, type Props } from './tree/node';
+export { HostNode, HostType, type NodeKind, type Props, type Frame, type ExitAnimation, type LayoutTransition } from './tree/node';
 export { reconciler, dispatchWithPriority, batchedUpdates, findHostNode, TEXT_OUTSIDE_TEXT_ERROR, type RootContainer } from './tree/reconciler';
 export {
   GestureState, TouchEventType, Direction,

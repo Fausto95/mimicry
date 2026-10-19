@@ -13,6 +13,8 @@ import * as MetroRuntime from '@mimicry/react-native/shims/expo-metro-runtime';
 import * as GestureHandler from '@mimicry/react-native/gesture-handler';
 import * as GestureHandlerSwipeable from '@mimicry/react-native/gesture-handler/swipeable-module';
 import * as GestureHandlerDrawerLayout from '@mimicry/react-native/gesture-handler/drawer-layout-module';
+import * as Reanimated from '@mimicry/react-native/reanimated';
+import * as Worklets from '@mimicry/react-native/worklets';
 
 /**
  * Modules the base provides to every app. App code and vendored packages link
@@ -36,6 +38,9 @@ export const PROVIDED_MODULES: Record<string, unknown> = {
   'react-native-gesture-handler/ReanimatedDrawerLayout': GestureHandlerDrawerLayout,
   'react-native-gesture-handler/Swipeable': GestureHandlerSwipeable,
   'react-native-gesture-handler/DrawerLayout': GestureHandlerDrawerLayout,
+  // These have a default export: mark them as ES modules for CommonJS interop.
+  'react-native-reanimated': { __esModule: true, ...Reanimated },
+  'react-native-worklets': { __esModule: true, ...Worklets },
 };
 
 export const PROVIDED_SPECIFIERS = Object.keys(PROVIDED_MODULES);

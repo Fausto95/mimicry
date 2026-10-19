@@ -8,6 +8,7 @@ import {
   NoEventPriority,
 } from 'react-reconciler/constants';
 import type { Engine } from '../engine';
+import { releaseDeletedInstance, removeHostChild } from './exit';
 import { HostNode, HostType, kindForType, type Props } from './node';
 
 /**
@@ -92,8 +93,8 @@ const hostConfig = {
   appendChildToContainer: (root: RootContainer, child: HostNode) => root.root.appendChild(child),
   insertBefore: (parent: HostNode, child: HostNode, before: HostNode) => parent.insertBefore(child, before),
   insertInContainerBefore: (root: RootContainer, child: HostNode, before: HostNode) => root.root.insertBefore(child, before),
-  removeChild: (parent: HostNode, child: HostNode) => parent.removeChild(child),
-  removeChildFromContainer: (root: RootContainer, child: HostNode) => root.root.removeChild(child),
+  removeChild: (parent: HostNode, child: HostNode) => removeHostChild(parent, child),
+  removeChildFromContainer: (root: RootContainer, child: HostNode) => removeHostChild(root.root, child),
   clearContainer(root: RootContainer) {
     for (const child of root.root.children.slice()) root.root.removeChild(child);
   },
@@ -122,7 +123,7 @@ const hostConfig = {
     node.invalidateText();
   },
   detachDeletedInstance(node: HostNode) {
-    node.destroy();
+    releaseDeletedInstance(node);
   },
 
   getCurrentUpdatePriority: () => currentUpdatePriority,

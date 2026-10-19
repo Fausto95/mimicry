@@ -3,6 +3,6 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./shims/*": "./src/shims/*.ts", "./internals/*": "./src/internals/*.ts", "./gesture-handler": "./src/gesture-handler/index.ts", "./gesture-handler/*": "./src/gesture-handler/*.ts" },
+  "exports": { ".": "./src/index.ts", "./shims/*": "./src/shims/*.ts", "./internals/*": "./src/internals/*.ts", "./gesture-handler": "./src/gesture-handler/index.ts", "./gesture-handler/*": "./src/gesture-handler/*.ts", "./reanimated": "./src/reanimated/index.ts", "./worklets": "./src/worklets/index.ts" },
   "dependencies": { "@mimicry/engine": "0.3.0", "@mimicry/protocol": "0.3.0", "react": "19.3.1" }
 }
