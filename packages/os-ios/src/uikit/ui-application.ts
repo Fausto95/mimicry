@@ -4,6 +4,7 @@ import { CAEnvironment } from '../quartz-core/ca-media-time';
 import { CATransaction } from '../quartz-core/ca-transaction';
 import { UITouchPhase } from './ui-event';
 import { UIScreen } from './ui-screen';
+import { UITraitCollection } from './ui-trait-collection';
 import type { UIView } from './ui-view';
 import { UIWindow } from './ui-window';
 
@@ -49,6 +50,7 @@ export class UIApplication {
     // A transaction left open on another device's run loop must not swallow this one's.
     CATransaction._reset();
     this.screen = new UIScreen(kernel);
+    UITraitCollection._setScreenProvider(() => this.screen.traitCollection);
     if (options.routeInput !== false) {
       kernel.on('pointer', (m) => {
         this.pointer(m.phase, m.id, m.x, m.y, m.time);

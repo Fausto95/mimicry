@@ -20,6 +20,7 @@ import {
 } from './ui-view-animation';
 import { recordLayerTree, SnapshotLayer } from '../quartz-core/layer-snapshot';
 import { kernelOf } from '../quartz-core/ca-media-time';
+import { UIGraphicsPopContext, UIGraphicsPushContext } from './ui-graphics';
 
 export const UIViewNoIntrinsicMetric = -1;
 
@@ -468,7 +469,13 @@ export class UIView extends UIResponder {
     ctx.item({ x: ctx.x, y: ctx.y, w: b.size.width, h: b.size.height }, (w) => {
       w.save();
       w.transform(1, 0, 0, 1, ctx.x, ctx.y);
-      this.draw(new CGContext(w, this.traitCollection), { origin: { x: 0, y: 0 }, size: b.size });
+      const cg = new CGContext(w, this.traitCollection);
+      UIGraphicsPushContext(cg);
+      try {
+        this.draw(cg, { origin: { x: 0, y: 0 }, size: b.size });
+      } finally {
+        UIGraphicsPopContext();
+      }
       w.restore();
     });
   }

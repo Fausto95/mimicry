@@ -50,6 +50,39 @@ export class UITraitCollection {
     readonly preferredContentSizeCategory: string,
   ) {}
 
+  private static explicit: UITraitCollection | null = null;
+  private static provider: (() => UITraitCollection) | null = null;
+
+  /**
+   * UITraitCollection.current: the traits code resolves against outside a
+   * view (dynamic colors, preferred fonts) — the screen's, unless set.
+   */
+  static get current(): UITraitCollection {
+    return UITraitCollection.explicit ?? UITraitCollection.provider?.() ?? FALLBACK;
+  }
+
+  static set current(traits: UITraitCollection) {
+    UITraitCollection.explicit = traits;
+  }
+
+  /** @internal the running application's screen traits */
+  static _setScreenProvider(provider: (() => UITraitCollection) | null): void {
+    UITraitCollection.provider = provider;
+    UITraitCollection.explicit = null;
+  }
+
+  /** UITraitCollection(preferredContentSizeCategory:) and friends: a copy with one trait changed. */
+  with(changes: Partial<Pick<UITraitCollection, 'userInterfaceStyle' | 'horizontalSizeClass' | 'verticalSizeClass' | 'displayScale' | 'userInterfaceIdiom' | 'preferredContentSizeCategory'>>): UITraitCollection {
+    return new UITraitCollection(
+      changes.userInterfaceStyle ?? this.userInterfaceStyle,
+      changes.horizontalSizeClass ?? this.horizontalSizeClass,
+      changes.verticalSizeClass ?? this.verticalSizeClass,
+      changes.displayScale ?? this.displayScale,
+      changes.userInterfaceIdiom ?? this.userInterfaceIdiom,
+      changes.preferredContentSizeCategory ?? this.preferredContentSizeCategory,
+    );
+  }
+
   static fromViewport(viewport: Viewport, appearance: Appearance): UITraitCollection {
     const sc = (s: string) => (s === 'regular' ? UIUserInterfaceSizeClass.regular : UIUserInterfaceSizeClass.compact);
     return new UITraitCollection(
@@ -81,6 +114,8 @@ export class UITraitCollection {
     return !other || other.userInterfaceStyle !== this.userInterfaceStyle;
   }
 }
+
+const FALLBACK = new UITraitCollection(UIUserInterfaceStyle.light, UIUserInterfaceSizeClass.compact, UIUserInterfaceSizeClass.regular, 3, UIUserInterfaceIdiom.phone, UIContentSizeCategory.large);
 
 function categoryFor(fontScale: number): string {
   let best: [string, number] = CATEGORY_SCALE[3]!;
