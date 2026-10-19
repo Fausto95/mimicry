@@ -1,0 +1,8 @@
+android-compose              1.41% size mismatch
+android-details              2.35% size mismatch
+android-inbox                12.68% size mismatch
+compose                      — no reference capture
+details                      — no reference capture
+inbox-dark                   — no reference capture
+inbox                        — no reference capture
+report: /home/runner/work/mimicry/mimicry/oracle/router-stack/android-report/index.html

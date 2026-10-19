@@ -1,0 +1,5 @@
+android-push                 settle 317ms vs 500ms  rms 57.5%  max 100.0%
+android-sheet                settle 317ms vs 567ms  rms 62.8%  max 100.0%
+push                         — no reference recording
+sheet                        — no reference recording
+report: /home/runner/work/mimicry/mimicry/oracle/router-stack/android-motion-report/index.html
