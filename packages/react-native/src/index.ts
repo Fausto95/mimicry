@@ -1,0 +1,37 @@
+/**
+ * @mimicry/react-native — the `react-native` module apps import, implemented
+ * on Mimicry's engine instead of UIKit / Android Views.
+ */
+export {
+  View, Text, Image, ImageBackground, Pressable, Switch, ActivityIndicator, TextInput,
+  SafeAreaView, KeyboardAvoidingView, StatusBar, RefreshControl,
+} from './components/primitives';
+export { TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, TouchableNativeFeedback, Button } from './components/touchables';
+export { ScrollView, FlatList, SectionList, VirtualizedList } from './components/lists';
+export { Modal } from './components/modal';
+export {
+  Platform, StyleSheet, Dimensions, PixelRatio, useWindowDimensions, Appearance, useColorScheme,
+  PlatformColor, DynamicColorIOS, processColor, I18nManager, Vibration, LayoutAnimation, InteractionManager,
+  NativeModules, UIManager, findNodeHandle, LogBox, DevSettings, AppState, Share, AccessibilityInfo, Linking,
+  Keyboard, BackHandler, ToastAndroid,
+} from './apis/core';
+export type { ScaledSize, ColorSchemeName } from './apis/core';
+export { PanResponder } from './apis/pan-responder';
+export { Animated, Easing, useAnimatedValue } from './animated';
+export { Alert } from './system/system-ui';
+export { AppRegistry, registerRootComponent, installReactNative, runRegisteredApp, CAPABILITIES } from './apis/app-registry';
+export { setActiveEngine, getEngine } from './engine-ref';
+
+import { Platform as P } from './apis/core';
+/** Vendor-specific placeholders some libraries probe for. */
+export const TurboModuleRegistry = { get: () => null, getEnforcing: (name: string) => { throw new Error(`Native module ${name} is not available in Mimicry`); } };
+export const requireNativeComponent = (name: string) => {
+  throw new Error(`requireNativeComponent('${name}'): native components need a Mimicry implementation (Platform: ${P.OS}).`);
+};
+export const codegenNativeComponent = requireNativeComponent;
+export const NativeEventEmitter = class {
+  addListener() { return { remove() {} }; }
+  removeAllListeners() {}
+  listenerCount() { return 0; }
+};
+export const DeviceEventEmitter = new NativeEventEmitter();

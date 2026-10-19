@@ -1,0 +1,8 @@
+{
+  "name": "@mimicry/compiler",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@mimicry/protocol": "0.3.0", "@swc/core": "^1.16.18", "esbuild": "^0.28.2", "@expo-google-fonts/inter": "^0.4.2", "@expo-google-fonts/roboto": "^0.4.3" }
+}

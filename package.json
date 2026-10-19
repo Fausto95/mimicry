@@ -1,17 +1,28 @@
 {
-  "name":"mimicry",
-  "version":"0.2.0",
-  "private":true,
-  "type":"module",
-  "engines":{"node":">=22.13.0"},
-  "workspaces":["examples/expo-demo"],
-  "scripts":{
-    "dev":"node scripts/dev.mjs",
-    "dev:studio":"node scripts/dev.mjs --studio-only",
-    "dev:expo":"npm run web --workspace @mimicry/expo-demo",
-    "check":"node --check scripts/dev.mjs && node --check src/server.mjs && node --check public/app.js && node --check packages/runtime/metro.cjs",
-    "test":"node --test tests/*.test.mjs",
-    "test:browser":"node tests/browser-smoke.mjs"
+  "name": "mimicry",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "A browser-native simulator for React Native apps: a retained React renderer, Yoga layout and platform kits that emit a binary draw-command stream painted on Canvas.",
+  "engines": { "node": ">=22.13.0" },
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "node packages/cli/bin/mimicry.js dev examples/showcase",
+    "render": "node packages/cli/bin/mimicry.js render",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:golden": "vitest run tests/golden",
+    "test:browser": "node --import tsx tests/browser/smoke.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "goldens:update": "MIMICRY_UPDATE_GOLDENS=1 vitest run tests/golden"
   },
-  "devDependencies":{"playwright":"^1.56.0"}
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "~19.3.0",
+    "@types/react-reconciler": "^0.34.0",
+    "playwright": "^1.56.0",
+    "tsx": "^4.20.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  }
 }
