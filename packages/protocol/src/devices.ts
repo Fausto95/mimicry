@@ -158,7 +158,7 @@ export const DEVICES: readonly DeviceDescriptor[] = [
   },
   {
     id: 'pixel-9', name: 'Pixel 9', platform: 'android', idiom: 'phone',
-    width: 411, height: 923, scale: 2.625, osVersion: '37', cornerRadius: 48,
+    width: 411, height: 923, scale: 2.625, osVersion: '36', cornerRadius: 48,
     safeArea: { portrait: insets(48, 0, 24, 0), landscape: insets(0, 48, 24, 0) },
     statusBarHeight: { portrait: 48, landscape: 24 },
     cutout: { kind: 'punch-hole', width: 22, height: 22, top: 14 },
@@ -166,7 +166,7 @@ export const DEVICES: readonly DeviceDescriptor[] = [
   },
   {
     id: 'galaxy-s25', name: 'Galaxy S25', platform: 'android', idiom: 'phone',
-    width: 360, height: 780, scale: 3, osVersion: '37', cornerRadius: 40,
+    width: 360, height: 780, scale: 3, osVersion: '35', cornerRadius: 40,
     safeArea: { portrait: insets(40, 0, 24, 0), landscape: insets(0, 40, 24, 0) },
     statusBarHeight: { portrait: 40, landscape: 24 },
     cutout: { kind: 'punch-hole', width: 18, height: 18, top: 12 },
