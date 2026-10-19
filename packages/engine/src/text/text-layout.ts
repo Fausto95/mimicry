@@ -1,4 +1,4 @@
-import type { TextMeasurer } from './measurer';
+import type { FontMetrics, TextMeasurer } from './measurer';
 
 /**
  * Attributed-string layout. The engine resolves every line, run and baseline
@@ -17,6 +17,8 @@ export interface TextStyle {
   background: number;
   shadow: { color: number; dx: number; dy: number; blur: number } | null;
   transform: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  /** line metrics overriding the font's own (a bundled stand-in for a system face) */
+  metrics?: FontMetrics | null;
   /** the host node that produced this span (nested <Text> for press handling) */
   source: unknown;
 }
@@ -249,7 +251,7 @@ export function layoutText(
     let descent = 0;
     let height = 0;
     for (const style of styles) {
-      const m = measurer.metrics(style.font);
+      const m = style.metrics ?? measurer.metrics(style.font);
       ascent = Math.max(ascent, m.ascent);
       descent = Math.max(descent, m.descent);
       height = Math.max(height, style.lineHeight ?? m.ascent + m.descent);

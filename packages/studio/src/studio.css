@@ -85,7 +85,7 @@ button, select { font: inherit; color: inherit; }
 .device.ios { background: linear-gradient(145deg, #4b4d52, #1e1f22 40%, #34363b); box-shadow: 0 30px 60px -20px rgba(15, 20, 30, 0.45), inset 0 0 0 1.5px #6c6f75; }
 .device.android { background: linear-gradient(145deg, #2c2e33, #111214 50%, #26282c); box-shadow: 0 30px 60px -20px rgba(15, 20, 30, 0.45), inset 0 0 0 1px #45484e; }
 .screen { position: relative; overflow: hidden; border-radius: var(--radius); background: #000; }
-.island { position: absolute; background: #000; border-radius: 999px; pointer-events: none; z-index: 2; }
+.home-indicator { position: absolute; border-radius: 999px; pointer-events: none; z-index: 2; }
 .notch { position: absolute; background: #000; border-radius: 0 0 18px 18px; pointer-events: none; z-index: 2; }
 .highlight {
   position: absolute; pointer-events: none; z-index: 3; border: 1.5px solid var(--accent);

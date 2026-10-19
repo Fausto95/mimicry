@@ -72,6 +72,12 @@ export interface PlatformKit {
   fontStack(family: string | undefined, bundledOnly: boolean): string;
   /** platform aliases like Android's 'sans-serif-medium' imply a weight */
   fontWeightFor(family: string | undefined): string | null;
+  /**
+   * When the system face is stood in for by a bundled font (Inter for SF Pro),
+   * the corrections that make it occupy the system face's space: extra
+   * tracking in em and the system face's line metrics in em.
+   */
+  standIn?(size: number, weight: number): { tracking: number; ascent: number; descent: number };
   readonly text: TextDefaults;
   /** PlatformColor() names: UIKit semantic colors or Android attrs/resources */
   semanticColor(name: string, appearance: Appearance): number | null;

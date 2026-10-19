@@ -426,7 +426,9 @@ export class Engine {
   }
 
   inputTextStyle(node: HostNode): TextStyle {
-    return resolveTextStyle(node.computed, this.textEnvironment, node, node.props.allowFontScaling !== false, node.props.maxFontSizeMultiplier);
+    // The input's backgroundColor paints its box, never a highlight behind the text.
+    const style = { ...node.computed, backgroundColor: undefined };
+    return resolveTextStyle(style, this.textEnvironment, node, node.props.allowFontScaling !== false, node.props.maxFontSizeMultiplier);
   }
 
   inputLayout(node: HostNode, text: string, width: number): TextLayout {

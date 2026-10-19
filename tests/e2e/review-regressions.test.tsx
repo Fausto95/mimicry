@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
 import { describe, expect, it } from 'vitest';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { render } from '@mimicry/testing';
 import { startDevServer } from '@mimicry/cli';
 import { fileURLToPath } from 'node:url';
 
 describe('regressions from review', () => {
+  it('does not paint a TextInput background behind its placeholder text', async () => {
+    const s = await render(<TextInput testID="field" placeholder="Your name" style={{ marginTop: 100, backgroundColor: '#333' }} />);
+    const node = s.engine.nodes.get(s.find({ testID: 'field' })[0]!.id)!;
+    expect(s.engine.inputTextStyle(node).background).toBe(0);
+    s.dispose();
+  });
+
+  it('tightens the bundled stand-in for SF Pro but leaves explicit families alone', async () => {
+    const s = await render(
+      <View style={{ paddingTop: 100 }}>
+        <Text testID="system" style={{ fontSize: 17 }}>Hello</Text>
+        <Text testID="named" style={{ fontSize: 17, fontFamily: 'Georgia' }}>Hello</Text>
+      </View>,
+    );
+    const style = (id: string) => s.engine.textLayoutFor(s.engine.nodes.get(s.find({ testID: id })[0]!.id)!, 400).lines[0]!.runs[0]!.style;
+    expect(style('system').letterSpacing).toBeLessThan(0);
+    expect(style('system').metrics?.ascent).toBeCloseTo(0.952 * 17, 2);
+    expect(style('named').letterSpacing).toBe(0);
+    s.dispose();
+  });
+
   it('re-measures text when numberOfLines changes', async () => {
     function ReadMore() {
       const [open, setOpen] = useState(false);

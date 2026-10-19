@@ -41,7 +41,7 @@ const out = resolve(values.out);
 mkdirSync(out, { recursive: true });
 
 // Match the engine's chrome: 9:41, full bars, full battery.
-run('xcrun', ['simctl', 'status_bar', sim, 'override', '--time', '9:41', '--dataNetwork', 'wifi', '--wifiBars', '3', '--cellularBars', '4', '--batteryState', 'charged', '--batteryLevel', '100']);
+run('xcrun', ['simctl', 'status_bar', sim, 'override', '--time', '9:41', '--dataNetwork', 'wifi', '--wifiBars', '3', '--cellularBars', '4', '--batteryState', 'discharging', '--batteryLevel', '100']);
 
 const target = (t) => ('testID' in t ? { id: t.testID } : 'text' in t ? { text: t.text } : 'label' in t ? { text: t.label } : { point: `${t.x},${t.y}` });
 

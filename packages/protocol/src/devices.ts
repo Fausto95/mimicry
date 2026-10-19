@@ -63,7 +63,7 @@ export const DEVICES: readonly DeviceDescriptor[] = [
     width: 402, height: 874, scale: 3, osVersion: '26.0', cornerRadius: 62,
     safeArea: { portrait: insets(62, 0, 34, 0), landscape: insets(0, 62, 21, 62) },
     statusBarHeight: { portrait: 54, landscape: 0 },
-    cutout: { kind: 'dynamic-island', width: 125, height: 37, top: 11 },
+    cutout: { kind: 'dynamic-island', width: 125, height: 37, top: 14 },
     homeIndicator: true, sizeClass: phoneClasses,
   },
   {
@@ -71,7 +71,7 @@ export const DEVICES: readonly DeviceDescriptor[] = [
     width: 440, height: 956, scale: 3, osVersion: '26.0', cornerRadius: 62,
     safeArea: { portrait: insets(62, 0, 34, 0), landscape: insets(0, 62, 21, 62) },
     statusBarHeight: { portrait: 54, landscape: 0 },
-    cutout: { kind: 'dynamic-island', width: 125, height: 37, top: 11 },
+    cutout: { kind: 'dynamic-island', width: 125, height: 37, top: 14 },
     homeIndicator: true, sizeClass: maxPhoneClasses,
   },
   {

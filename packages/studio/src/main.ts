@@ -247,15 +247,29 @@ async function main(): Promise<void> {
     frame.style.setProperty('--bezel', `${Math.max(6, 14 * zoom)}px`);
     screen.style.width = `${v.width * zoom}px`;
     screen.style.height = `${v.height * zoom}px`;
-    screen.querySelectorAll('.island, .notch').forEach((n) => n.remove());
-    if (settings.orientation === 'portrait' && (d.cutout.kind === 'dynamic-island' || d.cutout.kind === 'notch')) {
+    screen.querySelectorAll('.notch, .home-indicator').forEach((n) => n.remove());
+    // A notch is hardware and the home indicator is drawn over the app by the
+    // system; neither is in a simulator screenshot, so the frame draws them.
+    // (The Dynamic Island is, and the engine paints it.)
+    if (settings.orientation === 'portrait' && d.cutout.kind === 'notch') {
       const cut = document.createElement('div');
-      cut.className = d.cutout.kind === 'notch' ? 'notch' : 'island';
+      cut.className = 'notch';
       cut.style.width = `${d.cutout.width * zoom}px`;
       cut.style.height = `${d.cutout.height * zoom}px`;
       cut.style.top = `${d.cutout.top * zoom}px`;
       cut.style.left = `${((v.width - d.cutout.width) / 2) * zoom}px`;
       screen.appendChild(cut);
+    }
+    if (d.platform === 'ios' && d.homeIndicator) {
+      const indicatorWidth = d.idiom === 'tablet' ? 315 : settings.orientation === 'landscape' ? 216 : 139;
+      const bar = document.createElement('div');
+      bar.className = 'home-indicator';
+      bar.style.width = `${indicatorWidth * zoom}px`;
+      bar.style.height = `${5 * zoom}px`;
+      bar.style.left = `${((v.width - indicatorWidth) / 2) * zoom}px`;
+      bar.style.bottom = `${8 * zoom}px`;
+      bar.style.background = settings.appearance === 'dark' ? '#fff' : '#000';
+      screen.appendChild(bar);
     }
     $('#zoom-label').textContent = `${Math.round(zoom * 100)}%`;
     $('#caption').textContent = `${d.name} · ${v.width}×${v.height} pt @${d.scale}x${d.approximate ? ' · metrics approximate' : ''}`;

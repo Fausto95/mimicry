@@ -40,11 +40,13 @@ export function resolveTextStyle(style: FlatStyle, env: TextEnvironment, source:
   const color = parseColor(style.color, env.colors) ?? kit.text.color(env.appearance);
   const shadowColor = parseColor(style.textShadowColor, env.colors);
   const offset = style.textShadowOffset ?? { width: 0, height: 0 };
+  const standIn = env.bundledFonts && (!family || family === 'System' || family === 'system-ui') ? kit.standIn?.(size, Number(weight) || 400) : undefined;
+  const letterSpacing = (typeof style.letterSpacing === 'number' ? style.letterSpacing : 0) + (standIn ? round(standIn.tracking * size) : 0);
   return {
     font,
     size,
     color,
-    letterSpacing: typeof style.letterSpacing === 'number' ? style.letterSpacing : 0,
+    letterSpacing,
     lineHeight: typeof style.lineHeight === 'number' ? style.lineHeight * scale : null,
     decoration: (decorationLine.includes('underline') ? 1 : 0) | (decorationLine.includes('line-through') ? 2 : 0),
     decorationColor: parseColor(style.textDecorationColor, env.colors),
@@ -54,6 +56,7 @@ export function resolveTextStyle(style: FlatStyle, env: TextEnvironment, source:
       : null,
     transform: style.textTransform ?? 'none',
     source,
+    metrics: standIn ? { ascent: standIn.ascent * size, descent: standIn.descent * size } : null,
   };
 }
 
