@@ -4,7 +4,8 @@ import {
 } from '@mimicry/os-core';
 import type { CGRect, CGSize } from '../core-graphics/geometry';
 import {
-  NSAttributedStringKey, NSStringDrawingOptions, type NSAttributedString, type NSAttributes, type NSStringDrawingContext,
+  NSAttributedString as NSAttributedStringCtor, NSAttributedStringKey, NSStringDrawingOptions, type NSAttributedString, type NSAttributes,
+  type NSStringDrawingContext,
 } from '../foundation/ns-attributed-string';
 import { CAEnvironment } from '../quartz-core/ca-media-time';
 import { NSLineBreakMode, NSParagraphStyle, NSShadow, NSTextAlignment, NSUnderlineStyle } from './ns-paragraph-style';
@@ -545,6 +546,43 @@ function decorate(w: CommandWriter, x: number, y: number, width: number, size: n
       w.fillRect(x, y + dy, width, thickness, color);
     }
   }
+}
+
+/**
+ * One line of text centered on (cx, cy), tail-truncated to `maxWidth`, as
+ * one draw item — what controls use for their titles (segments, bar items).
+ */
+export function drawCenteredText(
+  ctx: { item(bounds: Rect, draw: (w: CommandWriter) => void): void },
+  text: string,
+  font: UIFont,
+  color: UIColor,
+  cx: number,
+  cy: number,
+  maxWidth: number,
+  traits: UITraitCollection,
+  kernel: Kernel | null = CAEnvironment.kernel,
+): number {
+  if (!text) return 0;
+  const str = new NSAttributedStringCtor(text);
+  const layout = layoutAttributedString(str, { width: maxWidth, height: Infinity, numberOfLines: 1, traits }, {
+    font, color, alignment: NSTextAlignment.left, lineBreakMode: NSLineBreakMode.byTruncatingTail,
+  }, kernel);
+  const line = layout.lines[0];
+  if (!line) return 0;
+  const ox = cx - line.width / 2;
+  const oy = cy - line.height / 2;
+  const measurer = textMeasurer(kernel);
+  ctx.item(lineBounds(line, ox, oy), (w) => drawLine(w, line, ox, oy, measurer));
+  return line.width;
+}
+
+/** Natural one-line width of `text` in `font`. */
+export function measureText(text: string, font: UIFont, kernel: Kernel | null = CAEnvironment.kernel): CGSize {
+  const layout = layoutAttributedString(new NSAttributedStringCtor(text), { width: Infinity, height: Infinity, numberOfLines: 1 }, {
+    font, color: UIColor.black, alignment: NSTextAlignment.left, lineBreakMode: NSLineBreakMode.byClipping,
+  }, kernel);
+  return { width: layout.width, height: layout.height || font.lineHeight };
 }
 
 // ── NSStringDrawing ──────────────────────────────────────────────────────

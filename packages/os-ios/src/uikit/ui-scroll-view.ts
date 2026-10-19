@@ -10,6 +10,7 @@ import { UIGestureRecognizerState } from './ui-gesture-recognizer';
 import { UIResponder } from './ui-responder';
 import { UIView } from './ui-view';
 import type { WheelScrollable } from './ui-application';
+import type { UIRefreshControl } from './ui-refresh-control';
 
 /**
  * UIScrollView: content larger than the view, moved by its pan gesture
@@ -85,6 +86,7 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
   private initialized = false;
   /** the touch-down of the current sequence stopped a moving scroll */
   touchStoppedScrolling = false;
+  private _refreshControl: UIRefreshControl | null = null;
 
   constructor(frame?: CGRect) {
     super(frame);
@@ -137,10 +139,33 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
     this.setNeedsDisplay();
   }
 
-  /** contentInset plus the safe area on the axes the adjustment behavior covers. */
+  /** UIRefreshControl above the content (pull to refresh). */
+  get refreshControl(): UIRefreshControl | null {
+    return this._refreshControl;
+  }
+
+  set refreshControl(control: UIRefreshControl | null) {
+    if (this._refreshControl === control) return;
+    this._refreshControl?._attach(null);
+    this._refreshControl?.removeFromSuperview();
+    this._refreshControl = control;
+    if (control) {
+      this.insertSubview(control, 0);
+      control._attach(this);
+    }
+  }
+
+  /** @internal the refresh control's inset moved: keep an idle offset in range. */
+  _refreshInsetChanged(): void {
+    this.clampOffset();
+    this._refreshControl?._scrolled();
+    this.setNeedsDisplay();
+  }
+
+  /** contentInset plus the safe area on the axes the adjustment behavior covers (and a refreshing control). */
   get adjustedContentInset(): UIEdgeInsets {
     const i = this._contentInset;
-    const out = { top: i.top, left: i.left, bottom: i.bottom, right: i.right };
+    const out = { top: i.top + (this._refreshControl?._inset.value ?? 0), left: i.left, bottom: i.bottom, right: i.right };
     const B = UIScrollViewContentInsetAdjustmentBehavior;
     const behavior = this.contentInsetAdjustmentBehavior;
     if (behavior === B.never) return out;
@@ -332,6 +357,8 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
   private kineticsEvent(name: ScrollEvent, velocity?: { x: number; y: number }): void {
     const d = this.delegate;
     this.syncOffset();
+    if (name === 'scroll') this._refreshControl?._scrolled();
+    if (name === 'endDrag') this._refreshControl?._endedDragging();
     switch (name) {
       case 'scroll':
         d?.scrollViewDidScroll?.(this);
