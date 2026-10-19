@@ -4,6 +4,7 @@ import type {
   InspectorNode, ModuleRecord, Orientation, PlatformName,
 } from '@mimicry/protocol';
 import { resolveViewport } from '@mimicry/protocol';
+import { finishFor, finishesFor, hardwareLabel, shellFamily } from './shell';
 
 /**
  * Mimicry Studio: the page around the simulated device. It owns the device
@@ -37,6 +38,7 @@ const ICONS = {
 type Settings = {
   platform: PlatformName;
   devices: Record<PlatformName, string>;
+  finishes: Record<string, string>;
   appearance: Appearance;
   orientation: Orientation;
   zoom: number | 'fit';
@@ -68,7 +70,8 @@ async function main(): Promise<void> {
   const saved = loadSettings();
   const settings: Settings = {
     platform: saved.platform ?? 'ios',
-    devices: { ios: 'iphone-17-pro', android: 'pixel-9', ...(saved.devices ?? {}) },
+    devices: { ios: 'iphone-18-pro', android: 'pixel-11-pro', ...(saved.devices ?? {}) },
+    finishes: saved.finishes ?? {},
     appearance: saved.appearance ?? 'light',
     orientation: 'portrait',
     zoom: saved.zoom ?? 'fit',
@@ -86,7 +89,8 @@ async function main(): Promise<void> {
       <div class="seg" id="platform" role="group" aria-label="Platform">
         <button data-value="ios">iOS</button><button data-value="android">Android</button>
       </div>
-      <select id="device" aria-label="Device"></select>
+      <select id="device" aria-label="Device model"></select>
+      <select id="finish" aria-label="Device finish" title="Hardware finish"></select>
       <div class="seg" id="appearance" role="group" aria-label="Appearance">
         <button data-value="light">Light</button><button data-value="dark">Dark</button>
       </div>
@@ -104,6 +108,10 @@ async function main(): Promise<void> {
     </header>
     <main class="stage" id="stage">
       <div class="device" id="frame">
+        <span class="frame-button action" aria-hidden="true"></span>
+        <span class="frame-button volume-up" aria-hidden="true"></span>
+        <span class="frame-button volume-down" aria-hidden="true"></span>
+        <span class="frame-button power" aria-hidden="true"></span>
         <div class="screen" id="screen"><div class="highlight" id="highlight"></div><div class="picker" id="picker"></div></div>
       </div>
       <div class="caption" id="caption"></div>
@@ -232,9 +240,13 @@ async function main(): Promise<void> {
   function fitZoom(): number {
     const stage = $('#stage').getBoundingClientRect();
     const v = resolveViewport(device(), settings.orientation);
-    const bezel = 14;
+    const bezel = dBezel(device());
     const z = Math.min((stage.width - 64) / (v.width + bezel * 2), (stage.height - 72) / (v.height + bezel * 2), 1.25);
     return Math.max(0.25, Math.floor(z * 100) / 100);
+  }
+
+  function dBezel(d: DeviceDescriptor): number {
+    return d.idiom === 'tablet' ? 13 : d.platform === 'ios' ? 12 : 10;
   }
 
   function layoutFrame(): void {
@@ -243,9 +255,16 @@ async function main(): Promise<void> {
     const zoom = settings.zoom === 'fit' ? fitZoom() : settings.zoom;
     host.setZoom(zoom);
     const frame = $('#frame');
-    frame.className = `device ${d.platform}`;
+    const shell = finishFor(d, settings.finishes[d.id]);
+    frame.className = `device ${d.platform} ${d.idiom} ${settings.orientation} shell-${shellFamily(d)}`;
+    frame.dataset.device = d.id;
+    frame.dataset.finish = shell.id;
     frame.style.setProperty('--radius', `${d.cornerRadius * zoom}px`);
-    frame.style.setProperty('--bezel', `${Math.max(6, 14 * zoom)}px`);
+    frame.style.setProperty('--bezel', `${Math.max(5, dBezel(d) * zoom)}px`);
+    frame.style.setProperty('--control-scale', String(zoom));
+    frame.style.setProperty('--rail', shell.rail);
+    frame.style.setProperty('--rail-light', shell.light);
+    frame.style.setProperty('--rail-dark', shell.dark);
     screen.style.width = `${v.width * zoom}px`;
     screen.style.height = `${v.height * zoom}px`;
     screen.querySelectorAll('.notch, .home-indicator').forEach((n) => n.remove());
@@ -273,7 +292,8 @@ async function main(): Promise<void> {
       screen.appendChild(bar);
     }
     $('#zoom-label').textContent = `${Math.round(zoom * 100)}%`;
-    $('#caption').textContent = `${d.name} · ${v.width}×${v.height} pt @${d.scale}x${d.approximate ? ' · metrics approximate' : ''}`;
+    const os = d.platform === 'ios' ? (d.idiom === 'tablet' ? 'iPadOS' : 'iOS') : 'Android';
+    $('#caption').textContent = `${d.name}  ·  ${os} ${d.osVersion}  ·  ${v.width}×${v.height} @${d.scale}×  ·  ${hardwareLabel(d)}${d.approximate ? '  ·  estimated geometry' : ''}`;
     $('#back').hidden = d.platform !== 'android';
     syncControls();
   }
@@ -283,12 +303,34 @@ async function main(): Promise<void> {
     for (const b of document.querySelectorAll<HTMLButtonElement>('#appearance button')) b.setAttribute('aria-pressed', String(b.dataset.value === settings.appearance));
     const select = $<HTMLSelectElement>('#device');
     select.innerHTML = '';
+    // Group devices by family without making the catalog dependent on an OS implementation.
+    const groups = new Map<string, HTMLOptGroupElement>();
     for (const d of manifest.devices.filter((x) => x.platform === settings.platform)) {
-      const o = document.createElement('option');
-      o.value = d.id;
-      o.textContent = d.name;
-      o.selected = d.id === device().id;
-      select.appendChild(o);
+      const family = d.idiom === 'tablet' ? 'Tablets' : d.platform === 'ios'
+        ? d.id.match(/^iphone-(\d+)/)?.[1] ?? 'Other'
+        : d.id.startsWith('pixel') ? 'Google Pixel' : d.id.startsWith('galaxy') ? 'Samsung Galaxy' : 'Other';
+      const label = /^\d+$/.test(family) ? `iPhone ${family}` : family;
+      let group = groups.get(label);
+      if (!group) {
+        group = document.createElement('optgroup');
+        group.label = label;
+        groups.set(label, group);
+        select.appendChild(group);
+      }
+      const option = document.createElement('option');
+      option.value = d.id;
+      option.textContent = d.name;
+      option.selected = d.id === device().id;
+      group.append(option);
+    }
+    const finishes = $<HTMLSelectElement>('#finish');
+    finishes.innerHTML = '';
+    for (const f of finishesFor(device())) {
+      const option = document.createElement('option');
+      option.value = f.id;
+      option.textContent = f.name;
+      option.selected = f.id === finishFor(device(), settings.finishes[device().id]).id;
+      finishes.append(option);
     }
     $('#slow').setAttribute('aria-pressed', String(settings.slow));
     for (const b of document.querySelectorAll<HTMLButtonElement>('.tabs button')) b.setAttribute('aria-selected', String(b.dataset.tab === settings.tab));
@@ -308,6 +350,11 @@ async function main(): Promise<void> {
   $<HTMLSelectElement>('#device').addEventListener('change', (e) => {
     settings.devices[settings.platform] = (e.target as HTMLSelectElement).value;
     applyEnvironment();
+  });
+  $<HTMLSelectElement>('#finish').addEventListener('change', (e) => {
+    settings.finishes[device().id] = (e.target as HTMLSelectElement).value;
+    // Hardware paint only: do not reboot or disturb React state.
+    layoutFrame();
   });
   $('#appearance').addEventListener('click', (e) => {
     const value = (e.target as HTMLElement).closest('button')?.dataset.value as Appearance | undefined;

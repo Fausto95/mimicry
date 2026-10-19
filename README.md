@@ -43,7 +43,7 @@ You don't need to add anything to the app. `react-native`, `react`, `expo`, `exp
 
 ## What the Studio gives you
 
-- Switch iOS ↔ Android (each platform compiles its own module graph, so `*.ios.tsx` and `*.android.tsx` resolve like Metro), change devices (iPhone 17 Pro, 16e, SE, iPad Air, Pixel 9, Galaxy S25, Pixel Tablet), toggle light/dark, rotate, use Android back, slow animations 10×, and take device-resolution screenshots.
+- Switch iOS ↔ Android (each platform compiles its own module graph, so `*.ios.tsx` and `*.android.tsx` resolve like Metro). The modern profiles include **iPhone 18 Pro/Max, iPhone 17 and 16 families, iPad Pro M5 and iPad Air M4, Pixel 11 Pro/XL and Galaxy S26**, on iOS/iPadOS 27 and Android 17 respectively. Choose hardware colors, toggle light/dark, rotate, use Android back, slow animations 10× and take device-resolution screenshots. [Device support and fidelity](docs/devices-2026.md).
 - **Inspect**: the React component tree with host types and test IDs. Hover a row to outline the element on the device, or pick an element on screen.
 - **Engine**: per-frame layout and encode time, raster time, chunk cache hit rate, composited layers, frame stream size.
 - **Logs**: the app's console output, build errors and runtime errors. Render errors also appear in the device as a LogBox-style screen.
@@ -103,6 +103,6 @@ npm run test:browser   # Studio smoke test in Chromium (needs `npm run dev` on :
 
 ## Status
 
-Alpha. It renders and runs real Expo apps built from core React Native components, with both platform kits, Animated, scrolling, modals, alerts and Fast Refresh. The fidelity table in [docs/fidelity.md](docs/fidelity.md) lists what is approximate and what is missing (virtualized lists, sticky headers, multi-touch, inline views in text, native modules, expo-router, among others).
+Alpha. It renders and runs real Expo apps built from core React Native components, with both platform kits, Animated, scrolling, modals, alerts and Fast Refresh. The 2026 device profiles and shells are available, but **iOS 27 / Android 17 OS fidelity is not complete**: new safe areas and Liquid Glass / Material 3 Expressive components require oracle comparison. The fidelity table in [docs/fidelity.md](docs/fidelity.md) lists what is approximate and what is missing (virtualized lists, sticky headers, multi-touch, inline views in text, native modules, expo-router, among others).
 
 License: not yet selected.

@@ -17,6 +17,22 @@ await page.waitForSelector('#status.live', { timeout: 30000 });
 await page.waitForTimeout(800);
 await page.screenshot({ path: 'artifacts/studio-ios.png' });
 
+// Hardware changes are browser-only; the app must remain live during finish changes.
+if (await page.locator('#device').inputValue() !== 'iphone-18-pro')
+  throw new Error('Expected the modern iPhone 18 Pro Studio default');
+for (const id of ['iphone-16-pro', 'iphone-17-pro', 'ipad-pro-13-m5', 'iphone-18-pro']) {
+  await page.selectOption('#device', id);
+  if (await page.locator('#frame').getAttribute('data-device') !== id)
+    throw new Error(`Device shell not updated: ${id}`);
+}
+await page.selectOption('#finish', 'silver');
+if (await page.locator('#frame').getAttribute('data-finish') !== 'silver')
+  throw new Error('Finish was not applied to physical shell');
+if (!(await page.locator('#status').getAttribute('class'))?.includes('live'))
+  throw new Error('Cosmetic shell update unexpectedly rebooted the engine');
+await page.screenshot({ path: 'artifacts/studio-ios-silver.png' });
+
+
 // Tap the stat card through real pointer events on the canvas.
 const canvas = page.locator('canvas.mimicry-canvas');
 const box = (await canvas.boundingBox())!;
@@ -45,6 +61,11 @@ await page.screenshot({ path: 'artifacts/studio-typing.png' });
 // Android
 await page.click('#platform button[data-value="android"]');
 await page.waitForSelector('#status.live', { timeout: 30000 });
+if (await page.locator('#device').inputValue() !== 'pixel-11-pro')
+  throw new Error('Expected the modern Pixel 11 Pro Studio default');
+await page.selectOption('#device', 'galaxy-s26-ultra');
+await page.waitForTimeout(300);
+await page.selectOption('#device', 'pixel-11-pro');
 await page.waitForTimeout(800);
 await page.click('#appearance button[data-value="dark"]');
 await page.waitForTimeout(600);
