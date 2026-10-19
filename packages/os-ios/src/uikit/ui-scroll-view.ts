@@ -112,7 +112,8 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
     return iosKit.scroll;
   }
 
-  private get kernel() {
+  /** the kernel the scroll animation runs on (the window's) */
+  protected get kernel(): import('@mimicry/os-core').Kernel | null {
     return this.window?.application?.kernel ?? null;
   }
 
@@ -280,7 +281,7 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
   }
 
   tick(now: number): boolean {
-    if (!this.window) return false;
+    if (!this.kernel) return false;
     const keep = this.kinetics.tick(now);
     this.syncOffset();
     return keep;

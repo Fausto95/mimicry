@@ -12,30 +12,28 @@ import {
   type Viewport,
 } from '@mimicry/protocol';
 import type { ReactNode } from 'react';
+import { Android } from '@mimicry/os-android';
+import {
+  Kernel, hyphenationPoints, layoutText, parseColor,
+  type Animator, type Clock, type ColorContext, type EnvironmentStore, type ImageStore, type Matrix, type OperatingSystem,
+  type PlatformKit, type TextLayout, type TextLayoutOptions, type TextMeasurer, type TextStyle,
+} from '@mimicry/os-core';
+import { IOS } from '@mimicry/os-ios';
+import { NO_CLIP, type ClipSpec } from '@mimicry/protocol';
 import { Behaviors } from './behaviors';
-import { EnvironmentStore } from '@mimicry/os-core';
 import { EventDispatcher } from './events';
 import { FocusManager } from './focus';
 import { Geometry } from './geometry';
-import { ImageStore } from './images';
 import { hitTest } from './input/hit-test';
 import { PointerInput } from './input/pointer';
 import { GestureArena } from './input/gestures/arena';
 import { ScrollManager } from './input/scroll';
 import { runLayout } from './layout/layout';
-import { FramePainter } from './paint/painter';
-import { androidKit } from '@mimicry/os-android';
-import { iosKit } from '@mimicry/os-ios';
-import type { PlatformKit } from '@mimicry/os-core';
-import { Animator } from '@mimicry/os-core';
-import type { Clock } from '@mimicry/os-core';
-import { parseColor, type ColorContext } from '@mimicry/os-core';
-import type { Matrix } from '@mimicry/os-core';
-import { NO_CLIP, type ClipSpec } from '@mimicry/protocol';
-import type { TextMeasurer } from '@mimicry/os-core';
+import { AndroidHostViews } from './mounting/android';
+import type { HostViewFactory } from './mounting/host-view';
+import { IOSHostViews } from './mounting/ios';
+import { Mounting } from './mounting/mounting';
 import { collectSpans, resolveTextStyle, type TextEnvironment } from './text/spans';
-import { layoutText, type TextLayout, type TextLayoutOptions, type TextStyle } from '@mimicry/os-core';
-import { hyphenationPoints } from '@mimicry/os-core';
 import { HostNode } from './tree/node';
 import { batchedUpdates, createFiberRoot, renderInto, type RootContainer } from './tree/reconciler';
 
@@ -71,21 +69,26 @@ export interface EngineHooks {
 }
 
 /**
- * The engine: a React renderer over a retained view tree, Yoga layout,
- * platform kits and a painter that emits the binary frame protocol. It has
- * no DOM dependency — it runs in a Web Worker in the browser and directly in
- * Node for headless tests.
+ * React Native on a simulated OS. The engine is React Native's native side —
+ * what Fabric's UIManager, mounting layer and view managers are on device:
+ * a React renderer over a retained shadow tree laid out by Yoga, mounted
+ * into the OS's views (UIKit on iOS, the View system on Android), which the
+ * kernel's render server draws. It has no DOM dependency — it runs in a Web
+ * Worker in the browser and directly in Node for headless tests.
  */
 export class Engine {
+  readonly kernel: Kernel;
+  readonly os: OperatingSystem;
   readonly yoga: Yoga;
   readonly yogaConfig: YogaConfig;
   readonly measurer: TextMeasurer;
   readonly env: EnvironmentStore;
   readonly clock: Clock;
-  readonly animator = new Animator();
+  readonly animator: Animator;
   readonly geometry: Geometry;
   readonly events: EventDispatcher;
   readonly images: ImageStore;
+  readonly mounting: Mounting;
   readonly focus: FocusManager;
   readonly behaviors: Behaviors;
   readonly scrolls: ScrollManager;
@@ -99,39 +102,39 @@ export class Engine {
   readonly inlineViews = new Set<HostNode>();
   readonly appRoot: RootContainer;
   readonly systemRoot: RootContainer;
-  readonly hooks: EngineHooks = {};
+  readonly hooks: EngineHooks;
   readonly bundledFonts: boolean;
   readonly hostInputs: boolean;
-  kit: PlatformKit;
+  readonly kit: PlatformKit;
 
-  private readonly painter: FramePainter;
-  private readonly sendMessage: EngineOptions['send'];
-  private frameRequested = false;
-  private needsLayout = true;
-  private needsPaint = true;
   private colorCache: ColorContext | null = null;
-  private readonly warned = new Set<string>();
-  private lastFrameTime = 0;
-  private framesPainted = 0;
-  private destroyed = false;
   private rootBackground: number | null = null;
-  private readonly deferred: Array<() => void> = [];
-  private deferScheduled = false;
-  private readonly manualDefer: boolean;
-  private readonly fonts = new Set<string>();
-  private readonly fontLoader: EngineOptions['loadFont'];
 
   constructor(options: EngineOptions) {
     this.yoga = options.yoga;
-    this.measurer = options.measurer;
-    this.clock = options.clock;
-    this.sendMessage = options.send;
-    this.bundledFonts = !!options.bundledFonts;
-    this.hostInputs = options.hostInputs ?? false;
-    this.fontLoader = options.loadFont;
-    this.manualDefer = !!options.manualDefer;
-    this.env = new EnvironmentStore(options.environment);
-    this.kit = this.env.device.platform === 'ios' ? iosKit : androidKit;
+    this.kernel = new Kernel({
+      measurer: options.measurer,
+      environment: options.environment,
+      clock: options.clock,
+      send: options.send,
+      bundledFonts: options.bundledFonts,
+      hostInputs: options.hostInputs,
+      loadFont: options.loadFont,
+      manualDefer: options.manualDefer,
+    });
+    const kernel = this.kernel;
+    this.measurer = kernel.measurer;
+    this.clock = kernel.clock;
+    this.animator = kernel.animator;
+    this.env = kernel.env;
+    this.images = kernel.images;
+    this.hooks = kernel.hooks;
+    this.bundledFonts = kernel.bundledFonts;
+    this.hostInputs = kernel.hostInputs;
+    // React Native's touch handling still runs above the OS (see input/pointer.ts).
+    const ios = this.env.device.platform === 'ios';
+    this.os = ios ? new IOS(kernel, { routeInput: false }) : new Android(kernel, { routeInput: false });
+    this.kit = this.os.theme;
     this.yogaConfig = this.yoga.Config.create();
     // React Native rounds layout to the physical pixel grid and runs Yoga in compatibility mode.
     this.yogaConfig.setPointScaleFactor(this.env.viewport.scale);
@@ -140,21 +143,58 @@ export class Engine {
 
     this.geometry = new Geometry(this);
     this.events = new EventDispatcher((error) => this.reportError(error, 'runtime'));
-    this.images = new ImageStore(this);
     this.focus = new FocusManager(this);
     this.behaviors = new Behaviors(this);
     this.scrolls = new ScrollManager(this);
     this.input = new PointerInput(this);
     this.gestures = new GestureArena(this);
-    this.painter = new FramePainter(this);
+    const views: HostViewFactory = this.os instanceof IOS ? new IOSHostViews(this, this.os) : new AndroidHostViews(this, this.os as Android);
+    this.mounting = new Mounting(this, views);
 
     this.appRoot = this.createContainer('app');
     this.systemRoot = this.createContainer('system');
     this.env.subscribe((_env, changed) => this.environmentChanged(changed));
+
+    kernel.batch = (fn) => batchedUpdates(fn);
+    kernel.nodeCount = () => this.nodes.size;
+    kernel.addLayoutPass(() => this.layout());
+    kernel.addBeforePaint(() => this.mounting.sync());
+    kernel.on('pointer', (m) => {
+      this.prepareInput();
+      this.input.handle(m.phase, m.id, m.x, m.y, m.time);
+      this.requestFrame();
+    });
+    kernel.on('wheel', (m) => {
+      this.prepareInput();
+      this.input.wheel(m.x, m.y, m.dx, m.dy);
+    });
+    kernel.on('textChange', (m) => {
+      const node = this.nodes.get(m.nodeId);
+      if (node) this.behaviors.textChanged(node, m.text, m.selection);
+    });
+    kernel.on('textEvent', (m) => {
+      const node = this.nodes.get(m.nodeId);
+      if (node) this.focus.hostEvent(node, m.event, m.key);
+    });
+    kernel.on('inspect', (m) => this.send({ type: 'inspectResult', requestId: m.requestId, tree: this.inspect() }));
+    kernel.on('hitTest', (m) => {
+      const path = hitTest(this, m.x, m.y);
+      this.send({ type: 'hitTestResult', requestId: m.requestId, nodeId: path?.at(-1)?.id ?? null, path: path?.map((n) => n.id) ?? [] });
+    });
+    kernel.on('query', (m) => this.send({ type: 'queryResult', requestId: m.requestId, nodes: this.query(m.selector) }));
+    // Android's back key goes through the activity (ReactActivity hands it to us); iOS has none.
+    if (ios) kernel.on('back', () => this.back());
+  }
+
+  /** Input reads geometry: lay out and mount anything pending first. */
+  private prepareInput(): void {
+    this.kernel.layoutIfNeeded();
+    this.mounting.sync();
   }
 
   private createContainer(name: 'app' | 'system'): RootContainer {
     const root = new HostNode(this, 'm-root', 'root', { style: { flex: 1 } });
+    root.hostView = this.mounting.createView(root, name);
     root.mounted = true;
     if (name === 'system') root.setProps({ style: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }, pointerEvents: 'box-none' });
     const container: RootContainer = { engine: this, root, name };
@@ -184,61 +224,11 @@ export class Engine {
   }
 
   send(message: EngineMessage, transfer?: Transferable[]): void {
-    if (!this.destroyed) this.sendMessage(message, transfer);
+    this.kernel.send(message, transfer);
   }
 
   handle(message: HostMessage): void {
-    switch (message.type) {
-      case 'frame':
-        this.frame(message.time);
-        break;
-      case 'pointer':
-        this.input.handle(message.phase, message.id, message.x, message.y, message.time);
-        this.requestFrame();
-        break;
-      case 'wheel':
-        this.input.wheel(message.x, message.y, message.dx, message.dy);
-        break;
-      case 'textChange': {
-        const node = this.nodes.get(message.nodeId);
-        if (node) this.behaviors.textChanged(node, message.text, message.selection);
-        break;
-      }
-      case 'textEvent': {
-        const node = this.nodes.get(message.nodeId);
-        if (node) this.focus.hostEvent(node, message.event, message.key);
-        break;
-      }
-      case 'environment':
-        this.env.update(message.environment);
-        break;
-      case 'imageLoaded':
-        this.images.loaded(message.uri, message.width, message.height);
-        break;
-      case 'imageFailed':
-        this.images.failed(message.uri, message.error);
-        break;
-      case 'inspect':
-        this.send({ type: 'inspectResult', requestId: message.requestId, tree: this.inspect() });
-        break;
-      case 'hitTest': {
-        const path = hitTest(this, message.x, message.y);
-        this.send({ type: 'hitTestResult', requestId: message.requestId, nodeId: path?.at(-1)?.id ?? null, path: path?.map((n) => n.id) ?? [] });
-        break;
-      }
-      case 'query':
-        this.send({ type: 'queryResult', requestId: message.requestId, nodes: this.query(message.selector) });
-        break;
-      case 'back':
-        this.back();
-        break;
-      case 'animationScale':
-        this.animator.timeScale = Math.max(0.05, message.factor);
-        break;
-      default:
-        // boot/hmr/reload are handled by the runtime that owns the module system
-        break;
-    }
+    this.kernel.handle(message);
   }
 
   back(): void {
@@ -251,81 +241,36 @@ export class Engine {
     if (!this.hooks.onBack?.()) this.warnOnce('back', 'Back pressed with no handler (the app would exit).');
   }
 
-  // ── frame pipeline ────────────────────────────────────────────────────
+  // ── frame pipeline (the kernel's) ─────────────────────────────────────
 
   requestFrame(): void {
-    if (this.frameRequested || this.destroyed) return;
-    this.frameRequested = true;
-    this.send({ type: 'requestFrame' });
+    this.kernel.requestFrame();
   }
 
   get frameIsRequested(): boolean {
-    return this.frameRequested;
+    return this.kernel.frameIsRequested;
   }
 
   invalidateLayout(): void {
-    this.needsLayout = true;
-    this.needsPaint = true;
-    this.requestFrame();
+    this.kernel.setNeedsLayout();
   }
 
   markPaint(): void {
-    this.needsPaint = true;
-    this.requestFrame();
+    this.kernel.setNeedsDisplay();
   }
 
-  /**
-   * One frame: animations (app rAF callbacks, Animated, scroll physics,
-   * control transitions) → layout if dirty → paint → send.
-   */
+  /** One frame: animations → layout if dirty → mount → render → send. */
   frame(time: number): void {
-    this.frameRequested = false;
-    this.lastFrameTime = time;
-    this.animator.advanceTo(time);
-    this.animator.runCallbacks(time, (fn) => batchedUpdates(fn));
-    this.animator.step(time);
-    let layoutMs = 0;
-    if (this.needsLayout) {
-      const t0 = now();
-      this.layout();
-      layoutMs = now() - t0;
-    }
-    if (this.needsPaint) {
-      this.needsPaint = false;
-      const t1 = now();
-      const { buffer, stats } = this.painter.paint();
-      const paintMs = now() - t1;
-      this.framesPainted++;
-      this.send(
-        {
-          type: 'frame',
-          buffer,
-          stats: {
-            frame: this.framesPainted,
-            layoutMs,
-            paintMs,
-            bytes: buffer.byteLength,
-            chunks: stats.chunks,
-            layers: stats.layers,
-            nodes: this.nodes.size,
-            live: this.animator.liveCount,
-          },
-        },
-        [buffer],
-      );
-    }
-    if (this.animator.busy) this.requestFrame();
+    this.kernel.frame(time);
   }
 
   /** Paint immediately and return the frame (headless screenshots). */
   paintNow(): ArrayBuffer {
-    if (this.needsLayout) this.layout();
-    this.needsPaint = false;
-    return this.painter.paint().buffer;
+    return this.kernel.paintNow();
   }
 
+  /** React Native's layout pass: Yoga, then the effects of the new frames. */
   private layout(): void {
-    this.needsLayout = false;
     const changes = runLayout(this);
     this.scrolls.clampAfterLayout();
     if (changes.length) {
@@ -342,46 +287,34 @@ export class Engine {
 
   /**
    * Run `fn` after the current task, like React Native's async events
-   * (onLayout, onLoad from cache). A microtask in the browser; a headless
-   * host (option `manualDefer`) drains the queue itself inside act(), so
-   * state set from these callbacks lands deterministically on virtual time.
+   * (onLayout, onLoad from cache). See Kernel.defer.
    */
   defer(fn: () => void): void {
-    this.deferred.push(fn);
-    if (this.manualDefer || this.deferScheduled) return;
-    this.deferScheduled = true;
-    queueMicrotask(() => {
-      this.deferScheduled = false;
-      this.flushDeferred();
-    });
+    this.kernel.defer(fn);
   }
 
   get hasDeferred(): boolean {
-    return this.deferred.length > 0;
+    return this.kernel.hasDeferred;
   }
 
   flushDeferred(): void {
-    while (this.deferred.length) {
-      const batch = this.deferred.splice(0);
-      for (const fn of batch) fn();
-    }
+    this.kernel.flushDeferred();
   }
 
   /** Called by the reconciler after every commit, before layout effects run. */
   afterCommit(_root: RootContainer): void {
-    if (this.needsLayout) this.layout();
-    this.needsPaint = true;
-    this.requestFrame();
+    this.kernel.layoutIfNeeded();
+    this.kernel.setNeedsDisplay();
   }
 
   // ── tree bookkeeping ──────────────────────────────────────────────────
 
   onNodeChanged(_node: HostNode): void {
-    this.needsPaint = true;
-    this.requestFrame();
+    this.kernel.setNeedsDisplay();
   }
 
   onAttach(node: HostNode): void {
+    this.mounting.structureChanged();
     const parentMounted = node.parent?.mounted ?? false;
     if (!parentMounted) return;
     node.walk((n) => {
@@ -396,6 +329,7 @@ export class Engine {
   }
 
   onDetach(node: HostNode): void {
+    this.mounting.structureChanged();
     node.walk((n) => {
       if (n.mounted) {
         n.mounted = false;
@@ -412,8 +346,7 @@ export class Engine {
     this.modals.delete(node);
     this.safeAreaNodes.delete(node);
     this.inlineViews.delete(node);
-    this.images.forget(node);
-    this.scrolls.release(node);
+    this.images.forget(node.imageConsumer);
     this.gestures.nodeDestroyed(node);
   }
 
@@ -421,6 +354,7 @@ export class Engine {
     return Array.from(this.modals).filter((m) => m.mounted && this.behaviors.isModalShown(m));
   }
 
+  /** While an iOS page sheet is presented: how the app behind it is scaled back. */
   get presentation(): { matrix: Matrix; clip: ClipSpec; radius: number } | null {
     const p = this.behaviors.presentingTransform();
     return p ? { matrix: p.matrix, clip: NO_CLIP, radius: p.radius } : null;
@@ -430,7 +364,9 @@ export class Engine {
 
   private environmentChanged(changed: { dimensions: boolean; appearance: boolean; device: boolean }): void {
     if (changed.device) {
-      this.kit = this.env.device.platform === 'ios' ? iosKit : androidKit;
+      if (this.env.device.platform !== this.kit.platform) {
+        this.warnOnce('platform-switch', `Switching to an ${this.env.device.platform} device needs a new engine (the OS is chosen at boot).`);
+      }
       this.yogaConfig.setPointScaleFactor(this.env.viewport.scale);
     }
     this.colorCache = null;
@@ -467,16 +403,13 @@ export class Engine {
 
   /** Register a custom font (expo-font). Resolves once text can measure with it. */
   async loadFont(family: string, url: string, descriptors: { weight?: string; style?: string } = {}): Promise<void> {
-    await this.fontLoader?.(family, url, descriptors);
-    this.send({ type: 'loadFont', family, url, weight: descriptors.weight, style: descriptors.style });
-    this.fonts.add(family);
-    this.measurer.invalidate?.();
+    await this.kernel.loadFont(family, url, descriptors);
     for (const node of this.nodes.values()) if (node.kind === 'text' || node.kind === 'input') node.invalidateText();
     this.invalidateLayout();
   }
 
   loadedFonts(): string[] {
-    return Array.from(this.fonts);
+    return this.kernel.loadedFonts();
   }
 
   // ── text ──────────────────────────────────────────────────────────────
@@ -597,20 +530,11 @@ export class Engine {
   // ── errors & logs ─────────────────────────────────────────────────────
 
   reportError(error: unknown, kind: EngineError['kind'], componentStack?: string): void {
-    const e = error instanceof Error ? error : new Error(String(error));
-    const payload: EngineError = { kind, message: e.message, stack: e.stack, componentStack };
-    this.send({ type: 'error', error: payload });
-    try {
-      this.hooks.onError?.(payload);
-    } catch {
-      // the error UI must never take the engine down
-    }
+    this.kernel.reportError(error, kind, componentStack);
   }
 
   warnOnce(key: string, message: string): void {
-    if (this.warned.has(key)) return;
-    this.warned.add(key);
-    this.send({ type: 'log', level: 'warn', message: `[mimicry] ${message}` });
+    this.kernel.warnOnce(key, message);
   }
 
   // ── inspection & test queries ─────────────────────────────────────────
@@ -678,7 +602,7 @@ export class Engine {
   }
 
   destroy(): void {
-    this.destroyed = true;
+    this.kernel.destroy();
     try {
       renderInto(this.appRoot, null);
       renderInto(this.systemRoot, null);
@@ -688,7 +612,7 @@ export class Engine {
   }
 
   get stats() {
-    return { frames: this.framesPainted, lastFrameTime: this.lastFrameTime };
+    return this.kernel.stats;
   }
 }
 
@@ -723,4 +647,3 @@ function summarizeStyle(style: Record<string, unknown>): Record<string, unknown>
   return out;
 }
 
-const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());

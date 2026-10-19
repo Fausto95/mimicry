@@ -307,7 +307,7 @@ export class ScrollView extends FrameLayout implements FrameTask {
   }
 
   tick(now: number): boolean {
-    if (!this.isAttachedToWindow()) return false;
+    if (!this.kernel) return false;
     const keep = this.kinetics.tick(now);
     this.syncOffset();
     return keep;

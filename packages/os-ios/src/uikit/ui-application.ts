@@ -41,14 +41,16 @@ export class UIApplication {
   private readonly touchWindows = new Map<number, UIWindow>();
   private readonly statusBarListeners = new Set<() => void>();
 
-  constructor(readonly kernel: Kernel) {
+  constructor(readonly kernel: Kernel, options: { routeInput?: boolean } = {}) {
     UIApplication.current = this;
     this.screen = new UIScreen(kernel);
-    kernel.on('pointer', (m) => {
-      this.pointer(m.phase, m.id, m.x, m.y, m.time);
-      kernel.requestFrame();
-    });
-    kernel.on('wheel', (m) => this.wheel(m.x, m.y, m.dx, m.dy));
+    if (options.routeInput !== false) {
+      kernel.on('pointer', (m) => {
+        this.pointer(m.phase, m.id, m.x, m.y, m.time);
+        kernel.requestFrame();
+      });
+      kernel.on('wheel', (m) => this.wheel(m.x, m.y, m.dx, m.dy));
+    }
     kernel.addLayoutPass(() => {
       for (const window of this.windows.slice()) window._layoutPass();
     });

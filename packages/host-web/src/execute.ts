@@ -65,14 +65,18 @@ export function execute(ctx: Ctx2D, bytes: Uint8Array, start: number, end: numbe
   const c = new CommandCursor(bytes, start, end);
   const pr = options.pixelRatio;
   const hasLetterSpacing = 'letterSpacing' in ctx;
+  // letterSpacing is canvas state: save/restore bring it back, so track it the same way.
   let letterSpacing = 0;
+  const saved: number[] = [];
   while (c.next()) {
     switch (c.op) {
       case Op.Save:
         ctx.save();
+        saved.push(letterSpacing);
         break;
       case Op.Restore:
         ctx.restore();
+        letterSpacing = saved.pop() ?? letterSpacing;
         break;
       case Op.Transform:
         ctx.transform(c.f32(0), c.f32(1), c.f32(2), c.f32(3), c.f32(4), c.f32(5));

@@ -27,8 +27,8 @@ function animator(view: UIView) {
 export class UISwitch extends UIControl implements FrameTask {
   static readonly size: CGSize = { width: iosKit.switchSize.width, height: iosKit.switchSize.height };
   private _isOn = false;
-  private progress = 0;
-  private pressed = 0;
+  protected progress = 0;
+  protected pressed = 0;
   private tween: Tween | null = null;
   private pressTween: Tween | null = null;
   onTintColor: UIColor | null = null;

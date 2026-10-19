@@ -50,14 +50,16 @@ export class WindowManager {
   readonly windows: WindowRecord[] = [];
   private readonly touchWindow = new Map<number, WindowRecord>();
 
-  constructor(readonly kernel: Kernel) {
+  constructor(readonly kernel: Kernel, options: { routeInput?: boolean } = {}) {
     kernel.addLayoutPass(() => {
       for (const w of this.windows.slice()) w.root.performTraversals();
     });
-    kernel.on('pointer', (m) => {
-      this.pointer(m.phase, m.id, m.x, m.y, m.time);
-      kernel.requestFrame();
-    });
+    if (options.routeInput !== false) {
+      kernel.on('pointer', (m) => {
+        this.pointer(m.phase, m.id, m.x, m.y, m.time);
+        kernel.requestFrame();
+      });
+    }
     kernel.env.subscribe(() => {
       for (const w of this.windows) {
         w.root.frame = this.frameFor(w.params);

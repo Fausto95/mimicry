@@ -85,6 +85,7 @@ export class Kernel implements LayerHost {
   private readonly layoutPasses: Array<() => void> = [];
   private readonly beforePaint: Array<() => void> = [];
   private frameRequested = false;
+  private painting = false;
   private needsLayout = true;
   private needsPaint = true;
   private lastFrameTime = 0;
@@ -167,12 +168,15 @@ export class Kernel implements LayerHost {
   }
 
   setNeedsLayout(): void {
+    // Mounting during a paint syncs what this very frame shows; it asks for nothing more.
+    if (this.painting) return;
     this.needsLayout = true;
     this.needsPaint = true;
     this.requestFrame();
   }
 
   setNeedsDisplay(): void {
+    if (this.painting) return;
     this.needsPaint = true;
     this.requestFrame();
   }
@@ -241,8 +245,13 @@ export class Kernel implements LayerHost {
   }
 
   private paint() {
-    for (const fn of this.beforePaint) fn();
-    return this.renderServer.render(this.display);
+    this.painting = true;
+    try {
+      for (const fn of this.beforePaint) fn();
+      return this.renderServer.render(this.display);
+    } finally {
+      this.painting = false;
+    }
   }
 
   /** Paint immediately and return the frame (headless screenshots). */

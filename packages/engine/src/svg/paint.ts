@@ -207,7 +207,7 @@ function paintImage(w: CommandWriter, node: HostNode, ctx: SvgPaintContext): voi
   const p = node.props;
   const source = resolveSource(p.src);
   if (!source) return;
-  const image = ctx.engine.images.get(source.uri, node);
+  const image = ctx.engine.images.get(source.uri, node.imageConsumer);
   if (image.state !== 'loaded') return;
   const vp = ctx.viewport;
   const x = resolveLength(p.x, 'x', vp);

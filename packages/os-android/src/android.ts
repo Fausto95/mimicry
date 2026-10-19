@@ -9,6 +9,11 @@ import { SystemUI } from './systemui/system-bars';
  * SystemUI's bars and the application context. Apps start an Activity
  * (`new MyActivity(kernel, android.windowManager).launch()`).
  */
+export interface AndroidOptions {
+  /** deliver the digitizer's touches through the window manager (default true) */
+  routeInput?: boolean;
+}
+
 export class Android implements OperatingSystem {
   readonly platform = 'android' as const;
   readonly theme = androidKit;
@@ -16,9 +21,9 @@ export class Android implements OperatingSystem {
   readonly context: Context;
   readonly systemUI: SystemUI;
 
-  constructor(readonly kernel: Kernel) {
+  constructor(readonly kernel: Kernel, options: AndroidOptions = {}) {
     this.context = new Context(kernel);
-    this.windowManager = new WindowManager(kernel);
+    this.windowManager = new WindowManager(kernel, { routeInput: options.routeInput });
     this.systemUI = new SystemUI(this.context, this.windowManager);
     kernel.on('back', () => {
       this.windowManager.back();

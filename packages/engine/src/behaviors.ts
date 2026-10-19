@@ -3,7 +3,7 @@ import type { Engine } from './engine';
 import { cubicBezier, easeOut, type FrameTask } from '@mimicry/os-core';
 import { parseColor } from '@mimicry/os-core';
 import { multiply, scaling, translation, type Matrix } from '@mimicry/os-core';
-import type { ActivityState, SwitchState } from '@mimicry/os-core';
+import type { ActivityState } from '@mimicry/os-core';
 import type { HostNode } from './tree/node';
 
 /**
@@ -38,10 +38,6 @@ export class Behaviors implements FrameTask {
   // ── lifecycle ─────────────────────────────────────────────────────────
 
   attached(node: HostNode): void {
-    if (node.kind === 'switch') {
-      node.native.progress = node.props.value ? 1 : 0;
-      node.native.value = !!node.props.value;
-    }
     if (node.kind === 'activity' && node.props.animating !== false) {
       node.native.started ??= this.now();
       this.track(node);
@@ -55,15 +51,6 @@ export class Behaviors implements FrameTask {
 
   propsChanged(node: HostNode): void {
     switch (node.kind) {
-      case 'switch': {
-        const value = !!node.props.value;
-        if (value !== node.native.value) {
-          node.native.value = value;
-          node.native.tween = { from: node.native.progress ?? 0, to: value ? 1 : 0, start: this.now(), duration: this.engine.kit.platform === 'ios' ? 250 : 180 } satisfies Tween;
-          this.track(node);
-        }
-        break;
-      }
       case 'activity':
         if (node.props.animating !== false) {
           node.native.started ??= this.now();
@@ -90,55 +77,23 @@ export class Behaviors implements FrameTask {
 
   private stepNode(node: HostNode, now: number): boolean {
     let busy = false;
-    const tween = node.native.tween as Tween | undefined;
-    if (tween) {
-      const t = Math.min(1, (now - tween.start) / tween.duration);
-      node.native.progress = tween.from + (tween.to - tween.from) * easeOut(t);
-      if (t >= 1) node.native.tween = undefined;
-      else busy = true;
-    }
-    const press = node.native.pressTween as Tween | undefined;
-    if (press) {
-      const t = Math.min(1, (now - press.start) / press.duration);
-      node.native.pressed = press.from + (press.to - press.from) * easeOut(t);
-      if (t >= 1) node.native.pressTween = undefined;
-      else busy = true;
-    }
     if (node.kind === 'activity' && node.props.animating !== false) busy = true;
     if (node.native.ripple) busy = this.stepRipple(node, now) || busy;
     if (node.kind === 'modal') busy = this.stepModal(node, now) || busy;
     return busy;
   }
 
-  // ── switch ────────────────────────────────────────────────────────────
-
-  switchState(node: HostNode): SwitchState {
-    const colors = this.engine.colorContext;
-    const track = node.props.trackColor ?? {};
-    return {
-      progress: node.native.progress ?? (node.props.value ? 1 : 0),
-      pressed: node.native.pressed ?? 0,
-      disabled: !!node.props.disabled,
-      trackOn: parseColor(track.true ?? node.props.onTintColor, colors),
-      trackOff: parseColor(track.false ?? node.props.tintColor, colors),
-      thumb: parseColor(node.props.thumbColor ?? node.props.thumbTintColor, colors),
-      backgroundOff: parseColor(node.props.ios_backgroundColor, colors),
-    };
-  }
+  // ── switch (UISwitch / SwitchCompat do the animation) ──────────────
 
   controlPress(node: HostNode, pressed: boolean): void {
-    const target = pressed ? 1 : 0;
-    const current = node.native.pressed ?? 0;
-    if (current === target && !node.native.pressTween) return;
-    node.native.pressTween = { from: current, to: target, start: this.now(), duration: 150 } satisfies Tween;
-    this.track(node);
+    node.hostView?.setControlPressed?.(pressed);
   }
 
   toggleSwitch(node: HostNode): void {
     const next = !node.props.value;
     this.engine.events.emit(node, 'onChange', { value: next, target: node.id }, this.now());
-    // Controlled: if the app did not accept the change, the switch animates back.
-    this.propsChanged(node);
+    // Controlled: if the app did not accept the change, the switch stays (or animates back).
+    node.hostView?.updateProps();
   }
 
   // ── activity indicator ────────────────────────────────────────────────

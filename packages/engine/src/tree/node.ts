@@ -5,7 +5,8 @@ import { applyYogaStyle } from '../layout/yoga-style';
 import { safeAreaStyle } from '../layout/safe-area';
 import { flattenStyle, LAYOUT_KEYS, TEXT_MEASURE_KEYS, type FlatStyle } from '../style/flatten';
 import type { TextLayout } from '@mimicry/os-core';
-import type { ScrollState } from '../input/scroll';
+import type { ImageConsumer, ImageEntry, ScrollKinetics } from '@mimicry/os-core';
+import type { HostView } from '../mounting/host-view';
 
 /** Host component names emitted by @mimicry/react-native. */
 export const HostType = {
@@ -111,9 +112,11 @@ export class HostNode {
   textLayout: Map<number, TextLayout> | null = null;
   /** Suspense hide */
   hidden = false;
-  /** native behavior state (scroll, switch animation, ripple, presentation…) */
-  scroll: ScrollState | null = null;
+  /** native behavior state (ripple, presentation…) */
   native: Record<string, any> = {};
+  /** the OS view this node is mounted as (none for inline text and SVG elements) */
+  hostView: HostView | null = null;
+  private _imageConsumer: ImageConsumer | null = null;
   /** React fiber, for the inspector's component names */
   fiber: unknown = null;
   mounted = false;
@@ -138,6 +141,42 @@ export class HostNode {
       this.installMeasure();
     }
     this.setProps(props, true);
+    // Roots get their views from the engine (it knows which surface they belong to).
+    if (kind !== 'root') this.hostView = engine.mounting.createView(this, null);
+  }
+
+  /** The OS scroll view's state (offset, phase), for scroll views. */
+  get scroll(): ScrollKinetics | null {
+    return (this.hostView as unknown as { kinetics?: ScrollKinetics } | null)?.kinetics ?? null;
+  }
+
+  /** This node as a consumer of the image decoder (Image's onLoad events). */
+  get imageConsumer(): ImageConsumer {
+    if (this._imageConsumer) return this._imageConsumer;
+    const node = this;
+    const engine = this.engine;
+    this._imageConsumer = {
+      get alive() {
+        return node.mounted;
+      },
+      imageLoadStarted: () => {
+        engine.events.emit(node, 'onLoadStart', { target: node.id }, engine.animator.animationTime);
+      },
+      imageLoaded: (entry: ImageEntry) => {
+        node.yoga?.markDirty();
+        engine.invalidateLayout();
+        const time = engine.animator.animationTime;
+        const source = { uri: entry.uri, width: entry.width, height: entry.height };
+        engine.events.emit(node, 'onLoad', { source, target: node.id }, time);
+        engine.events.emit(node, 'onLoadEnd', { target: node.id }, time);
+      },
+      imageFailed: (entry: ImageEntry) => {
+        const time = engine.animator.animationTime;
+        engine.events.emit(node, 'onError', { error: entry.error, target: node.id }, time);
+        engine.events.emit(node, 'onLoadEnd', { target: node.id }, time);
+      },
+    };
+    return this._imageConsumer;
   }
 
   // ── style ──────────────────────────────────────────────────────────────
@@ -182,6 +221,7 @@ export class HostNode {
         this.engine.invalidateLayout();
       }
       this.engine.behaviors.propsChanged(this);
+      this.hostView?.updateProps();
     }
   }
 
@@ -354,6 +394,7 @@ export class HostNode {
 
   destroy(): void {
     this.engine.onDestroy(this);
+    this.hostView?.destroy();
     if (this.yoga) {
       this.yoga.unsetMeasureFunc?.();
       this.yoga.free();
