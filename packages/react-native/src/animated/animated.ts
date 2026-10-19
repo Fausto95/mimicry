@@ -1,4 +1,4 @@
-import { parseColor, type FrameTask } from '@mimicry/engine';
+import { parseColor, type FrameTask } from '@mimicry/react-native-fabric';
 import { getEngine, maybeEngine } from '../engine-ref';
 import { Easing, type EasingFunction } from './easing';
 

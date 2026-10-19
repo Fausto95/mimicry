@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { Platform, StyleSheet, useColorScheme } from '../apis/core';
 import { registerNativeComponents } from './registry';
 

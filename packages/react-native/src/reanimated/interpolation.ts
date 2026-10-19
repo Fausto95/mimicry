@@ -1,4 +1,4 @@
-import { parseColor } from '@mimicry/engine';
+import { parseColor } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { rgbaComponents, rgbaString } from './values';
 

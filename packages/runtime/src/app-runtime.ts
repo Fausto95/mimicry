@@ -1,4 +1,4 @@
-import type { Engine } from '@mimicry/engine';
+import type { Engine } from '@mimicry/react-native-fabric';
 import type { AppBundle, ModuleRecord } from '@mimicry/protocol';
 import { AppRegistry, clearErrors, installReactNative, resetNativeModules, runRegisteredApp, setAppConfig } from '@mimicry/react-native';
 import { ModuleSystem, type ModuleScope } from './module-system';

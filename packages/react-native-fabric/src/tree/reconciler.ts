@@ -36,7 +36,7 @@ let currentUpdatePriority: number = NoEventPriority;
 export const TEXT_OUTSIDE_TEXT_ERROR = 'Text strings must be rendered within a <Text> component.';
 
 const hostConfig = {
-  rendererPackageName: '@mimicry/engine',
+  rendererPackageName: '@mimicry/react-native-fabric',
   rendererVersion: '0.3.0',
   extraDevToolsConfig: null,
   isPrimaryRenderer: true,

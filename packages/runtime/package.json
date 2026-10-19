@@ -5,7 +5,7 @@
   "type": "module",
   "exports": { ".": "./src/index.ts", "./worker": "./src/worker.ts" },
   "dependencies": {
-    "@mimicry/engine": "0.3.0",
+    "@mimicry/react-native-fabric": "0.3.0",
     "@mimicry/protocol": "0.3.0",
     "@mimicry/react-native": "0.3.0",
     "react": "19.3.1",

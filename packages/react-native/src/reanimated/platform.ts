@@ -1,4 +1,4 @@
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { hostOf, type AnimatedRef } from './hooks';
 

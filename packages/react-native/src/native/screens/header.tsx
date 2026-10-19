@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { Animated } from '../../animated';
 import { AnimatedValue } from '../../animated/animated';
 import { Platform } from '../../apis/core';

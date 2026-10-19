@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { HostType, svgQueries, type HostNode } from '@mimicry/engine';
+import { HostType, svgQueries, type HostNode } from '@mimicry/react-native-fabric';
 import { getEngine } from '../engine-ref';
 import { registerNativeComponents, registerNativeModules, warnOnce, type NativeComponentImpl } from './registry';
 
@@ -7,7 +7,7 @@ import { registerNativeComponents, registerNativeModules, warnOnce, type NativeC
  * The native side of react-native-svg. Apps run the library's own
  * JavaScript; its native components become engine nodes: the SVG viewport is
  * an `m-svg` box in layout, every element inside it an `m-svg-node` that the
- * engine paints as vector geometry (packages/engine/src/svg).
+ * engine paints as vector geometry (packages/react-native-fabric/src/svg).
  */
 const h = React.createElement as (...args: any[]) => React.ReactElement;
 

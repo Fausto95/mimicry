@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { containerSafeAreaInsets, type HostNode } from '@mimicry/engine';
+import { containerSafeAreaInsets, type HostNode } from '@mimicry/react-native-fabric';
 import { Animated } from '../../animated';
 import { maybeEngine } from '../../engine-ref';
 import { mergeRefs } from '../../components/pressability';

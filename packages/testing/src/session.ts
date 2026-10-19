@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import {
   CanvasTextMeasurer, Engine, VirtualClock, loadYoga,
-} from '@mimicry/engine';
+} from '@mimicry/react-native-fabric';
 import { Compositor } from '@mimicry/host-web';
 import { installReactNative, setActiveEngine } from '@mimicry/react-native';
 import {

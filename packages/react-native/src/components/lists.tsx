@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { View } from './primitives';
 import { maybeEngine } from '../engine-ref';
 

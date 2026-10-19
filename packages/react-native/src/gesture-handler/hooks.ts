@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import type { GestureEventData, GestureKind } from '@mimicry/engine';
+import type { GestureEventData, GestureKind } from '@mimicry/react-native-fabric';
 import { changes, dropHandler, ensureHandler, getNextHandlerTag, isFinished, setHandlerState, toEngineConfig, unpack, type EventSink } from './bridge';
 import { State, TouchEventType } from './constants';
 

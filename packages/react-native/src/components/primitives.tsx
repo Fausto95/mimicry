@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { HostType, parseColor } from '@mimicry/engine';
+import { HostType, parseColor } from '@mimicry/react-native-fabric';
 import { getEngine, maybeEngine } from '../engine-ref';
 import { Platform } from '../apis/core';
 import { mergeRefs, usePressability } from './pressability';

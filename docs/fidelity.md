@@ -7,7 +7,7 @@ Mimicry is useful only to the extent it is honest about what matches a device. T
 1. Write a scene (`examples/showcase/scenes/*.json`): device, appearance, and steps by `testID` or text.
 2. Capture the reference on a real simulator with `scripts/capture-oracle.mjs`. It pins the status bar to 9:41 with full bars, sets the appearance, and drives the steps through Maestro.
 3. Run `mimicry oracle <project> --scenes … --reference … --out report/` to get a per-scene diff ratio and an HTML report with Mimicry, simulator and difference side by side.
-4. Fix the cause, usually a token in `packages/engine/src/platform/{ios,android}.ts` or a device descriptor in `packages/protocol/src/devices.ts`.
+4. Fix the cause, usually a token in `packages/os-ios/src/theme.ts` / `packages/os-android/src/theme.ts` or a device descriptor in `packages/protocol/src/devices.ts`.
 5. Regenerate goldens (`npm run goldens:update`) so the improvement is locked in.
 
 The simulator is a test oracle only and never a runtime dependency. `.github/workflows/oracle.yml` runs steps 2–3 on a macOS runner (push to the `oracle-run` branch) and publishes captures and the report to the `oracle-results` branch.

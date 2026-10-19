@@ -1,4 +1,4 @@
-import { cubicBezier } from '@mimicry/engine';
+import { cubicBezier } from '@mimicry/react-native-fabric';
 import { Easing as RNEasing } from '../animated/easing';
 
 /**

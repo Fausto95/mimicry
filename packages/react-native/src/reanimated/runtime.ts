@@ -1,4 +1,4 @@
-import type { Engine, FrameTask } from '@mimicry/engine';
+import type { Engine, FrameTask } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 
 /**

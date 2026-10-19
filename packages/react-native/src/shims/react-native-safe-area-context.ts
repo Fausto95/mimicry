@@ -1,12 +1,12 @@
 import React, { createContext, forwardRef, useCallback, useContext, useLayoutEffect, useRef, useState } from 'react';
-import { safeAreaInsetsOf, type HostNode } from '@mimicry/engine';
+import { safeAreaInsetsOf, type HostNode } from '@mimicry/react-native-fabric';
 import { View } from '../components/primitives';
 import { useWindowDimensions } from '../apis/core';
 import { maybeEngine } from '../engine-ref';
 
 /**
  * react-native-safe-area-context on the engine's UIKit-style safe area model
- * (engine/src/layout/safe-area.ts). As on device, a provider reports the
+ * (react-native-fabric/src/layout/safe-area.ts). As on device, a provider reports the
  * safe area of its own view — the window insets at the root, less inside a
  * tab bar or below a navigation bar — and SafeAreaView pads itself by its
  * own insets during layout, so there is no frame of wrong padding.

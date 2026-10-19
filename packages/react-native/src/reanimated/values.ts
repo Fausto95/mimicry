@@ -1,4 +1,4 @@
-import { parseColor } from '@mimicry/engine';
+import { parseColor } from '@mimicry/react-native-fabric';
 
 /**
  * Animatable values. Reanimated animates numbers, colors, numbers with units

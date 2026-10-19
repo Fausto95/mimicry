@@ -1,5 +1,5 @@
 import React, { Children, cloneElement, forwardRef, isValidElement, useEffect, useRef } from 'react';
-import { HostType, flattenStyle } from '@mimicry/engine';
+import { HostType, flattenStyle } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { Platform } from '../apis/core';
 import { AnimatedValue, timing } from '../animated/animated';

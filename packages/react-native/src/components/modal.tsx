@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { View } from './primitives';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;

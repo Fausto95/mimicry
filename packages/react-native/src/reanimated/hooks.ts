@@ -1,6 +1,6 @@
 import { maybeEngine } from '../engine-ref';
 import { useEffect, useLayoutEffect, useMemo, useRef, type DependencyList } from 'react';
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { Mutable, makeMutable, type SharedValue } from './mutable';
 import { Mapper, uiRuntime, untracked, type Driver } from './runtime';
 import { AnimatedUpdater } from './updater';

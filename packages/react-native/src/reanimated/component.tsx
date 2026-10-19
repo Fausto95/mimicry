@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
-import { flattenStyle, type HostNode } from '@mimicry/engine';
+import { flattenStyle, type HostNode } from '@mimicry/react-native-fabric';
 import { Image, Text, View } from '../components/primitives';
 import { FlatList, ScrollView } from '../components/lists';
 import { CSSController, CSS_PROPS, hasCSS } from './css';

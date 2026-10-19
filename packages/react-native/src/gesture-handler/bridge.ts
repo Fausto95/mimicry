@@ -1,4 +1,4 @@
-import type { GestureConfig, GestureEventData, GestureKind, GestureListener, GestureRelations, GestureTouchEvent, HostNode } from '@mimicry/engine';
+import type { GestureConfig, GestureEventData, GestureKind, GestureListener, GestureRelations, GestureTouchEvent, HostNode } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { State } from './constants';
 

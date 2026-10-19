@@ -75,7 +75,7 @@ mimicry diff a.png b.png --out diff.png
 | Package | Role |
 | --- | --- |
 | `@mimicry/protocol` | Frame format, opcodes, writer/reader, engine↔host messages, device descriptors |
-| `@mimicry/engine` | React host config, retained tree, Yoga layout, text layout, platform kits, painter, input, scroll physics |
+| `@mimicry/react-native-fabric` | React host config, retained tree, Yoga layout, text layout, platform kits, painter, input, scroll physics |
 | `@mimicry/react-native` | The `react-native` API surface (components, Animated, Alert, …) plus Expo/community shims |
 | `@mimicry/runtime` | Module linker with Fast Refresh, app runtime, the engine Web Worker entry (base module) |
 | `@mimicry/host-web` | Canvas2D executor + compositor with raster cache, native input overlays, `EngineHost` |

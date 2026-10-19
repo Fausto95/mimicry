@@ -1,5 +1,5 @@
 import React, { Component, useLayoutEffect, useRef } from 'react';
-import { findHostNode, type GestureConfig, type GestureKind, type GestureRelations } from '@mimicry/engine';
+import { findHostNode, type GestureConfig, type GestureKind, type GestureRelations } from '@mimicry/react-native-fabric';
 import { attachHandler, configureHandler, dropHandler, ensureHandler, type EventSink } from './bridge';
 import { BaseGesture, ComposedGesture, createV2Sink, tagsOf } from './gestures';
 import { isV3Composed, isV3Single, v3EngineConfig, v3Leaves, v3Sink, v3Tags, type AnyGesture, type SingleGesture } from './hooks';

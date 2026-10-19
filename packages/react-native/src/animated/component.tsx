@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useLayoutEffect, useReducer, useRef } from 'react';
-import { flattenStyle } from '@mimicry/engine';
+import { flattenStyle } from '@mimicry/react-native-fabric';
 import { AnimatedNode } from './animated';
 
 /**

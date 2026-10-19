@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { flattenStyle, parseColor } from '@mimicry/engine';
+import { flattenStyle, parseColor } from '@mimicry/react-native-fabric';
 import { getEngine, maybeEngine } from '../engine-ref';
 import { getNativeModule, hasNativeComponent, hasNativeModule } from '../native/registry';
 

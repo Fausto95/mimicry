@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { Platform } from '../../apis/core';
 import { Image, Pressable, Text, View } from '../../components/primitives';
 import { mergeRefs } from '../../components/pressability';

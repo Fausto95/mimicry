@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Engine } from '@mimicry/engine';
+import type { Engine } from '@mimicry/react-native-fabric';
 import type { CapabilityLevel } from '@mimicry/protocol';
 import { getEngine, setActiveEngine } from '../engine-ref';
 import { BackHandler } from './core';

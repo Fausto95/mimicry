@@ -1,4 +1,4 @@
-import type { GestureEventData, GestureKind, GestureTouchEvent } from '@mimicry/engine';
+import type { GestureEventData, GestureKind, GestureTouchEvent } from '@mimicry/react-native-fabric';
 import { changes, getNextHandlerTag, isFinished, setHandlerState, toEngineConfig, type EventSink } from './bridge';
 import { State, TouchEventType } from './constants';
 

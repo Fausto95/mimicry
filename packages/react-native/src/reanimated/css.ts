@@ -1,4 +1,4 @@
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { Easing, type EasingFunction } from './easing';
 import { addKeyframe, emptyTimeline, playTimeline, type Timeline, type TimelineRun } from './timeline';
 

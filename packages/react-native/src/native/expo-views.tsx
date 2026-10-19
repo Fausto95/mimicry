@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { Text, View } from '../components/primitives';
 import { registerNativeComponents } from './registry';
 

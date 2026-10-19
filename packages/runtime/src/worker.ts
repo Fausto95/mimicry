@@ -6,7 +6,7 @@
 import { installRefresh } from './refresh';
 installRefresh();
 
-import { CanvasTextMeasurer, Engine, RealClock, loadYoga } from '@mimicry/engine';
+import { CanvasTextMeasurer, Engine, RealClock, loadYoga } from '@mimicry/react-native-fabric';
 import type { EngineMessage, HostMessage } from '@mimicry/protocol';
 import { CAPABILITIES, loadStorage } from '@mimicry/react-native';
 import { AppRuntime } from './app-runtime';

@@ -1,4 +1,4 @@
-import { cubicBezier } from '@mimicry/engine';
+import { cubicBezier } from '@mimicry/react-native-fabric';
 
 export type EasingFunction = (t: number) => number;
 

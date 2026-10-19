@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { describe, expect, it } from 'vitest';
-import { EstimatingTextMeasurer, layoutText, TEXT_OUTSIDE_TEXT_ERROR } from '@mimicry/engine';
+import { EstimatingTextMeasurer, layoutText, TEXT_OUTSIDE_TEXT_ERROR } from '@mimicry/react-native-fabric';
 import { PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { render } from '@mimicry/testing';
 

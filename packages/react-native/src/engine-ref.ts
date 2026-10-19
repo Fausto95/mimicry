@@ -1,4 +1,4 @@
-import type { Engine } from '@mimicry/engine';
+import type { Engine } from '@mimicry/react-native-fabric';
 
 /**
  * The engine the module-level APIs (Dimensions, Alert, Platform…) talk to.

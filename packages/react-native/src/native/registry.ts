@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 
 /**

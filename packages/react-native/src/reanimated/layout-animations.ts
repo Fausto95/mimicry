@@ -1,4 +1,4 @@
-import type { Frame, HostNode } from '@mimicry/engine';
+import type { Frame, HostNode } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { isAnimation, springAnimation, type AnimationObject, type ReduceMotionValue, type WithSpringConfig } from './animations';
 import { DEFAULT_TIMING_EASING, Easing, resolveEasing, type EasingFunction, type EasingLike } from './easing';

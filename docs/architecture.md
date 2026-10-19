@@ -27,7 +27,7 @@ The engine has no DOM dependency. In Node, the same engine runs in-process on a 
 
 ## Engine
 
-**Retained tree.** `@mimicry/engine` is a `react-reconciler` host config in mutation mode. Every host element (`m-view`, `m-text`, `m-scroll`, `m-input`, `m-switch`, …) becomes a `HostNode` that owns a Yoga node, its last frame, and native behavior state (scroll offset, switch transition, ripple, modal presentation). Raw text outside `<Text>` throws React Native's own error. Nested `<Text>` becomes attributed spans, not boxes.
+**Retained tree.** `@mimicry/react-native-fabric` is a `react-reconciler` host config in mutation mode. Every host element (`m-view`, `m-text`, `m-scroll`, `m-input`, `m-switch`, …) becomes a `HostNode` that owns a Yoga node, its last frame, and native behavior state (scroll offset, switch transition, ripple, modal presentation). Raw text outside `<Text>` throws React Native's own error. Nested `<Text>` becomes attributed spans, not boxes.
 
 **Layout.** Yoga is configured like React Native's: point scale factor = device scale (layout snaps to physical pixels), non-web defaults, and compatibility errata (so, for example, absolute children respect the parent's padding, as on device). Layout runs in `resetAfterCommit`, before layout effects, so `ref.measure()` in `useLayoutEffect` sees real geometry, matching Fabric. `onLayout` fires afterwards.
 

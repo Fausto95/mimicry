@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import type { GestureEventData, GestureKind } from '@mimicry/engine';
+import type { GestureEventData, GestureKind } from '@mimicry/react-native-fabric';
 import { getNextHandlerTag, toEngineConfig, type EventSink } from './bridge';
 import { State } from './constants';
 import { HandlerWrap, useHandlerAttachment } from './detector';

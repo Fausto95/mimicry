@@ -1,7 +1,7 @@
 /**
  * `react-native-gesture-handler`, provided by Mimicry: the v2 builder API,
  * the v3 hook API and the legacy handler components, recognized by the
- * engine's gesture arena (packages/engine/src/input/gestures). The export
+ * engine's gesture arena (packages/react-native-fabric/src/input/gestures). The export
  * surface follows react-native-gesture-handler 3.x, plus the 2.x names apps
  * still import.
  */

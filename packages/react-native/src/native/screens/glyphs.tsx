@@ -1,5 +1,5 @@
 import React from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 
 /**
  * System glyphs drawn as paths. Shapes approximate SF Symbols (which can't

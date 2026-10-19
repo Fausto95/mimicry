@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { HostType } from '@mimicry/engine';
+import { HostType } from '@mimicry/react-native-fabric';
 import { AnimatedValue } from '../../animated/animated';
 import { Platform, useWindowDimensions } from '../../apis/core';
 import { PanResponder } from '../../apis/pan-responder';

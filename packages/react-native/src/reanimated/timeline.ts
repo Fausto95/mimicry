@@ -1,10 +1,10 @@
-import type { HostNode } from '@mimicry/engine';
+import type { HostNode } from '@mimicry/react-native-fabric';
 import { maybeEngine } from '../engine-ref';
 import { springAnimation, type AnimationObject, type WithSpringConfig } from './animations';
 import type { EasingFunction } from './easing';
 import { uiRuntime, type Driver } from './runtime';
 import { isColorLike, rgbaComponents, rgbaString } from './values';
-import { parseColor } from '@mimicry/engine';
+import { parseColor } from '@mimicry/react-native-fabric';
 
 /**
  * Keyframe timelines on a host node: the one engine behind Reanimated
