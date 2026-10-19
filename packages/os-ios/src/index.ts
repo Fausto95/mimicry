@@ -29,6 +29,7 @@ export * from './uikit/ui-view-controller';
 export * from './uikit/presentation';
 export * from './uikit/ui-presentation-controller';
 export * from './uikit/ui-sheet-presentation-controller';
+export * from './uikit/ui-alert-controller';
 export * from './uikit/ui-window';
 export * from './uikit/ui-screen';
 export * from './uikit/ui-application';
