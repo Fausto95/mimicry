@@ -69,7 +69,7 @@ export class Kernel implements LayerHost {
   readonly env: EnvironmentStore;
   readonly clock: Clock;
   readonly measurer: TextMeasurer;
-  readonly animator = new Animator();
+  readonly animator: Animator;
   readonly images: ImageStore;
   readonly storage: StorageService;
   readonly textInput: TextInputService;
@@ -107,6 +107,7 @@ export class Kernel implements LayerHost {
   constructor(options: KernelOptions) {
     this.measurer = options.measurer;
     this.clock = options.clock;
+    this.animator = new Animator(() => this.clock.now());
     this.sendMessage = options.send;
     this.bundledFonts = !!options.bundledFonts;
     this.hostInputs = options.hostInputs ?? false;

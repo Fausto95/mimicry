@@ -18,7 +18,21 @@ export class Animator {
   animationTime = 0;
   timeScale = 1;
 
+  /**
+   * @param now the clock frames are timed by. Work that starts after the
+   * screen sat idle is timed from when it started, not from the last frame
+   * (the per-frame clamp would otherwise make it begin partway through).
+   */
+  constructor(private readonly now?: () => number) {}
+
+  private wake(): void {
+    if (this.busy || !this.now || this.lastFrame === null) return;
+    const now = this.now();
+    if (now > this.lastFrame) this.lastFrame = now;
+  }
+
   add(task: FrameTask): void {
+    if (!this.tasks.has(task)) this.wake();
     this.tasks.add(task);
   }
 
@@ -31,6 +45,7 @@ export class Animator {
   }
 
   requestAnimationFrame(cb: (time: number) => void): number {
+    this.wake();
     const id = this.nextCallback++;
     this.callbacks.set(id, cb);
     return id;
