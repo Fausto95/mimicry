@@ -1,5 +1,5 @@
 import type { Engine } from '../engine';
-import { localMatrix } from '../geometry';
+import { localMatrix, stickyOffset } from '../geometry';
 import { apply, invert } from '../style/matrix';
 import type { HostNode } from '../tree/node';
 
@@ -53,6 +53,8 @@ function paintOrderReversed(engine: Engine, node: HostNode): HostNode[] {
     c, i, z: Number(c.computed.zIndex ?? 0), e: android ? Number(c.computed.elevation ?? 0) : 0,
   }));
   withZ.sort((a, b) => b.z - a.z || b.e - a.e || b.i - a.i);
+  // pinned sticky headers are painted last, so they are hit first
+  withZ.sort((a, b) => Number(stickyOffset(b.c) > 0) - Number(stickyOffset(a.c) > 0));
   return withZ.map((x) => x.c);
 }
 

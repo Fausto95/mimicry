@@ -9,13 +9,33 @@ import type { HostNode } from './tree/node';
 
 /** Maps a node's border-box coordinates into its parent's border-box coordinates. */
 export function localMatrix(node: HostNode): Matrix {
-  let m = translation(node.x, node.y);
+  let m = translation(node.x, node.y + stickyOffset(node));
   const parent = node.parent;
   if (parent && parent.kind === 'scroll' && parent.scroll) {
     m = multiply(translation(-parent.scroll.x, -parent.scroll.y), m);
   }
   const own = ownTransform(node);
   return own ? multiply(m, own) : m;
+}
+
+/**
+ * ScrollView `stickyHeaderIndices`: a header child of the content container
+ * stays pinned to the top of the viewport until the next header pushes it up.
+ */
+export function stickyOffset(node: HostNode): number {
+  const container = node.parent;
+  const scroll = container?.parent;
+  if (!container || !scroll || scroll.kind !== 'scroll' || !scroll.scroll) return 0;
+  const indices: unknown = scroll.props.stickyHeaderIndices;
+  if (!Array.isArray(indices) || !indices.length || scroll.props.horizontal) return 0;
+  const index = container.children.indexOf(node);
+  if (!indices.includes(index)) return 0;
+  const top = scroll.scroll.y - container.y;
+  if (top <= node.y) return 0;
+  const next = indices.filter((i: number) => i > index).sort((a: number, b: number) => a - b)[0];
+  const nextNode = next !== undefined ? container.children[next] : undefined;
+  const limit = nextNode ? nextNode.y - node.h - node.y : Infinity;
+  return Math.max(0, Math.min(top - node.y, limit));
 }
 
 /** The node's own transform (style transform, presentation, Animated). */

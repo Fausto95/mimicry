@@ -2,7 +2,7 @@ import {
   FrameEncoder, NO_CLIP, OverlayKind, alphaOf, rgba, withAlpha, type CommandWriter, type Radii,
 } from '@mimicry/protocol';
 import type { Engine } from '../engine';
-import { localMatrix, ownTransform, windowMatrix } from '../geometry';
+import { localMatrix, ownTransform, stickyOffset, windowMatrix } from '../geometry';
 import { parseColor } from '../style/color';
 import { IDENTITY, inflate, intersect, multiply, transformRect, translation, type Rect } from '../style/matrix';
 import type { HostNode } from '../tree/node';
@@ -113,9 +113,18 @@ function paintOrder(node: HostNode, android: boolean): HostNode[] {
 
 function paintChildren(node: HostNode, ox: number, oy: number, rec: LayerRecorder, ctx: PaintContext): void {
   const android = ctx.engine.kit.platform === 'android';
+  const pinned: HostNode[] = [];
   for (const child of paintOrder(node, android)) {
     if (child.kind === 'modal') continue; // painted above everything else
+    if (stickyOffset(child) > 0) {
+      pinned.push(child); // pinned headers draw above the rows scrolling under them
+      continue;
+    }
     paintNode(child, ox + child.x, oy + child.y, rec, ctx);
+  }
+  for (const child of pinned) {
+    rec.flush();
+    paintNode(child, ox + child.x, oy + child.y + stickyOffset(child), rec, ctx);
   }
 }
 

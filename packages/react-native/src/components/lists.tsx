@@ -1,6 +1,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import { HostType } from '@mimicry/engine';
 import { View } from './primitives';
+import { maybeEngine } from '../engine-ref';
 
 const h = React.createElement as (...args: any[]) => React.ReactElement;
 type AnyProps = Record<string, any>;
@@ -20,7 +21,7 @@ export const ScrollView = forwardRef<any, AnyProps>(function ScrollView(props, r
     : undefined;
   return h(
     HostType.ScrollView,
-    { ...rest, horizontal: !!horizontal, style: [horizontal ? baseHorizontal : baseVertical, style], ref },
+    { ...rest, stickyHeaderIndices, horizontal: !!horizontal, style: [horizontal ? baseHorizontal : baseVertical, style], ref },
     h(View, { collapsable: false, onLayout, style: [horizontal ? { flexDirection: 'row' } : null, contentContainerStyle], children }),
   );
 });
@@ -184,9 +185,15 @@ export const SectionList = forwardRef<any, AnyProps>(function SectionList(props,
     recordInteraction() {},
   }));
   const children: React.ReactNode[] = [];
+  const header = renderComponent(ListHeaderComponent);
+  if (header) children.push(h(View, { key: '__header' }, header));
+  const stickyIndices: number[] = [];
   sections.forEach((section: any, s: number) => {
     const sectionKey = section.key ?? String(s);
-    if (renderSectionHeader) children.push(h(View, { key: `h-${sectionKey}` }, renderSectionHeader({ section })));
+    if (renderSectionHeader) {
+      stickyIndices.push(children.length);
+      children.push(h(View, { key: `h-${sectionKey}` }, renderSectionHeader({ section })));
+    }
     if (SectionSeparatorComponent) children.push(h(SectionSeparatorComponent, { key: `ss-${sectionKey}` }));
     (section.data ?? []).forEach((item: any, index: number) => {
       const render = section.renderItem ?? renderItem;
@@ -195,12 +202,14 @@ export const SectionList = forwardRef<any, AnyProps>(function SectionList(props,
     });
     if (renderSectionFooter) children.push(h(View, { key: `f-${sectionKey}` }, renderSectionFooter({ section })));
   });
+  const footer = renderComponent(ListFooterComponent);
+  if (footer) children.push(h(View, { key: '__footer' }, footer));
+  // React Native pins section headers by default on iOS only
+  const sticky = stickySectionHeadersEnabled ?? maybeEngine()?.platform === 'ios';
   return h(
     ScrollView,
-    { ...rest, ref: scroll },
-    renderComponent(ListHeaderComponent),
+    { ...rest, ref: scroll, stickyHeaderIndices: sticky ? stickyIndices : undefined },
     sections.length ? children : renderComponent(ListEmptyComponent),
-    renderComponent(ListFooterComponent),
   );
 });
 
