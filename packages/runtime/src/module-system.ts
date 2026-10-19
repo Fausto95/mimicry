@@ -180,7 +180,15 @@ export class ModuleSystem {
     for (const id of toRerun) this.instances.delete(id);
     // Re-execute boundaries (and the modules between them and the change).
     for (const id of toRerun) {
-      if (!this.instances.has(id)) this.require(id);
+      if (!this.instances.has(id)) {
+        try {
+          this.require(id);
+        } catch (error) {
+          // Everything invalidated by this update is stale until a fix re-runs it.
+          for (const other of toRerun) if (!this.instances.has(other)) this.failed.add(other);
+          throw error;
+        }
+      }
       const exports = this.instances.get(id)?.exports;
       if (id !== entry && !isRefreshBoundary(exports) && ![...(importers.get(id) ?? [])].some((p) => toRerun.has(p))) {
         return 'reload';

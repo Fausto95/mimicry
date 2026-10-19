@@ -5,7 +5,7 @@ import { render } from '@mimicry/testing';
 
 describe('Animated', () => {
   it('drives nested animated children independently of their animated parent', async () => {
-    let inner!: Animated.Value;
+    let inner!: InstanceType<typeof Animated.Value>;
     function Scene() {
       const outer = useRef(new Animated.Value(1)).current;
       inner = useRef(new Animated.Value(0)).current;
@@ -29,7 +29,7 @@ describe('Animated', () => {
 
   it('springs settle on the target without React re-renders', async () => {
     let renders = 0;
-    let value!: Animated.Value;
+    let value!: InstanceType<typeof Animated.Value>;
     function Scene() {
       renders++;
       value = useRef(new Animated.Value(0)).current;

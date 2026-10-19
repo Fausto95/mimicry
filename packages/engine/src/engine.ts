@@ -302,6 +302,7 @@ export class Engine {
   private layout(): void {
     this.needsLayout = false;
     const changes = runLayout(this);
+    this.scrolls.clampAfterLayout();
     if (changes.length) {
       const time = this.animator.animationTime;
       queueMicrotask(() => {

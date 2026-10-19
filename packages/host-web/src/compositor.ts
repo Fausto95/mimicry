@@ -149,8 +149,6 @@ export class Compositor {
     const stack: Array<{ id: number; opacity: number; draws: number }> = [];
     while (cursor.next()) {
       if (cursor.op === CompositeOp.Push) {
-        const parent = stack[stack.length - 1];
-        if (parent) parent.draws++;
         stack.push({ id: cursor.u32(0), opacity: cursor.f32(7), draws: 0 });
       } else if (cursor.op === CompositeOp.Chunk) {
         const top = stack[stack.length - 1];
@@ -158,6 +156,9 @@ export class Compositor {
       } else if (cursor.op === CompositeOp.Pop) {
         const level = stack.pop()!;
         if (level.opacity < 1 && level.draws > 1) out.add(level.id);
+        // a nested layer's draws overlap within the parent too
+        const parent = stack[stack.length - 1];
+        if (parent) parent.draws += Math.max(1, level.draws);
       }
     }
     return out;

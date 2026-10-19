@@ -112,7 +112,7 @@ const hostConfig = {
   },
   unhideInstance(node: HostNode) {
     node.hidden = false;
-    node.setOverrides({ display: node.style.display ?? 'flex' });
+    node.setOverrides({ display: undefined });
   },
   hideTextInstance(node: HostNode) {
     node.hidden = true;

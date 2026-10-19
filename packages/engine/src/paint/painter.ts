@@ -4,7 +4,7 @@ import {
 import type { Engine } from '../engine';
 import { localMatrix, ownTransform, windowMatrix } from '../geometry';
 import { parseColor } from '../style/color';
-import { IDENTITY, inflate, multiply, transformRect, translation, type Rect } from '../style/matrix';
+import { IDENTITY, inflate, intersect, multiply, transformRect, translation, type Rect } from '../style/matrix';
 import type { HostNode } from '../tree/node';
 import { applyTextTransform } from '../text/text-layout';
 import {
@@ -388,14 +388,18 @@ function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: P
     }
   }
 
-  // The native control the host mounts at this rectangle.
+  // The native control the host mounts at this rectangle — only where it is
+  // actually visible, so a hidden input never catches clicks meant for others.
   const r = transformRect(windowMatrix(node), { x: 0, y: 0, w: node.w, h: node.h });
+  const visible = visibleOverlayRect(engine, node, r);
+  if (!visible) return;
   const i = node.insets;
   ctx.frame.overlay({
     nodeId: node.id,
     kind: OverlayKind.TextInput,
     x: r.x, y: r.y, w: r.w, h: r.h,
     props: {
+      clip: [visible.y - r.y, r.x + r.w - (visible.x + visible.w), r.y + r.h - (visible.y + visible.h), visible.x - r.x],
       value,
       placeholder: props.placeholder ?? '',
       font: style.font,
@@ -419,6 +423,25 @@ function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: P
       label: props.accessibilityLabel ?? props['aria-label'] ?? props.placeholder ?? null,
     },
   });
+}
+
+/** Window rect of an input after ancestor clipping, or null if hidden or covered. */
+function visibleOverlayRect(engine: Engine, node: HostNode, rect: Rect): Rect | null {
+  // Covered by a page-sheet presentation or a modal above its own root?
+  let root: HostNode = node;
+  while (root.parent && root.kind !== 'modal') root = root.parent;
+  const modals = engine.visibleModals();
+  if (root.kind !== 'modal') {
+    if (modals.length || engine.presentation) return null;
+  } else if (modals[modals.length - 1] !== root) return null;
+  let visible: Rect | null = rect;
+  for (let n = node.parent; n && visible; n = n.kind === 'modal' ? null : n.parent) {
+    if (n.kind === 'scroll' || n.computed.overflow === 'hidden') {
+      visible = intersect(visible, engine.geometry.windowRect(n));
+    }
+  }
+  if (visible) visible = intersect(visible, { x: 0, y: 0, w: engine.viewport.width, h: engine.viewport.height });
+  return visible;
 }
 
 function cssColor(c: number): string {

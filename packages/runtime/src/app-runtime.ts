@@ -13,6 +13,8 @@ import { installRefresh } from './refresh';
 export class AppRuntime {
   private modules: ModuleSystem;
   private bundle: AppBundle | null = null;
+  /** timers and frame callbacks scheduled by the current module generation */
+  private owned = { timeouts: new Set<unknown>(), intervals: new Set<unknown>(), frames: new Set<number>() };
 
   constructor(
     private readonly engine: Engine,
@@ -25,14 +27,43 @@ export class AppRuntime {
 
   private createModules(env: Record<string, string>): ModuleSystem {
     const animator = this.engine.animator;
+    const owned = this.owned;
+    const t = this.timers;
     return new ModuleSystem(PROVIDED_MODULES, {
-      ...this.timers,
+      setTimeout: (fn, ms) => {
+        const handle: unknown = t.setTimeout(() => {
+          owned.timeouts.delete(handle);
+          fn();
+        }, ms);
+        owned.timeouts.add(handle);
+        return handle;
+      },
+      clearTimeout: (h) => {
+        owned.timeouts.delete(h);
+        t.clearTimeout(h);
+      },
+      setInterval: (fn, ms) => {
+        const handle = t.setInterval(fn, ms);
+        owned.intervals.add(handle);
+        return handle;
+      },
+      clearInterval: (h) => {
+        owned.intervals.delete(h);
+        t.clearInterval(h);
+      },
       requestAnimationFrame: (cb) => {
-        const id = animator.requestAnimationFrame(cb);
+        const id = animator.requestAnimationFrame((time) => {
+          owned.frames.delete(id);
+          cb(time);
+        });
+        owned.frames.add(id);
         this.engine.requestFrame();
         return id;
       },
-      cancelAnimationFrame: (id) => animator.cancelAnimationFrame(id),
+      cancelAnimationFrame: (id) => {
+        owned.frames.delete(id);
+        animator.cancelAnimationFrame(id);
+      },
       process: { env: { NODE_ENV: 'development', ...env } },
     });
   }
@@ -78,6 +109,11 @@ export class AppRuntime {
   reload(bundle: AppBundle | null = this.bundle): void {
     if (!bundle) return;
     this.wrap(() => this.engine.render(null));
+    // The old module generation must not keep running timers into the new one.
+    for (const h of this.owned.timeouts) this.timers.clearTimeout(h);
+    for (const h of this.owned.intervals) this.timers.clearInterval(h);
+    for (const id of this.owned.frames) this.engine.animator.cancelAnimationFrame(id);
+    this.owned = { timeouts: new Set(), intervals: new Set(), frames: new Set() };
     this.start(bundle);
   }
 }

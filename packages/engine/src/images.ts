@@ -18,11 +18,23 @@ export interface ImageEntry {
 
 export class ImageStore {
   private readonly entries = new Map<string, ImageEntry>();
+  /** the URI each image node currently shows */
+  private readonly current = new WeakMap<HostNode, string>();
 
   constructor(private readonly engine: Engine) {}
 
   get(uri: string, node?: HostNode): ImageEntry {
+    if (node) {
+      const previous = this.current.get(node);
+      if (previous !== undefined && previous !== uri) this.entries.get(previous)?.nodes.delete(node);
+      this.current.set(node, uri);
+    }
     let entry = this.entries.get(uri);
+    // A failed image is retried when something asks for it again.
+    if (entry && entry.state === 'error' && node && !entry.nodes.has(node)) {
+      this.entries.delete(uri);
+      entry = undefined;
+    }
     if (!entry) {
       entry = { uri, state: 'loading', width: 0, height: 0, nodes: new Set() };
       this.entries.set(uri, entry);

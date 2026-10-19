@@ -114,8 +114,8 @@ export class PointerInput {
         }
       }
     }
+    this.dispatchTouch('onTouchStart', touch, time);
     if (granted) this.grant(granted, touch, time);
-    else this.dispatchTouch('onTouchStart', touch, time);
   }
 
   private move(x: number, y: number, time: number): void {
@@ -141,6 +141,7 @@ export class PointerInput {
       this.engine.behaviors.controlPress(touch.control, inside);
       return;
     }
+    this.dispatchTouch('onTouchMove', touch, time);
     // A JS responder may be taken over by an ancestor.
     if (this.responder) {
       const e = () => this.event('touchmove', touch, time);
@@ -182,7 +183,6 @@ export class PointerInput {
         }
       }
       if (granted) this.grant(granted, touch, time);
-      else this.dispatchTouch('onTouchMove', touch, time);
     }
   }
 
@@ -231,9 +231,8 @@ export class PointerInput {
       const responder = this.responder;
       this.responder = null;
       this.call(responder, 'onResponderRelease', this.event('touchend', touch, time, true));
-    } else {
-      this.dispatchTouch('onTouchEnd', touch, time, true);
     }
+    this.dispatchTouch('onTouchEnd', touch, time, true);
   }
 
   private cancel(time: number): void {

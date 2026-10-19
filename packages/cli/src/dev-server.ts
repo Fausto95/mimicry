@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import { basename, extname, join, normalize, resolve, sep } from 'node:path';
 import { AppCompiler, buildBase, bundledFonts, type Build, type BaseBuild } from '@mimicry/compiler';
 import { DEVICES, type PlatformName } from '@mimicry/protocol';
@@ -16,6 +16,9 @@ export interface DevServerOptions {
   host: string;
   log?: (line: string) => void;
 }
+
+/** Only these project files are served: what an app can `require` as an image. */
+const ASSET_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
 
 const MIME: Record<string, string> = {
   '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
@@ -65,7 +68,17 @@ export async function startDevServer(options: DevServerOptions) {
     res.end(body);
   };
 
+  // DNS rebinding guard: a page on another origin that resolves to this machine
+  // must not be able to read project files through the dev server.
+  const allowedHosts = new Set(['localhost', '127.0.0.1', '[::1]', options.host]);
+  const hostAllowed = (header: string | undefined) => {
+    if (!header) return false;
+    const name = header.startsWith('[') ? header.slice(0, header.indexOf(']') + 1) : header.split(':')[0]!;
+    return allowedHosts.has(name) || options.host === '0.0.0.0';
+  };
+
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    if (!hostAllowed(req.headers.host)) return send(res, 403, 'Forbidden host', 'text/plain');
     const url = new URL(req.url ?? '/', 'http://localhost');
     const path = url.pathname;
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed', 'text/plain');
@@ -75,7 +88,7 @@ export async function startDevServer(options: DevServerOptions) {
     if (path === '/__mimicry/studio.css') return send(res, 200, studio.css, MIME['.css']!);
     if (path === '/__mimicry/manifest') {
       return send(res, 200, JSON.stringify({
-        project: { name: projectName, root },
+        project: { name: projectName },
         base: `/__mimicry/${base.fileName}`,
         devices: DEVICES,
         fonts: fonts.map(({ family, weight, style, url }) => ({ family, weight, style, url })),
@@ -106,8 +119,16 @@ export async function startDevServer(options: DevServerOptions) {
     }
     if (path.startsWith('/__mimicry/assets/')) {
       const file = normalize(join(root, decodeURI(path.slice('/__mimicry/assets/'.length))));
-      if (!file.startsWith(root + sep)) return send(res, 403, 'Forbidden', 'text/plain');
-      return serveFile(res, file);
+      if (!ASSET_EXTENSIONS.has(extname(file).toLowerCase())) return send(res, 403, 'Forbidden', 'text/plain');
+      let real: string;
+      try {
+        real = await realpath(file);
+      } catch {
+        return send(res, 404, 'Not found', 'text/plain');
+      }
+      const realRoot = await realpath(root);
+      if (!real.startsWith(realRoot + sep)) return send(res, 403, 'Forbidden', 'text/plain');
+      return serveFile(res, real);
     }
     if (path.startsWith('/__mimicry/fonts/')) {
       const file = fontFiles.get(basename(path));

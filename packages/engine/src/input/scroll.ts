@@ -286,6 +286,23 @@ export class ScrollManager implements FrameTask {
     this.engine.requestFrame();
   }
 
+  /** Content shrank or the viewport grew: idle offsets must stay in range (and say so). */
+  clampAfterLayout(): void {
+    for (const node of this.engine.nodes.values()) {
+      const s = node.scroll;
+      if (!s || s.phase !== 'idle') continue;
+      const b = this.bounds(node);
+      const x = clamp(s.x, b.minX, b.maxX);
+      const y = clamp(s.y, b.minY, b.maxY);
+      if (x !== s.x || y !== s.y) {
+        s.x = x;
+        s.y = y;
+        this.emitScroll(node);
+        this.engine.markPaint();
+      }
+    }
+  }
+
   release(node: HostNode): void {
     this.active.delete(node);
   }

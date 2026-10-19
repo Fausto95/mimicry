@@ -43,6 +43,11 @@ export function kindForType(type: string, insideText: boolean): NodeKind {
 }
 
 let nextId = 1;
+/** non-style props that change a leaf's intrinsic size */
+const MEASURE_PROPS = [
+  'numberOfLines', 'ellipsizeMode', 'allowFontScaling', 'maxFontSizeMultiplier', 'value', 'defaultValue',
+  'placeholder', 'multiline', 'secureTextEntry', 'source', 'size',
+];
 const EMPTY: FlatStyle = Object.freeze({}) as FlatStyle;
 
 export type Props = Record<string, any>;
@@ -117,6 +122,7 @@ export class HostNode {
 
   setProps(next: Props, initial = false): void {
     const prevStyle = this.style;
+    const prevProps = this.props;
     const prevComputed = this.computedCache ?? this.computed;
     this.props = next;
     const style = flattenStyle(next.style);
@@ -124,7 +130,16 @@ export class HostNode {
     this.computedCache = null;
     this.engine.onNodeChanged(this);
     if (initial || style !== prevStyle) this.applyStyleChange(initial ? EMPTY : prevComputed, this.computed, initial);
-    if (!initial) this.engine.behaviors.propsChanged(this);
+    if (!initial) {
+      if (MEASURE_PROPS.some((k) => !Object.is(prevProps[k], next[k]))) {
+        if (this.kind === 'text' || this.kind === 'input' || this.kind === 'virtual-text') this.invalidateText();
+        else if (this.yoga && this.hasMeasure()) {
+          this.yoga.markDirty();
+          this.engine.invalidateLayout();
+        }
+      }
+      this.engine.behaviors.propsChanged(this);
+    }
   }
 
   /** Animated / setNativeProps path: bypasses React entirely. */

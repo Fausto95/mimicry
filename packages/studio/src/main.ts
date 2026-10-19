@@ -11,7 +11,7 @@ import { resolveViewport } from '@mimicry/protocol';
  * screen is painted by the engine host.
  */
 interface Manifest {
-  project: { name: string; root: string };
+  project: { name: string };
   base: string;
   devices: DeviceDescriptor[];
   fonts: FontSpecRecord[];

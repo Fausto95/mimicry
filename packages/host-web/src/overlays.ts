@@ -75,6 +75,8 @@ export class OverlayLayer {
     s.width = `${r.w}px`;
     s.height = `${r.h}px`;
     s.font = p.font;
+    const clip = p.clip as number[] | undefined;
+    s.clipPath = clip && clip.some((v) => v > 0.5) ? `inset(${clip.map((v) => `${Math.max(0, v)}px`).join(' ')})` : '';
     s.padding = (p.padding as number[]).map((v) => `${v}px`).join(' ');
     s.textAlign = p.textAlign === 'center' || p.textAlign === 'right' ? p.textAlign : 'left';
     s.letterSpacing = p.letterSpacing ? `${p.letterSpacing}px` : '';
