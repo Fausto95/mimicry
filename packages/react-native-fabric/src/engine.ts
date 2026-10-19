@@ -23,6 +23,7 @@ import { NO_CLIP, type ClipSpec } from '@mimicry/protocol';
 import { Behaviors } from './behaviors';
 import { EventDispatcher } from './events';
 import { FocusManager } from './focus';
+import { TextInputBinding } from './input/text-input';
 import { Geometry } from './geometry';
 import { hitTest } from './input/hit-test';
 import { PointerInput } from './input/pointer';
@@ -141,14 +142,6 @@ export class Engine {
         this.input.wheel(m.x, m.y, m.dx, m.dy);
       });
     }
-    kernel.on('textChange', (m) => {
-      const node = this.nodes.get(m.nodeId);
-      if (node) this.behaviors.textChanged(node, m.text, m.selection);
-    });
-    kernel.on('textEvent', (m) => {
-      const node = this.nodes.get(m.nodeId);
-      if (node) this.focus.hostEvent(node, m.event, m.key);
-    });
     kernel.on('inspect', (m) => this.send({ type: 'inspectResult', requestId: m.requestId, tree: this.inspect() }));
     kernel.on('hitTest', (m) => {
       const path = hitTest(this, m.x, m.y);
@@ -290,6 +283,7 @@ export class Engine {
         this.nodes.set(n.id, n);
         if (n.kind === 'modal') this.modals.add(n);
         if (n.props.safeAreaEdges) this.safeAreaNodes.add(n);
+        if (n.kind === 'input') this.kernel.textInput.register(n.id, new TextInputBinding(this, n));
         this.behaviors.attached(n);
       }
     });
@@ -304,6 +298,7 @@ export class Engine {
         this.safeAreaNodes.delete(n);
         this.behaviors.detached(n);
         if (this.focus.focused === n) this.focus.blur(n);
+        if (n.kind === 'input') this.kernel.textInput.unregister(n.id);
       }
     });
   }

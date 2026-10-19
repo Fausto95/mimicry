@@ -2,8 +2,9 @@ import type { Engine } from './engine';
 import type { HostNode } from './tree/node';
 
 /**
- * Text input focus. The host mounts a real <input> at each TextInput's
- * rectangle; focus moves between engine and host in both directions.
+ * Text input focus. Each TextInput is a client of the OS keyboard service
+ * (`kernel.textInput`), whose host mounts a real editor at its rectangle;
+ * focus moves between engine and host in both directions.
  */
 export class FocusManager {
   focused: HostNode | null = null;
@@ -15,7 +16,7 @@ export class FocusManager {
     if (this.focused === node) return;
     if (this.focused) this.blur(this.focused);
     this.focused = node;
-    this.engine.send({ type: 'focusInput', nodeId: node.id });
+    this.engine.kernel.textInput.focus(node.id);
     this.engine.events.emit(node, 'onFocus', { target: node.id, text: this.engine.behaviors.inputValue(node) }, this.engine.animator.animationTime);
     this.engine.markPaint();
   }
@@ -23,7 +24,7 @@ export class FocusManager {
   blur(node: HostNode): void {
     if (this.focused !== node) return;
     this.focused = null;
-    this.engine.send({ type: 'blurInput', nodeId: node.id });
+    this.engine.kernel.textInput.blur(node.id);
     this.engine.events.emit(node, 'onBlur', { target: node.id, text: this.engine.behaviors.inputValue(node) }, this.engine.animator.animationTime);
     this.engine.events.emit(node, 'onEndEditing', { target: node.id, text: this.engine.behaviors.inputValue(node) }, this.engine.animator.animationTime);
     this.engine.markPaint();
