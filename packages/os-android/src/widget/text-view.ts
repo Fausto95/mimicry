@@ -51,6 +51,10 @@ interface TextSize {
 }
 
 export class TextView extends View {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.TextView';
+  }
+
   static readonly BufferType = { NORMAL: 0, SPANNABLE: 1, EDITABLE: 2 } as const;
 
   private text: CharSequence = '';

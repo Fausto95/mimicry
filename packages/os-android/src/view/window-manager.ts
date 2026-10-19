@@ -44,6 +44,8 @@ export interface WindowRecord {
   root: ViewRootImpl;
   /** back handling for this window (Dialog, Activity) */
   onBack?: () => boolean;
+  /** the window adjusts the system insets it receives (hidden system bars) */
+  insetsFilter?: (insets: WindowInsets) => WindowInsets;
 }
 
 export class WindowManager {
@@ -63,7 +65,7 @@ export class WindowManager {
     kernel.env.subscribe(() => {
       for (const w of this.windows) {
         w.root.frame = this.frameFor(w.params);
-        w.root.setInsets(this.currentInsets());
+        w.root.setInsets(this.insetsFor(w));
         w.view.requestLayout();
       }
     });
@@ -73,6 +75,18 @@ export class WindowManager {
   currentInsets(): WindowInsets {
     const v = this.kernel.viewport;
     return WindowInsets.fromBars(v.safeArea.top, v.safeArea.bottom, v.safeArea.left, v.safeArea.right, Insets.of(v.safeArea.left, v.safeArea.top, v.safeArea.right, 0));
+  }
+
+  /** The insets a window receives: the system's, through its filter. */
+  insetsFor(record: WindowRecord): WindowInsets {
+    const insets = this.currentInsets();
+    return record.insetsFilter ? record.insetsFilter(insets) : insets;
+  }
+
+  /** Re-send a window its insets (its filter changed). */
+  refreshInsets(view: View): void {
+    const record = this.windows.find((w) => w.view === view);
+    if (record) record.root.setInsets(this.insetsFor(record));
   }
 
   private frameFor(params: WindowLayoutParams) {

@@ -51,7 +51,31 @@ export class Configuration {
   isNightModeActive(): boolean {
     return (this.uiMode & Configuration.UI_MODE_NIGHT_MASK) === Configuration.UI_MODE_NIGHT_YES;
   }
+
+  /** The ActivityInfo.CONFIG_* bits that differ from `other` (Configuration.diff). */
+  diff(other: Configuration): number {
+    let changes = 0;
+    if (this.uiMode !== other.uiMode) changes |= ActivityInfo.CONFIG_UI_MODE;
+    if (this.fontScale !== other.fontScale) changes |= ActivityInfo.CONFIG_FONT_SCALE;
+    if (this.orientation !== other.orientation) changes |= ActivityInfo.CONFIG_ORIENTATION;
+    if (this.screenWidthDp !== other.screenWidthDp || this.screenHeightDp !== other.screenHeightDp) changes |= ActivityInfo.CONFIG_SCREEN_SIZE;
+    if (this.smallestScreenWidthDp !== other.smallestScreenWidthDp) changes |= ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE;
+    if (this.densityDpi !== other.densityDpi) changes |= ActivityInfo.CONFIG_DENSITY;
+    if (this.locale !== other.locale) changes |= ActivityInfo.CONFIG_LOCALE;
+    return changes;
+  }
 }
+
+/** android.content.pm.ActivityInfo: the configChanges bits. */
+export const ActivityInfo = {
+  CONFIG_LOCALE: 0x0004,
+  CONFIG_ORIENTATION: 0x0080,
+  CONFIG_UI_MODE: 0x0200,
+  CONFIG_SCREEN_SIZE: 0x0400,
+  CONFIG_SMALLEST_SCREEN_SIZE: 0x0800,
+  CONFIG_DENSITY: 0x1000,
+  CONFIG_FONT_SCALE: 0x40000000,
+} as const;
 
 export class Resources {
   constructor(private readonly kernel: Kernel, private readonly theme: Theme | null = null) {}

@@ -1,5 +1,5 @@
 import { invert, type RenderLayer } from '@mimicry/os-core';
-import type { Context } from '../content/context';
+import type { Configuration, Context } from '../content/context';
 import { MotionEvent } from './motion-event';
 import { LayoutParams, MeasureSpec, View } from './view';
 import { Gravity } from './gravity';
@@ -19,6 +19,10 @@ interface TouchTarget {
 }
 
 export class ViewGroup extends View {
+  override getAccessibilityClassName(): string {
+    return 'android.view.ViewGroup';
+  }
+
   private readonly children: View[] = [];
   private touchTargets: TouchTarget[] = [];
   private disallowIntercept = false;
@@ -307,6 +311,11 @@ export class ViewGroup extends View {
     for (const child of this.children) child.setActivated(activated);
   }
 
+  override dispatchConfigurationChanged(newConfig: Configuration): void {
+    super.dispatchConfigurationChanged(newConfig);
+    for (const child of this.children) child.dispatchConfigurationChanged(newConfig);
+  }
+
   // ── attach & insets ─────────────────────────────────────────────────
 
   override dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
@@ -406,6 +415,10 @@ export function measureChildWithMargins(parent: ViewGroup, child: View, parentWi
  * children are measured again at its final size, as in the framework.
  */
 export class FrameLayout extends ViewGroup {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.FrameLayout';
+  }
+
   static readonly LayoutParams = FrameLayoutParams;
   private measureAllChildren = false;
 
@@ -526,6 +539,10 @@ type Margins = ReturnType<typeof marginsOf>;
  * showDividers asks for them.
  */
 export class LinearLayout extends ViewGroup {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.LinearLayout';
+  }
+
   static readonly HORIZONTAL = 0;
   static readonly VERTICAL = 1;
   static readonly SHOW_DIVIDER_NONE = 0;

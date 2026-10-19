@@ -81,6 +81,34 @@ const FAMILIES: Record<string, { stack: string; weight?: string }> = {
   monospace: { stack: '"Roboto Mono", "Droid Sans Mono", monospace' },
 };
 
+/** Design tokens for system UI written in React (alerts, sheets, RedBox). */
+const TOKENS = {
+  alertWidth: 280,
+  alertMaxWidth: 560,
+  alertRadius: 2,
+  alertBackground: [hex('#ffffff'), hex('#424242')],
+  alertTitleSize: 20,
+  alertMessageSize: 16,
+  alertButtonHeight: 36,
+  alertButtonSize: 14,
+  alertSeparator: [0, 0],
+  alertTint: [hex('#009688'), hex('#80cbc4')],
+  alertDestructive: [hex('#009688'), hex('#80cbc4')],
+  alertText: [argb('#de000000'), hex('#ffffff')],
+  alertMessageText: [argb('#8a000000'), argb('#b3ffffff')],
+  alertDim: rgba(0, 0, 0, 0.6),
+  alertUppercaseButtons: true,
+  sheetRadius: 0,
+  sheetDim: rgba(0, 0, 0, 0.6),
+  sheetTopGap: 0,
+  pageSheetScale: 1,
+  modalDuration: 300,
+  buttonColor: [hex('#2196f3'), hex('#2196f3')],
+  buttonFontSize: 14,
+  groupedBackground: [hex('#fafafa'), hex('#303030')],
+  cellBackground: [hex('#ffffff'), hex('#424242')],
+};
+
 export const androidKit: PlatformKit = {
   platform: 'android',
 
@@ -169,54 +197,41 @@ export const androidKit: PlatformKit = {
   },
 
   drawChrome(w, viewport: Viewport, bar: StatusBarState, appearance) {
-    const { width, height, device } = viewport;
-    if (!bar.hidden && viewport.statusBarHeight > 0) {
-      if (bar.backgroundColor) w.fillRect(0, 0, width, viewport.statusBarHeight, bar.backgroundColor);
-      const glyph = resolveBarStyle(bar.barStyle, appearance) === 'light' ? rgba(255, 255, 255, 1) : rgba(0, 0, 0, 1);
-      const cy = viewport.statusBarHeight / 2 + 2;
-      w.font(`500 14px ${ROBOTO}`);
-      w.text(24, cy + 5, glyph, 0, '12:30');
-      // wifi · signal · battery (vertical)
-      const right = width - 24;
-      w.pathBegin().moveTo(right - 44, cy + 6).lineTo(right - 51, cy - 3).arc(right - 44, cy + 6, 11, -Math.PI * 0.75, -Math.PI * 0.25)
-        .closePath().fillPath(glyph);
-      w.pathBegin().moveTo(right - 21, cy + 7).lineTo(right - 21 - 13, cy + 7).lineTo(right - 21, cy - 6).closePath().fillPath(glyph);
-      w.fillRRect(right - 8, cy - 7, 8, 14, [1.5, 1.5, 1.5, 1.5], glyph);
-      w.fillRect(right - 6, cy - 9, 4, 2, glyph);
-      if (device.cutout.kind === 'punch-hole') {
-        circle(w, width / 2, device.cutout.top + device.cutout.height / 2, device.cutout.height / 2, rgba(0, 0, 0, 1));
-      }
-    }
-    if (device.homeIndicator) {
-      const handle = appearance === 'dark' ? rgba(255, 255, 255, 0.85) : rgba(0, 0, 0, 0.7);
-      pill(w, (width - 108) / 2, height - 12 - 2, 108, 4, handle);
-    }
+    drawStatusBar(w, viewport, bar, appearance);
+    drawNavigationHandle(w, viewport, appearance);
   },
 
-  tokens: {
-    alertWidth: 280,
-    alertMaxWidth: 560,
-    alertRadius: 2,
-    alertBackground: [hex('#ffffff'), hex('#424242')],
-    alertTitleSize: 20,
-    alertMessageSize: 16,
-    alertButtonHeight: 36,
-    alertButtonSize: 14,
-    alertSeparator: [0, 0],
-    alertTint: [hex('#009688'), hex('#80cbc4')],
-    alertDestructive: [hex('#009688'), hex('#80cbc4')],
-    alertText: [argb('#de000000'), hex('#ffffff')],
-    alertMessageText: [argb('#8a000000'), argb('#b3ffffff')],
-    alertDim: rgba(0, 0, 0, 0.6),
-    alertUppercaseButtons: true,
-    sheetRadius: 0,
-    sheetDim: rgba(0, 0, 0, 0.6),
-    sheetTopGap: 0,
-    pageSheetScale: 1,
-    modalDuration: 300,
-    buttonColor: [hex('#2196f3'), hex('#2196f3')],
-    buttonFontSize: 14,
-    groupedBackground: [hex('#fafafa'), hex('#303030')],
-    cellBackground: [hex('#ffffff'), hex('#424242')],
-  },
+  tokens: TOKENS,
 };
+
+/** The status bar: clock, connectivity, battery and the camera cutout. */
+export function drawStatusBar(w: CommandWriter, viewport: Viewport, bar: StatusBarState, appearance: Appearance): void {
+  const { width, device } = viewport;
+  if (!bar.hidden && viewport.statusBarHeight > 0) {
+    if (bar.backgroundColor) w.fillRect(0, 0, width, viewport.statusBarHeight, bar.backgroundColor);
+    const glyph = resolveBarStyle(bar.barStyle, appearance) === 'light' ? rgba(255, 255, 255, 1) : rgba(0, 0, 0, 1);
+    const cy = viewport.statusBarHeight / 2 + 2;
+    w.font(`500 14px ${ROBOTO}`);
+    w.text(24, cy + 5, glyph, 0, '12:30');
+    // wifi · signal · battery (vertical)
+    const right = width - 24;
+    w.pathBegin().moveTo(right - 44, cy + 6).lineTo(right - 51, cy - 3).arc(right - 44, cy + 6, 11, -Math.PI * 0.75, -Math.PI * 0.25)
+      .closePath().fillPath(glyph);
+    w.pathBegin().moveTo(right - 21, cy + 7).lineTo(right - 21 - 13, cy + 7).lineTo(right - 21, cy - 6).closePath().fillPath(glyph);
+    w.fillRRect(right - 8, cy - 7, 8, 14, [1.5, 1.5, 1.5, 1.5], glyph);
+    w.fillRect(right - 6, cy - 9, 4, 2, glyph);
+    if (device.cutout.kind === 'punch-hole') {
+      circle(w, width / 2, device.cutout.top + device.cutout.height / 2, device.cutout.height / 2, rgba(0, 0, 0, 1));
+    }
+  }
+}
+
+/** The gesture navigation handle (light on dark content, dark on light). */
+export function drawNavigationHandle(w: CommandWriter, viewport: Viewport, appearance: Appearance): void {
+  const { width, height, device } = viewport;
+  if (device.homeIndicator) {
+    const handle = appearance === 'dark' ? rgba(255, 255, 255, 0.85) : rgba(0, 0, 0, 0.7);
+    pill(w, (width - 108) / 2, height - 12 - 2, 108, 4, handle);
+  }
+}
+

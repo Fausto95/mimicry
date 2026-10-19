@@ -80,6 +80,10 @@ export class DragTracker {
 }
 
 export class SeekBar extends ProgressBar {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.SeekBar';
+  }
+
   private listener: OnSeekBarChangeListener | null = null;
   private readonly tracker: DragTracker;
   private keyProgressIncrement = 1;

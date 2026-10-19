@@ -59,3 +59,7 @@ export * from './material/toolbar';
 export * from './material/navigation-bar';
 export * from './material/app-bar';
 export * from './widget/coordinator-layout';
+export * from './os/build';
+export * from './os/vibrator';
+export * from './content/clipboard';
+export * from './core/compat';

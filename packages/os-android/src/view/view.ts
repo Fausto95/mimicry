@@ -3,7 +3,7 @@ import {
 } from '@mimicry/os-core';
 import { Canvas, RectF } from '../graphics/canvas';
 import { ColorDrawable, StateSet, type Drawable, type DrawableCallback } from '../graphics/drawable';
-import type { Context } from '../content/context';
+import type { Configuration, Context } from '../content/context';
 import { MotionEvent, ViewConfiguration } from './motion-event';
 import type { ViewGroup } from './view-group';
 import type { ViewRootImpl } from './view-root';
@@ -85,6 +85,13 @@ export class View implements DrawableCallback {
   static readonly LAYER_TYPE_NONE = 0;
   static readonly LAYER_TYPE_SOFTWARE = 1;
   static readonly LAYER_TYPE_HARDWARE = 2;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_AUTO = 0;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_YES = 1;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_NO = 2;
+  static readonly IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS = 4;
+  static readonly ACCESSIBILITY_LIVE_REGION_NONE = 0;
+  static readonly ACCESSIBILITY_LIVE_REGION_POLITE = 1;
+  static readonly ACCESSIBILITY_LIVE_REGION_ASSERTIVE = 2;
   static generateViewId(): number {
     return nextViewId++;
   }
@@ -149,6 +156,17 @@ export class View implements DrawableCallback {
   private longClickable = false;
   private focusable = false;
   private contentDescription: string | null = null;
+  private readonly a11y = {
+    important: View.IMPORTANT_FOR_ACCESSIBILITY_AUTO,
+    stateDescription: null as string | null,
+    heading: false,
+    paneTitle: null as string | null,
+    liveRegion: View.ACCESSIBILITY_LIVE_REGION_NONE,
+    labelFor: View.NO_ID,
+    screenReaderFocusable: false,
+    tooltip: null as string | null,
+  };
+  private transitionName: string | null = null;
   private onClick: OnClickListener | null = null;
   private onLongClick: OnLongClickListener | null = null;
   private onTouch: OnTouchListener | null = null;
@@ -200,6 +218,113 @@ export class View implements DrawableCallback {
 
   getContentDescription(): string | null {
     return this.contentDescription;
+  }
+
+  // ── accessibility ───────────────────────────────────────────────────
+  // Property plumbing only: Mimicry has no accessibility service, so these
+  // are stored and read back (and resolved the way the framework resolves
+  // them) but nothing announces or traverses them.
+
+  setImportantForAccessibility(mode: number): void {
+    this.a11y.important = mode;
+  }
+
+  getImportantForAccessibility(): number {
+    return this.a11y.important;
+  }
+
+  /**
+   * AUTO and YES count, unless this view says NO, or an ancestor (or this
+   * view) hides its descendants.
+   */
+  isImportantForAccessibility(): boolean {
+    const mode = this.a11y.important;
+    if (mode === View.IMPORTANT_FOR_ACCESSIBILITY_NO || mode === View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS) return false;
+    for (let p = this._parent; p; p = p._parent) {
+      if (p.a11y.important === View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS) return false;
+    }
+    return true;
+  }
+
+  setStateDescription(description: string | null): void {
+    this.a11y.stateDescription = description;
+  }
+
+  getStateDescription(): string | null {
+    return this.a11y.stateDescription;
+  }
+
+  setAccessibilityHeading(heading: boolean): void {
+    this.a11y.heading = heading;
+  }
+
+  isAccessibilityHeading(): boolean {
+    return this.a11y.heading;
+  }
+
+  setAccessibilityPaneTitle(title: string | null): void {
+    this.a11y.paneTitle = title;
+  }
+
+  getAccessibilityPaneTitle(): string | null {
+    return this.a11y.paneTitle;
+  }
+
+  setAccessibilityLiveRegion(mode: number): void {
+    this.a11y.liveRegion = mode;
+  }
+
+  getAccessibilityLiveRegion(): number {
+    return this.a11y.liveRegion;
+  }
+
+  setLabelFor(id: number): void {
+    this.a11y.labelFor = id;
+  }
+
+  getLabelFor(): number {
+    return this.a11y.labelFor;
+  }
+
+  setScreenReaderFocusable(focusable: boolean): void {
+    this.a11y.screenReaderFocusable = focusable;
+  }
+
+  isScreenReaderFocusable(): boolean {
+    return this.a11y.screenReaderFocusable;
+  }
+
+  setTooltipText(text: string | null): void {
+    this.a11y.tooltip = text;
+  }
+
+  getTooltipText(): string | null {
+    return this.a11y.tooltip;
+  }
+
+  /** The class name accessibility services see (widgets override it). */
+  getAccessibilityClassName(): string {
+    return 'android.view.View';
+  }
+
+  /** No screen reader runs: the announcement is dropped. */
+  announceForAccessibility(_text: string): void {}
+
+  setTransitionName(name: string | null): void {
+    this.transitionName = name;
+  }
+
+  getTransitionName(): string | null {
+    return this.transitionName;
+  }
+
+  // ── configuration ───────────────────────────────────────────────────
+
+  /** Called when the activity handles a configuration change itself (android:configChanges). */
+  protected onConfigurationChanged(_newConfig: Configuration): void {}
+
+  dispatchConfigurationChanged(newConfig: Configuration): void {
+    this.onConfigurationChanged(newConfig);
   }
 
   // ── tree ────────────────────────────────────────────────────────────
@@ -1010,6 +1135,23 @@ export class View implements DrawableCallback {
 
   requestApplyInsets(): void {
     this._attachInfo?.requestApplyInsets();
+  }
+
+  // ── haptics ─────────────────────────────────────────────────────────
+
+  private hapticFeedbackEnabled = true;
+
+  setHapticFeedbackEnabled(enabled: boolean): void {
+    this.hapticFeedbackEnabled = enabled;
+  }
+
+  isHapticFeedbackEnabled(): boolean {
+    return this.hapticFeedbackEnabled;
+  }
+
+  /** A haptic (HapticFeedbackConstants): there is no motor, so it only reports whether it would play. */
+  performHapticFeedback(_feedbackConstant: number, flags = 0): boolean {
+    return this.hapticFeedbackEnabled || (flags & 1) !== 0;
   }
 
   // ── posting ─────────────────────────────────────────────────────────

@@ -29,7 +29,12 @@ export const WindowInsetsType = {
 export class WindowInsets {
   static readonly CONSUMED = new WindowInsets(new Map(), true);
 
-  constructor(private readonly byType: ReadonlyMap<number, Insets>, private readonly consumed = false) {}
+  constructor(private readonly byType: ReadonlyMap<number, Insets>, private readonly consumed = false, private readonly hiddenTypes = 0) {}
+
+  /** A copy where the types in `typeMask` are hidden: no insets, though getInsetsIgnoringVisibility still reports them. */
+  withHidden(typeMask: number): WindowInsets {
+    return new WindowInsets(this.byType, this.consumed, this.hiddenTypes | typeMask);
+  }
 
   static fromBars(statusBar: number, navigationBar: number, left = 0, right = 0, cutout: Insets = Insets.NONE): WindowInsets {
     const map = new Map<number, Insets>();
@@ -42,15 +47,18 @@ export class WindowInsets {
 
   getInsets(typeMask: number): Insets {
     let out = Insets.NONE;
-    for (const [type, insets] of this.byType) if (typeMask & type) out = Insets.max(out, insets);
+    for (const [type, insets] of this.byType) if (typeMask & type && !(this.hiddenTypes & type)) out = Insets.max(out, insets);
     return out;
   }
 
   getInsetsIgnoringVisibility(typeMask: number): Insets {
-    return this.getInsets(typeMask);
+    let out = Insets.NONE;
+    for (const [type, insets] of this.byType) if (typeMask & type) out = Insets.max(out, insets);
+    return out;
   }
 
   isVisible(typeMask: number): boolean {
+    if (this.hiddenTypes & typeMask) return false;
     const i = this.getInsets(typeMask);
     return i.left > 0 || i.top > 0 || i.right > 0 || i.bottom > 0;
   }

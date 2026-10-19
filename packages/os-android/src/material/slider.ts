@@ -28,6 +28,10 @@ export interface SliderTouchListener {
 export type LabelFormatter = (value: number) => string;
 
 export class Slider extends View {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.SeekBar';
+  }
+
   static readonly LABEL_FLOATING = 0;
   static readonly LABEL_WITHIN_BOUNDS = 1;
   static readonly LABEL_GONE = 2;

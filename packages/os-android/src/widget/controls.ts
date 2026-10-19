@@ -25,6 +25,10 @@ interface Tween {
 export type OnCheckedChangeListener = (button: CompoundButton, isChecked: boolean) => void;
 
 export class CompoundButton extends TextView implements FrameTask {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.CompoundButton';
+  }
+
   private checked = false;
   protected progress = 0;
   protected pressedAmount = 0;
@@ -41,6 +45,14 @@ export class CompoundButton extends TextView implements FrameTask {
 
   isChecked(): boolean {
     return this.checked;
+  }
+
+  /** An explicit description, else the framework's checked/not checked wording (switches say on/off). */
+  override getStateDescription(): string | null {
+    const explicit = super.getStateDescription();
+    if (explicit !== null) return explicit;
+    if (this.getAccessibilityClassName() === 'android.widget.Switch') return this.checked ? 'On' : 'Off';
+    return this.checked ? 'Checked' : 'Not checked';
   }
 
   setChecked(checked: boolean, animate = true): void {
@@ -222,6 +234,10 @@ export class CompoundButton extends TextView implements FrameTask {
 }
 
 export class SwitchCompat extends CompoundButton {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.Switch';
+  }
+
   static readonly size = { width: androidKit.switchSize.width, height: androidKit.switchSize.height };
   private trackTintChecked: number | null = null;
   private trackTintUnchecked: number | null = null;
@@ -268,6 +284,10 @@ export class SwitchCompat extends CompoundButton {
  * (with a secondary progress), or an indeterminate sweep.
  */
 export class ProgressBar extends View implements FrameTask {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.ProgressBar';
+  }
+
   /** android.R.attr.progressBarStyle* (the style argument of the framework constructor) */
   static readonly STYLE_DEFAULT = 0x01010077;
   static readonly STYLE_HORIZONTAL = 0x01010078;

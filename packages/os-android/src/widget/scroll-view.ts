@@ -25,6 +25,10 @@ export interface ScrollViewCallbacks {
 }
 
 export class ScrollView extends FrameLayout implements FrameTask {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.ScrollView';
+  }
+
   static readonly OVER_SCROLL_ALWAYS = 0;
   static readonly OVER_SCROLL_IF_CONTENT_SCROLLS = 1;
   static readonly OVER_SCROLL_NEVER = 2;
@@ -456,5 +460,9 @@ class BarLayer extends RenderLayer {
 }
 
 export class HorizontalScrollView extends ScrollView {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.HorizontalScrollView';
+  }
+
   protected override readonly horizontal: boolean = true;
 }

@@ -64,6 +64,10 @@ export const isIconStyle = (style: ButtonStyle) => style >= ButtonStyle.ICON;
 export type OnButtonCheckedListener = (button: MaterialButton, isChecked: boolean) => void;
 
 export class Button extends TextView {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.Button';
+  }
+
   protected readonly shape = new MaterialShapeDrawable();
   protected readonly backgroundDrawable: MaterialBackground;
   protected buttonStyle: ButtonStyle;
@@ -393,6 +397,10 @@ export class MaterialButton extends Button {
  * centers its image.
  */
 export class ImageButton extends ImageView {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.ImageButton';
+  }
+
   constructor(context: Context) {
     super(context);
     this.setClickable(true);

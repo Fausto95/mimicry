@@ -33,6 +33,10 @@ const TARGET = 48;
 const ICON = 18;
 
 export class Chip extends CompoundButton {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.Button';
+  }
+
   private readonly shape = new MaterialShapeDrawable();
   private readonly backgroundDrawable: MaterialBackground;
   private chipIcon: Drawable | null = null;

@@ -39,6 +39,10 @@ export class PorterDuffColorFilter {
 }
 
 export class ImageView extends View {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.ImageView';
+  }
+
   static readonly ScaleType = ScaleType;
 
   private drawable: Drawable | null = null;

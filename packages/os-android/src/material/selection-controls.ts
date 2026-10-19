@@ -53,6 +53,10 @@ abstract class MaterialCompoundButton extends CompoundButton {
 }
 
 export class CheckBox extends MaterialCompoundButton {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.CheckBox';
+  }
+
   static readonly STATE_UNCHECKED = 0;
   static readonly STATE_CHECKED = 1;
   static readonly STATE_INDETERMINATE = 2;
@@ -127,6 +131,10 @@ export class CheckBox extends MaterialCompoundButton {
 export class MaterialCheckBox extends CheckBox {}
 
 export class RadioButton extends MaterialCompoundButton {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.RadioButton';
+  }
+
   protected override buttonSize(): { width: number; height: number } {
     return { width: TARGET, height: TARGET };
   }
@@ -162,6 +170,10 @@ export type OnRadioCheckedChangeListener = (group: RadioGroup, checkedId: number
  * RadioButtons are mutually exclusive.
  */
 export class RadioGroup extends LinearLayout {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.RadioGroup';
+  }
+
   private checkedId = View.NO_ID;
   private listener: OnRadioCheckedChangeListener | null = null;
   private protect = false;
@@ -237,6 +249,10 @@ export class RadioGroup extends LinearLayout {
  * label at the start and the switch at the end.
  */
 export class MaterialSwitch extends MaterialCompoundButton {
+  override getAccessibilityClassName(): string {
+    return 'android.widget.Switch';
+  }
+
   static readonly TRACK = { width: 52, height: 32 } as const;
 
   constructor(context: Context) {

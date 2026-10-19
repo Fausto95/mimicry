@@ -496,6 +496,10 @@ class DecorationLayer extends RenderLayer {
 const DEFAULT_ESTIMATE = 56;
 
 export class RecyclerView extends ViewGroup implements FrameTask {
+  override getAccessibilityClassName(): string {
+    return 'androidx.recyclerview.widget.RecyclerView';
+  }
+
   static readonly HORIZONTAL = 0;
   static readonly VERTICAL = 1;
   static readonly NO_POSITION = -1;
