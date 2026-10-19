@@ -2,6 +2,7 @@ import type { Kernel } from '@mimicry/os-core';
 import type { SharedPreferences } from './shared-preferences';
 import { AppCompatDelegate, Theme, type ColorOverride } from './theme';
 import { ANDROID_COLORS } from '../theme';
+import { ServiceManager } from '../os/service-manager';
 
 /**
  * android.content.Context with its Resources (DisplayMetrics, Configuration)
@@ -146,6 +147,14 @@ export class Choreographer {
 }
 
 export class Context {
+  static readonly WINDOW_SERVICE = 'window';
+  static readonly CLIPBOARD_SERVICE = 'clipboard';
+  static readonly VIBRATOR_SERVICE = 'vibrator';
+  static readonly VIBRATOR_MANAGER_SERVICE = 'vibrator_manager';
+  static readonly INPUT_METHOD_SERVICE = 'input_method';
+  static readonly ACCESSIBILITY_SERVICE = 'accessibility';
+  static readonly MODE_PRIVATE = 0;
+
   readonly resources: Resources;
   private readonly theme: Theme;
   readonly mainHandler: Handler;
@@ -190,6 +199,11 @@ export class Context {
 
   getMainLooper(): Handler {
     return this.mainHandler;
+  }
+
+  /** A system service by name (Context.WINDOW_SERVICE, CLIPBOARD_SERVICE…), or null. */
+  getSystemService<T = unknown>(name: string): T | null {
+    return ServiceManager.getService<T>(this.kernel, name);
   }
 
   getSharedPreferences(name: string, _mode = 0): SharedPreferences {

@@ -75,6 +75,10 @@ export class ScrollView extends FrameLayout implements FrameTask {
     return androidKit.scroll;
   }
 
+  override shouldDelayChildPressedState(): boolean {
+    return true;
+  }
+
   setOnScrollChangeListener(listener: OnScrollChangeListener | null): void {
     this.scrollListener = listener;
   }

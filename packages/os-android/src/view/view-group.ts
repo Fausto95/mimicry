@@ -168,6 +168,21 @@ export class ViewGroup extends View {
 
   // ── touch dispatch ──────────────────────────────────────────────────
 
+  /**
+   * Whether children's pressed state (and drags that might be scrolls)
+   * should wait: true for scrolling containers. SeekBar and Slider check
+   * their ancestors before they start dragging.
+   */
+  shouldDelayChildPressedState(): boolean {
+    return false;
+  }
+
+  /** @internal is any ancestor of `view` a scrolling container? */
+  static isInScrollingContainer(view: View): boolean {
+    for (let p = view.getParent(); p; p = p.getParent()) if (p.shouldDelayChildPressedState()) return true;
+    return false;
+  }
+
   /** Return true to steal the gesture from the children (they get ACTION_CANCEL). */
   onInterceptTouchEvent(_event: MotionEvent): boolean {
     return false;

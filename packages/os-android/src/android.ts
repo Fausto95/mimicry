@@ -4,6 +4,7 @@ import { Context } from './content/context';
 import { WindowManager } from './view/window-manager';
 import { SystemUI } from './systemui/system-bars';
 import { AnimationHandler } from './animation/value-animator';
+import { ServiceManager } from './os/service-manager';
 
 /**
  * Android on a kernel: the window manager (input routing, traversals, back),
@@ -27,6 +28,7 @@ export class Android implements OperatingSystem {
     AnimationHandler.setMainKernel(kernel);
     this.context = new Context(kernel);
     this.windowManager = new WindowManager(kernel, { routeInput: options.routeInput });
+    ServiceManager.addService(kernel, Context.WINDOW_SERVICE, this.windowManager);
     this.systemUI = new SystemUI(this.context, this.windowManager);
     kernel.on('back', () => {
       this.windowManager.back();

@@ -70,6 +70,7 @@ export class LayoutParams {
 export type OnClickListener = (view: View) => void;
 export type OnLongClickListener = (view: View) => boolean;
 export type OnTouchListener = (view: View, event: MotionEvent) => boolean;
+export type OnLayoutChangeListener = (view: View, left: number, top: number, right: number, bottom: number, oldLeft: number, oldTop: number, oldRight: number, oldBottom: number) => void;
 
 let nextViewId = 1;
 
@@ -290,12 +291,33 @@ export class View implements DrawableCallback {
   }
 
   layout(l: number, t: number, r: number, b: number): void {
-    const changed = l !== this.mLeft || t !== this.mTop || r !== this.mRight || b !== this.mBottom;
+    const oldL = this.mLeft;
+    const oldT = this.mTop;
+    const oldR = this.mRight;
+    const oldB = this.mBottom;
+    const changed = l !== oldL || t !== oldT || r !== oldR || b !== oldB;
     this.setFrame(l, t, r, b);
     if (changed || this.layoutRequested) {
       this.layoutRequested = false;
       this.onLayout(changed, l, t, r, b);
+      for (const listener of this.layoutChangeListeners.slice()) listener(this, l, t, r, b, oldL, oldT, oldR, oldB);
     }
+  }
+
+  private layoutChangeListeners: OnLayoutChangeListener[] = [];
+
+  /** Called after a layout pass that laid this view out (its bounds may or may not have changed). */
+  addOnLayoutChangeListener(listener: OnLayoutChangeListener): void {
+    if (!this.layoutChangeListeners.includes(listener)) this.layoutChangeListeners.push(listener);
+  }
+
+  removeOnLayoutChangeListener(listener: OnLayoutChangeListener): void {
+    this.layoutChangeListeners = this.layoutChangeListeners.filter((l) => l !== listener);
+  }
+
+  /** ViewCompat.isLaidOut: has the view been through a layout since it was attached? */
+  isLaidOut(): boolean {
+    return this.isAttachedToWindow() && !this.layoutRequested && (this.getWidth() > 0 || this.getHeight() > 0);
   }
 
   protected onLayout(_changed: boolean, _l: number, _t: number, _r: number, _b: number): void {}
