@@ -134,7 +134,7 @@ export class PhoneWindow {
   /** @internal set when the window is added: re-sends the window its insets */
   refreshInsets: () => void = () => {};
 
-  constructor(context: Context, onAppearance: () => void) {
+  constructor(readonly context: Context, onAppearance: () => void) {
     this.decorView = new FrameLayout(context);
     this.contentParent = new FrameLayout(context);
     this.contentParent.setId(R_ID_CONTENT);

@@ -154,6 +154,15 @@ describe('window insets', () => {
     expect(darkPixels(device, 0, 48, 0, 120)).toBe(0);
   });
 
+  it('without an explicit appearance the icons follow the app theme, not the system', () => {
+    const { device } = launch(white);
+    expect(darkPixels(device, 0, 48, 0, 120)).toBeGreaterThan(50);
+    // the app forces night while the system stays light: light icons
+    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES, device.kernel);
+    device.advance(32);
+    expect(darkPixels(device, 0, 48, 0, 120)).toBe(0);
+  });
+
   it('EdgeToEdge.enable picks bar icons that suit the theme', () => {
     const { device, activity } = launch(white);
     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES, device.kernel);

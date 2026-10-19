@@ -15,8 +15,9 @@ import { PhoneWindow, WindowInsetsController } from '../app/activity';
  * The bars follow the top application window's WindowInsetsController: its
  * light-status-bar / light-navigation-bar appearance picks the icon and
  * handle colors, and hidden bars are not drawn. A window that never set an
- * appearance leaves the status bar to the state frameworks set on the
- * kernel (React Native's StatusBar) and the handle to the system theme.
+ * appearance gets bars that suit its theme (light icons in night mode),
+ * unless a framework set a bar style on the kernel (React Native's
+ * StatusBar). With no app window, the system theme decides.
  */
 interface BarsStyle {
   statusBar: StatusBarState;
@@ -45,6 +46,12 @@ class SystemBarsView extends View {
       .filter((w): w is PhoneWindow => w !== null)
       .pop();
     if (!top) return style;
+    // Without an explicit appearance the window theme decides
+    // (windowLightStatusBar / windowLightNavigationBar follow the night
+    // resources), unless React Native's StatusBar set a bar style.
+    const themeAppearance: Appearance = top.context.getTheme().isNight() ? 'dark' : 'light';
+    if (style.statusBar.barStyle === 'default') style.statusAppearance = themeAppearance;
+    style.navigationAppearance = themeAppearance;
     const controller = top.getInsetsController();
     const mask = controller.getAppearanceMask();
     const appearance = controller.getSystemBarsAppearance();
