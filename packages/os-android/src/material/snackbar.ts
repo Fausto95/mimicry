@@ -12,6 +12,7 @@ import type { CharSequence } from '../text/spanned';
 import { TextView } from '../widget/text-view';
 import { ButtonStyle, MaterialButton } from './button';
 import { MaterialShapeDrawable } from './shape';
+import { CoordinatorLayout, snackbarViews } from '../widget/coordinator-layout';
 
 /**
  * com.google.android.material.snackbar.Snackbar, Material 3: a short
@@ -74,6 +75,7 @@ export class Snackbar {
     const theme = context.getTheme();
     this.duration = duration;
     this.view = new FrameLayout(context);
+    snackbarViews.add(this.view);
     const shape = new MaterialShapeDrawable();
     shape.setCornerSize(4);
     shape.setFillColor(ColorStateList.valueOf(theme.getColor('colorSurfaceInverse')));
@@ -110,7 +112,7 @@ export class Snackbar {
   private static findSuitableParent(view: View): ViewGroup | null {
     let fallback: ViewGroup | null = null;
     for (let v: View | null = view; v; v = v.getParent()) {
-      if (v.constructor.name === 'CoordinatorLayout') return v as ViewGroup;
+      if (v instanceof CoordinatorLayout) return v;
       if (v instanceof FrameLayout) {
         if (v.getId() === R_ID_CONTENT) return v;
         fallback = v;
@@ -229,8 +231,12 @@ export class Snackbar {
   }
 
   private present(): void {
+    // The navigation bar inset only matters when the parent reaches the bottom of the window.
     const insets = this.parent.getRootWindowInsets();
-    const bottomInset = insets ? insets.getInsets(WindowInsetsType.navigationBars()).bottom : 0;
+    const [, parentTop] = this.parent.getLocationInWindow();
+    const windowHeight = this.parent.getRootView().getHeight();
+    const reachesBottom = parentTop + this.parent.getHeight() >= windowHeight - 1;
+    const bottomInset = insets && reachesBottom ? insets.getInsets(WindowInsetsType.navigationBars()).bottom : 0;
     const lp = new FrameLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
     let bottom = 8 + bottomInset;
     if (this.anchor && this.anchor.isAttachedToWindow()) {

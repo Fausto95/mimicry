@@ -344,6 +344,15 @@ export class ScrollView extends FrameLayout implements FrameTask {
 
   protected override onScrollChanged(l: number, t: number, oldl: number, oldt: number): void {
     this.scrollListener?.(this, l, t, oldl, oldt);
+    for (const observer of Array.from(this.scrollObservers)) observer(this, l, t, oldl, oldt);
+  }
+
+  private readonly scrollObservers = new Set<OnScrollChangeListener>();
+
+  /** @internal framework observers (an AppBarLayout lifting on scroll) beside the app's listener */
+  addScrollObserver(observer: OnScrollChangeListener): () => void {
+    this.scrollObservers.add(observer);
+    return () => this.scrollObservers.delete(observer);
   }
 
   override getScrollX(): number {

@@ -983,7 +983,25 @@ export class View implements DrawableCallback {
   }
 
   onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+    if (this.fitsSystemWindows) {
+      // the legacy fitSystemWindows: pad by the system bars and consume them
+      const bars = insets.getInsets(0x1 | 0x2 | 0x4 | 0x80);
+      this.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+      return insets.consumeSystemWindowInsets();
+    }
     return insets;
+  }
+
+  private fitsSystemWindows = false;
+
+  /** Pad this view by the system bars (and consume them) when insets are applied. */
+  setFitsSystemWindows(fits: boolean): void {
+    this.fitsSystemWindows = fits;
+    this.requestApplyInsets();
+  }
+
+  getFitsSystemWindows(): boolean {
+    return this.fitsSystemWindows;
   }
 
   getRootWindowInsets(): WindowInsets | null {
