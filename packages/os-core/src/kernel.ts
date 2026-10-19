@@ -7,6 +7,8 @@ import { Display, RenderServer } from './render/render-server';
 import type { LayerHost, RenderLayer } from './render/layer';
 import { EnvironmentStore } from './services/environment';
 import { ImageStore } from './services/images';
+import { StorageService } from './services/storage';
+import { TextInputService } from './services/text-input';
 import type { TextMeasurer } from './text/measurer';
 
 /**
@@ -69,6 +71,8 @@ export class Kernel implements LayerHost {
   readonly measurer: TextMeasurer;
   readonly animator = new Animator();
   readonly images: ImageStore;
+  readonly storage: StorageService;
+  readonly textInput: TextInputService;
   readonly display: Display;
   readonly renderServer = new RenderServer();
   readonly hooks: KernelHooks = {};
@@ -116,6 +120,10 @@ export class Kernel implements LayerHost {
       defer: (fn) => this.defer(fn),
       imagesChanged: () => this.setNeedsDisplay(),
     });
+    this.storage = new StorageService({
+      persist: (namespace, key, value) => this.send({ type: 'storageWrite', namespace, key, value }),
+    });
+    this.textInput = new TextInputService(this);
     this.env.subscribe(() => {
       const view = this.env.viewport;
       this.display.resize(view.width, view.height, view.scale);

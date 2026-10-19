@@ -2,42 +2,31 @@ import { maybeEngine } from '../engine-ref';
 import { registerNativeModules } from './registry';
 
 /**
- * The app's on-disk key/value storage (MMKV, AsyncStorage, SecureStore).
- *
- * Native storage APIs are synchronous, so the engine keeps the data in
- * memory. In the browser the host persists every write (per project, in
- * localStorage) and hands the snapshot back at boot, so data survives a
- * reload the way it survives an app restart; headless runs start empty, like
- * a fresh install.
+ * The app's on-disk key/value storage (MMKV, AsyncStorage, SecureStore), on
+ * the device's persistent storage (the kernel's; see os-core
+ * services/storage.ts): synchronous reads, every write persisted by the
+ * host, a fresh device starts empty.
  */
 export type StorageSnapshot = Record<string, Record<string, string>>;
 
-const data = new Map<string, Map<string, string>>();
-
+/** Restore the data of an earlier run (the browser host keeps it per project). */
 export function loadStorage(snapshot: StorageSnapshot | undefined): void {
-  data.clear();
-  for (const [namespace, entries] of Object.entries(snapshot ?? {})) data.set(namespace, new Map(Object.entries(entries)));
+  maybeEngine()?.kernel.storage.load(snapshot);
 }
 
-function space(namespace: string): Map<string, string> {
-  let m = data.get(namespace);
-  if (!m) data.set(namespace, (m = new Map()));
-  return m;
-}
+const disk = () => maybeEngine()?.kernel.storage ?? null;
 
 export const storage = {
-  get: (namespace: string, key: string): string | undefined => data.get(namespace)?.get(key),
+  get: (namespace: string, key: string): string | undefined => disk()?.get(namespace, key),
   set(namespace: string, key: string, value: string): void {
-    space(namespace).set(key, value);
-    maybeEngine()?.send({ type: 'storageWrite', namespace, key, value });
+    disk()?.set(namespace, key, value);
   },
   delete(namespace: string, key: string): void {
-    if (!data.get(namespace)?.delete(key)) return;
-    maybeEngine()?.send({ type: 'storageWrite', namespace, key, value: null });
+    disk()?.delete(namespace, key);
   },
-  keys: (namespace: string): string[] => Array.from(data.get(namespace)?.keys() ?? []),
+  keys: (namespace: string): string[] => disk()?.keys(namespace) ?? [],
   clear(namespace: string): void {
-    for (const key of storage.keys(namespace)) storage.delete(namespace, key);
+    disk()?.clear(namespace);
   },
 };
 
