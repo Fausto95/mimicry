@@ -1,0 +1,8 @@
+appId: com.mimicry.expotemplate
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: {"text":"Explore"}
+- tapOn: {"text":"File-based routing"}
+- waitForAnimationToEnd

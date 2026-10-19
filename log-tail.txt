@@ -1,0 +1,1197 @@
+k/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:14:131: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+12 |                                  reject:(EXPromiseRejectBlock)reject;
+13 | 
+14 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location;
+   |                                                                                                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                                                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                                                                                                   `- note: insert '_Nonnull' if the pointer should never be null
+15 | 
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:16:34: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+14 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location;
+15 | 
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+   |                                  |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                  |- note: insert '_Nullable' if the pointer may be null
+   |                                  `- note: insert '_Nonnull' if the pointer should never be null
+17 | 
+18 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:16:67: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+14 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location;
+15 | 
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+   |                                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                                   `- note: insert '_Nonnull' if the pointer should never be null
+17 | 
+18 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:16:104: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+14 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location;
+15 | 
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+   |                                                                                                        |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                                                        |- note: insert '_Nullable' if the pointer may be null
+   |                                                                                                        `- note: insert '_Nonnull' if the pointer should never be null
+17 | 
+18 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:18:34: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+17 | 
+18 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+   |                                  |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                  |- note: insert '_Nullable' if the pointer may be null
+   |                                  `- note: insert '_Nonnull' if the pointer should never be null
+19 |                                            didWriteData:(int64_t)bytesWritten
+20 |                                       totalBytesWritten:(int64_t)totalBytesWritten
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:18:83: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+16 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error;
+17 | 
+18 | - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+   |                                                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                                                   `- note: insert '_Nonnull' if the pointer should never be null
+19 |                                            didWriteData:(int64_t)bytesWritten
+20 |                                       totalBytesWritten:(int64_t)totalBytesWritten
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:23:34: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+21 |                               totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+22 | 
+23 | - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data;
+   |                                  |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                  |- note: insert '_Nullable' if the pointer may be null
+   |                                  `- note: insert '_Nonnull' if the pointer should never be null
+24 | 
+25 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:23:75: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+21 |                               totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+22 | 
+23 | - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data;
+   |                                                                           |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                           |- note: insert '_Nullable' if the pointer may be null
+   |                                                                           `- note: insert '_Nonnull' if the pointer should never be null
+24 | 
+25 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:23:109: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+21 |                               totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+22 | 
+23 | - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data;
+   |                                                                                                             |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                                                             |- note: insert '_Nullable' if the pointer may be null
+   |                                                                                                             `- note: insert '_Nonnull' if the pointer should never be null
+24 | 
+25 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:25:34: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+23 | - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data;
+24 | 
+25 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+   |                                  |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                  |- note: insert '_Nullable' if the pointer may be null
+   |                                  `- note: insert '_Nonnull' if the pointer should never be null
+26 |                                 didSendBodyData:(int64_t)bytesSent
+27 |                                  totalBytesSent:(int64_t)totalBytesSent
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:25:67: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+23 | - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data;
+24 | 
+25 | - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+   |                                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                                   `- note: insert '_Nonnull' if the pointer should never be null
+26 |                                 didSendBodyData:(int64_t)bytesSent
+27 |                                  totalBytesSent:(int64_t)totalBytesSent
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:30:17: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+28 |                        totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend;
+29 | 
+30 | - (NSDictionary *)parseServerResponse:(NSURLResponse *)response;
+   |                 |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                 |- note: insert '_Nullable' if the pointer may be null
+   |                 `- note: insert '_Nonnull' if the pointer should never be null
+31 | 
+32 | @end
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 1 | // Copyright 2015-present 650 Industries. All rights reserved.
+ 2 | 
+ 3 | #import <ExpoFileSystem/EXSessionUploadTaskDelegate.h>
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:3:
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+1 | // Copyright 2015-present 650 Industries. All rights reserved.
+2 | 
+3 | #import <ExpoFileSystem/EXSessionTaskDelegate.h>
+  |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionUploadTaskDelegate.h:3:
+4 | 
+5 | @interface EXSessionUploadTaskDelegate : EXSessionTaskDelegate
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionTaskDelegate.h:30:54: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+28 |                        totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend;
+29 | 
+30 | - (NSDictionary *)parseServerResponse:(NSURLResponse *)response;
+   |                                                      |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                      |- note: insert '_Nullable' if the pointer may be null
+   |                                                      `- note: insert '_Nonnull' if the pointer should never be null
+31 | 
+32 | @end
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:6:71: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+ 6 | typedef void (^EXUploadDelegateOnSendCallback)(NSURLSessionUploadTask *task, int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend);
+   |                                                                       |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                       |- note: insert '_Nullable' if the pointer may be null
+   |                                                                       `- note: insert '_Nonnull' if the pointer should never be null
+ 7 | 
+ 8 | @interface EXSessionCancelableUploadTaskDelegate : EXSessionUploadTaskDelegate
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:10:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 8 | @interface EXSessionCancelableUploadTaskDelegate : EXSessionUploadTaskDelegate
+ 9 | 
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+11 |                                  reject:(EXPromiseRejectBlock)reject
+12 |                          onSendCallback:(EXUploadDelegateOnSendCallback)onSendCallback
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:11:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 9 | 
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+11 |                                  reject:(EXPromiseRejectBlock)reject
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+12 |                          onSendCallback:(EXUploadDelegateOnSendCallback)onSendCallback
+13 |                        resumableManager:(EXTaskHandlersManager *)manager
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:12:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+11 |                                  reject:(EXPromiseRejectBlock)reject
+12 |                          onSendCallback:(EXUploadDelegateOnSendCallback)onSendCallback
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+13 |                        resumableManager:(EXTaskHandlersManager *)manager
+14 |                                    uuid:(NSString *)uuid;
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:13:64: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+11 |                                  reject:(EXPromiseRejectBlock)reject
+12 |                          onSendCallback:(EXUploadDelegateOnSendCallback)onSendCallback
+13 |                        resumableManager:(EXTaskHandlersManager *)manager
+   |                                                                |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                |- note: insert '_Nullable' if the pointer may be null
+   |                                                                `- note: insert '_Nonnull' if the pointer should never be null
+14 |                                    uuid:(NSString *)uuid;
+15 | 
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 2 | #import "EXFileSystemHandler.h"
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:4:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionCancelableUploadTaskDelegate.h:14:51: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+12 |                          onSendCallback:(EXUploadDelegateOnSendCallback)onSendCallback
+13 |                        resumableManager:(EXTaskHandlersManager *)manager
+14 |                                    uuid:(NSString *)uuid;
+   |                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                   `- note: insert '_Nonnull' if the pointer should never be null
+15 | 
+16 | @end
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionDownloadTaskDelegate.h:7:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 5 | @interface EXSessionDownloadTaskDelegate : EXSessionTaskDelegate
+ 6 | 
+ 7 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+ 8 |                                  reject:(EXPromiseRejectBlock)reject
+ 9 |                                localUrl:(NSURL *)localUrl
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionDownloadTaskDelegate.h:8:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 6 | 
+ 7 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+ 8 |                                  reject:(EXPromiseRejectBlock)reject
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+ 9 |                                localUrl:(NSURL *)localUrl
+10 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5;
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 3 | #import "EXFileSystemLocalFileHandler.h"
+ 4 | #import "EXSessionCancelableUploadTaskDelegate.h"
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:5:
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionDownloadTaskDelegate.h:9:48: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 7 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+ 8 |                                  reject:(EXPromiseRejectBlock)reject
+ 9 |                                localUrl:(NSURL *)localUrl
+   |                                                |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                |- note: insert '_Nullable' if the pointer may be null
+   |                                                `- note: insert '_Nonnull' if the pointer should never be null
+10 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5;
+11 | 
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:6:76: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 4 | #import <ExpoFileSystem/EXTaskHandlersManager.h>
+ 5 | 
+ 6 | typedef void (^EXDownloadDelegateOnWriteCallback)(NSURLSessionDownloadTask *task, int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite);
+   |                                                                            |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                            |- note: insert '_Nullable' if the pointer may be null
+   |                                                                            `- note: insert '_Nonnull' if the pointer should never be null
+ 7 | 
+ 8 | @interface EXSessionResumableDownloadTaskDelegate : EXSessionDownloadTaskDelegate
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:10:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 8 | @interface EXSessionResumableDownloadTaskDelegate : EXSessionDownloadTaskDelegate
+ 9 | 
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+11 |                                  reject:(EXPromiseRejectBlock)reject
+12 |                                localUrl:(NSURL *)localUrl
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:11:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+ 9 | 
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+11 |                                  reject:(EXPromiseRejectBlock)reject
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+12 |                                localUrl:(NSURL *)localUrl
+13 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:12:48: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+10 | - (nonnull instancetype)initWithResolve:(EXPromiseResolveBlock)resolve
+11 |                                  reject:(EXPromiseRejectBlock)reject
+12 |                                localUrl:(NSURL *)localUrl
+   |                                                |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                |- note: insert '_Nullable' if the pointer may be null
+   |                                                `- note: insert '_Nonnull' if the pointer should never be null
+13 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5
+14 |                         onWriteCallback:(EXDownloadDelegateOnWriteCallback)onWriteCallback
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:14:42: warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+12 |                                localUrl:(NSURL *)localUrl
+13 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5
+14 |                         onWriteCallback:(EXDownloadDelegateOnWriteCallback)onWriteCallback
+   |                                          |- warning: block pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                          |- note: insert '_Nullable' if the block pointer may be null
+   |                                          `- note: insert '_Nonnull' if the block pointer should never be null
+15 |                        resumableManager:(EXTaskHandlersManager *)manager
+16 |                                    uuid:(NSString *)uuid;
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:15:64: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+13 |                      shouldCalculateMd5:(BOOL)shouldCalculateMd5
+14 |                         onWriteCallback:(EXDownloadDelegateOnWriteCallback)onWriteCallback
+15 |                        resumableManager:(EXTaskHandlersManager *)manager
+   |                                                                |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                                |- note: insert '_Nullable' if the pointer may be null
+   |                                                                `- note: insert '_Nonnull' if the pointer should never be null
+16 |                                    uuid:(NSString *)uuid;
+17 | 
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/ExpoFileSystem_umbrella.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | #import "Headers/ExpoFileSystem-Swift.h"
+3 | 
+
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:9: note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 5 | #import "EXSessionDownloadTaskDelegate.h"
+ 6 | #import "EXSessionHandler.h"
+ 7 | #import "EXSessionResumableDownloadTaskDelegate.h"
+   |         `- note: in file included from /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/ExpoFileSystem_umbrella.h:7:
+ 8 | #import "EXSessionTaskDelegate.h"
+ 9 | #import "EXSessionTaskDispatcher.h"
+
+34 warnings generated.
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/XCFrameworkIntermediates/ExpoFileSystem/ExpoFileSystem.framework/Headers/EXSessionResumableDownloadTaskDelegate.h:16:51: warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+14 |                         onWriteCallback:(EXDownloadDelegateOnWriteCallback)onWriteCallback
+15 |                        resumableManager:(EXTaskHandlersManager *)manager
+16 |                                    uuid:(NSString *)uuid;
+   |                                                   |- warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified)
+   |                                                   |- note: insert '_Nullable' if the pointer may be null
+   |                                                   `- note: insert '_Nonnull' if the pointer should never be null
+17 | 
+18 | @end
+/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate.xcodeproj: expotemplate: ld: warning: ignoring duplicate libraries: '-lc++'
+/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate.xcodeproj: expotemplate: ld: warning: search path '/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.MP7pq4/Metal.xctoolchain/usr/lib/swift/iphonesimulator' not found
+/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate.xcodeproj: expotemplate: ld: warning: ignoring duplicate libraries: '-lc++'
+/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate.xcodeproj: expotemplate: ld: warning: search path '/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.MP7pq4/Metal.xctoolchain/usr/lib/swift/iphonesimulator' not found
++ DEST=/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app
++ [[ ! -n '' ]]
++ [[ Release = *Debug* ]]
++ [[ -n '' ]]
++ case "$CONFIGURATION" in
++ DEV=false
++++ dirname /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/scripts/react-native-xcode.sh
+++ cd /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/scripts/..
+++ pwd
++ REACT_NATIVE_DIR=/Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native
++ PROJECT_ROOT=/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/..
++ cd /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/..
++ [[ -n /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/expo-router/entry.js ]]
++ :
++ source /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/scripts/node-binary.sh
+++ '[' -z /Users/runner/hostedtoolcache/node/22.23.3/arm64/bin/node ']'
+++ type /Users/runner/hostedtoolcache/node/22.23.3/arm64/bin/node
++ HERMES_ENGINE_PATH=/Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods/hermes-engine
++ '[' -z /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods/../../node_modules/hermes-compiler/hermesc/osx-bin/hermesc ']'
++ [[ -z /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods ]]
++ [[ ! -d /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods ]]
++ [[ true != false ]]
++ [[ -f /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods/hermes-engine ]]
++ '[' -z '' ']'
++ export NODE_ARGS=
++ NODE_ARGS=
++ '[' -z /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/expo/node_modules/@expo/cli/build/src/index.js ']'
++ '[' -z export:embed ']'
++ '[' -z '' ']'
++ COMPOSE_SOURCEMAP_PATH=/Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/scripts/compose-source-maps.js
++ [[ -z '' ]]
++ CONFIG_ARG=
++ [[ -z '' ]]
++ BUNDLE_NAME=main
++ BUNDLE_FILE=/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle
++ EXTRA_ARGS=()
++ case "$PLATFORM_NAME" in
++ BUNDLE_PLATFORM=ios
++ '[' '' = YES ']'
++ EMIT_SOURCEMAP=
++ [[ ! -z '' ]]
++ PACKAGER_SOURCEMAP_FILE=
++ [[ '' == true ]]
++ [[ true != false ]]
++ [[ false == false ]]
++ EXTRA_ARGS+=("--minify" "false")
++ [[ -n '' ]]
++ [[ -n '' ]]
++ EXTRA_ARGS+=("--config-cmd" "'$NODE_BINARY' $NODE_ARGS '$REACT_NATIVE_DIR/cli.js' config")
++ source /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/scripts/xcode/asset-catalog.sh
+++ asset_catalog_staging_dir
+++ [[ ios == \i\o\s ]]
+++ [[ -n /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate/Info.plist ]]
+++ local use_asset_catalog
++++ /usr/libexec/PlistBuddy -c 'Print :RCTUseAssetCatalog' /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/expotemplate/Info.plist
++++ true
+++ use_asset_catalog=
+++ case "$(echo "$use_asset_catalog" | tr '[:upper:]' '[:lower:]')" in
++++ echo ''
++++ tr '[:upper:]' '[:lower:]'
+++ return 0
++ ASSET_CATALOG_STAGING_DIR=
++ [[ -n '' ]]
++ /Users/runner/hostedtoolcache/node/22.23.3/arm64/bin/node /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/expo/node_modules/@expo/cli/build/src/index.js export:embed --entry-file /Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/expo-router/entry.js --platform ios --dev false --reset-cache --bundle-output /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle --assets-dest /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app --minify false --config-cmd ''\''/Users/runner/hostedtoolcache/node/22.23.3/arm64/bin/node'\''  '\''/Users/runner/work/mimicry/mimicry/examples/expo-template/node_modules/react-native/cli.js'\'' config'
+Using src/app as the root directory for Expo Router.
+React Compiler enabled
+Starting Metro Bundler
+
+iOS Bundled 28568ms node_modules/expo-router/entry.js (1545 modules)
+note: Exporting server
+λ Bundled 10821ms node_modules/expo/node_modules/@expo/cli/node_modules/@expo/router-server/build/static/getServerManifest.js (1200 modules)
+
+› Files (1):
+_expo/routes.json (102B)
+
+note: Skipping server deployment because the script is not running in eager mode.
+Writing bundle output to: /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle
+Copying 36 asset files
+Done writing bundle output
++ asset_catalog_compile ''
++ local staging_dir=
++ local rn_assets_bundle=/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app/RNAssets.bundle
++ rm -rf /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app/RNAssets.bundle
++ [[ -n '' ]]
++ return 0
++ [[ true == false ]]
++ EXTRA_COMPILER_ARGS=
++ [[ false == true ]]
++ EXTRA_COMPILER_ARGS=-O
++ [[ '' == true ]]
++ /Users/runner/work/mimicry/mimicry/examples/expo-template/ios/Pods/../../node_modules/hermes-compiler/hermesc/osx-bin/hermesc -emit-binary -max-diagnostic-width=80 -O -out /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app/main.jsbundle /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:919:13: warning: the variable "Promise" was not declared in anonymous function
+    var z = Promise,
+            ^~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:3498:26: warning: the variable "URL" was not declared in anonymous arrow function
+          props[0] = new URL(props[0], origin).toString();
+                         ^~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:3523:42: warning: the variable "fetch" was not declared in anonymous function
+      value: wrapFetchWithWindowLocation(fetch)
+                                         ^~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:5890:57: warning: the variable "AbortSignal" was not declared in anonymous function
+        if (signal !== undefined && !(signal instanceof AbortSignal)) {
+                                                        ^~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:6150:5: warning: the variable "setTimeout" was not declared in function "reportListenerError"
+    setTimeout(() => {
+    ^~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:6196:71: warning: the variable "performance" was not declared in anonymous function
+...!== undefined ? initTimestamp : performance.now();
+                                   ^~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:22451:21: warning: the variable "clearTimeout" was not declared in anonymous function
+    cancelTimeout = clearTimeout;
+                    ^~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:22489:42: warning: the variable "Node" was not declared in anonymous function
+    if (null === parentHostFiber) return Node.DOCUMENT_POSITION_DISCONNECTED;
+                                         ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:27286:15: warning: the variable "Blob" was not declared in anonymous function
+          new Blob();
+              ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:27425:24: warning: the variable "FileReader" was not declared in function "readBlobAsArrayBuffer"
+      var reader = new FileReader();
+                       ^~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:27478:40: warning: the variable "FormData" was not declared in anonymous function
+        } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+                                       ^~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:27480:44: warning: the variable "URLSearchParams" was not declared in anonymous function
+...e if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body...
+                                 ^~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:27733:23: warning: the variable "XMLHttpRequest" was not declared in anonymous function
+        var xhr = new XMLHttpRequest();
+                      ^~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:31771:25: warning: the variable "ErrorUtils" was not declared in anonymous function
+    var globalHandler = ErrorUtils.getGlobalHandler();
+                        ^~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:32106:35: warning: the variable "TransformStream" was not declared in anonymous function
+  class TextDecoderStream extends TransformStream {
+                                  ^~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:32108:25: warning: the variable "TextDecoder" was not declared in anonymous function
+      var decoder = new TextDecoder(label, options);
+                        ^~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:32546:72: warning: the variable "atob" was not declared in function "prepareBitmap"
+... parseInt(A, 36)), Uint8Array.from(atob(t), A => A.charCodeAt(0))];
+                                      ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:35074:7: warning: Direct call to eval(), but lexical scope is not supported.
+      eval(code);
+      ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:35164:30: warning: the variable "setInterval" was not declared in anonymous function
+      this._heartbeatTimer = setInterval(() => {
+                             ^~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:35172:9: warning: the variable "clearInterval" was not declared in anonymous function
+        clearInterval(this._heartbeatTimer);
+        ^~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:39629:5: warning: the variable "clearImmediate" was not declared in function "scheduleQueueFlush"
+    clearImmediate(flushQueueImmediate);
+    ^~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:41473:32: warning: the variable "requestAnimationFrame" was not declared in anonymous function
+        this._animationFrame = requestAnimationFrame(() => this.onUpdate());
+                               ^~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:57646:50: warning: the variable "Request" was not declared in anonymous arrow function
+...ody' in input || input instanceof Request || input[Symbol.toStringTag] ===...
+                                     ^~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:59107:22: warning: the variable "ReadableStream" was not declared in function "wrapWithConsumption"
+    var stream = new ReadableStream({
+                     ^~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:59365:18: warning: the variable "Headers" was not declared in anonymous function
+      return new Headers(this._rawHeaders);
+                 ^~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:59998:16: warning: Direct call to eval(), but lexical scope is not supported.
+        return eval(body);
+               ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:61062:21: warning: the variable "Image" was not declared in anonymous arrow function
+      var img = new Image();
+                    ^~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:81471:26: warning: the variable "ResizeObserver" was not declared in anonymous arrow function
+      var observer = new ResizeObserver(entries => {
+                         ^~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:82933:16: warning: the variable "requestIdleCallback" was not declared in anonymous arrow function
+      var id = requestIdleCallback(() => {
+               ^~~~~~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:82936:20: warning: the variable "cancelIdleCallback" was not declared in anonymous arrow function
+      return () => cancelIdleCallback(id);
+                   ^~~~~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:90608:7: warning: the variable "cancelAnimationFrame" was not declared in function "cancelSplashScreenAnimationFrame"
+      cancelAnimationFrame(splashScreenAnimationFrame);
+      ^~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:96865:9: warning: the variable "REACT_NAVIGATION_DEVTOOLS" was not declared in anonymous arrow function
+        REACT_NAVIGATION_DEVTOOLS.set(containerRef.current, {
+        ^~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:108311:51: warning: the variable "WeakRef" was not declared in function "createSerializable"
+      if (globalThis.WeakRef && cached instanceof WeakRef) {
+                                                  ^~~~~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:110377:28: warning: Direct call to eval(), but lexical scope is not supported.
+              workletFun = eval(initData.code);
+                           ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:136142:5: warning: the variable "jest" was not declared in anonymous arrow function
+    jest.useFakeTimers();
+    ^~~~
+/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/main.jsbundle:147815:7: warning: the variable "alert" was not declared in function "throwOrAlert"
+      alert(msg);
+      ^~~~~
++ [[ '' == true ]]
++ BUNDLE_FILE=/Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app/main.jsbundle
++ [[ false != true ]]
++ [[ ! -f /Users/runner/work/mimicry/mimicry/examples/expo-template/build/Build/Products/Release-iphonesimulator/expotemplate.app/main.jsbundle ]]
+note: Run script build phase '[CP-User] [Hermes] Replace Hermes for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'hermes-engine' from project 'Pods')
+note: Run script build phase '[CP-User] [RNDeps] Replace React Native Dependencies for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ReactNativeDependencies' from project 'Pods')
+note: Run script build phase '[CP-User] [RN]Check FBReactNativeSpec' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-RCTFBReactNativeSpec' from project 'Pods')
+note: Run script build phase '[CP-User] [RNCore] Replace React Native Core for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-Core-prebuilt' from project 'Pods')
+note: Run script build phase '[CP-User] [Expo] Switch ExpoModulesWorklets XCFramework for build configuration' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoModulesWorklets' from project 'Pods')
+note: Run script build phase '[CP-User] Build ExpoModulesJSI xcframework' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoModulesJSI' from project 'Pods')
+note: Run script build phase '[CP-User] [Expo] Switch ExpoModulesCore XCFramework for build configuration' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoModulesCore' from project 'Pods')
+note: Run script build phase '[CP-User] [Expo] Switch ExpoImage XCFramework for build configuration' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoImage' from project 'Pods')
+note: Run script build phase '[CP-User] [Expo] Switch ExpoFont XCFramework for build configuration' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoFont' from project 'Pods')
+note: Run script build phase '[CP-User] [Expo] Switch ExpoFileSystem XCFramework for build configuration' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoFileSystem' from project 'Pods')
+note: Run script build phase '[Expo] Configure project' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'expotemplate' from project 'expotemplate')
+note: Run script build phase 'Bundle React Native code and images' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'expotemplate' from project 'expotemplate')
+note: Run script build phase '[CP-User] Generate app.config for prebuilt Constants.manifest' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'EXConstants' from project 'Pods')
+++ head -1
+++ find build/Build/Products -maxdepth 2 -name '*.app'
++ APP=build/Build/Products/Release-iphonesimulator/expotemplate.app
++ xcrun simctl install B34C2F57-B98B-4C84-96E2-3170887BA2DB build/Build/Products/Release-iphonesimulator/expotemplate.app
++ command -v maestro
++ curl -Ls https://get.maestro.mobile.dev
++ bash
+* Create distribution directories...
+* Downloading...
+#=#=#                                                                          ##O#-#                                                                         ##O=#  #                                                                                                                                                  0.0%                                                                           0.2%                                                                           0.4%                                                                           0.6%                                                                           0.9%                                                                           1.1%#                                                                          1.4%#                                                                          1.7%#                                                                          2.0%#                                                                          2.4%#                                                                          2.7%##                                                                         3.1%##                                                                         3.5%##                                                                         3.9%###                                                                        4.4%###                                                                        4.8%###                                                                        5.1%####                                                                       5.6%####                                                                       6.0%####                                                                       6.5%#####                                                                      7.0%#####                                                                      7.5%#####                                                                      8.0%######                                                                     8.6%######                                                                     9.2%######                                                                     9.7%#######                                                                   10.3%#######                                                                   10.8%########                                                                  11.4%########                                                                  12.1%#########                                                                 12.8%#########                                                                 13.5%##########                                                                14.2%##########                                                                14.9%###########                                                               15.6%###########                                                               16.4%############                                                              17.2%############                                                              17.8%#############                                                             18.6%#############                                                             19.3%##############                                                            20.3%###############                                                           21.1%###############                                                           22.0%################                                                          23.0%#################                                                         23.9%#################                                                         24.8%##################                                                        25.8%###################                                                       26.7%###################                                                       27.7%####################                                                      28.7%#####################                                                     29.7%######################                                                    30.6%######################                                                    31.5%#######################                                                   32.5%########################                                                  33.5%########################                                                  34.6%#########################                                                 35.8%##########################                                                36.3%##########################                                                37.3%###########################                                               38.5%############################                                              39.7%#############################                                             40.9%##############################                                            42.1%###############################                                           43.3%################################                                          44.6%################################                                          45.8%#################################                                         47.0%##################################                                        48.3%###################################                                       49.6%####################################                                      51.0%#####################################                                     52.4%######################################                                    53.6%#######################################                                   55.1%########################################                                  56.4%#########################################                                 57.9%##########################################                                59.4%###########################################                               60.7%############################################                              62.2%#############################################                             63.6%##############################################                            65.2%################################################                          66.7%#################################################                         68.3%##################################################                        69.8%###################################################                       71.3%####################################################                      72.9%#####################################################                     74.4%######################################################                    75.8%#######################################################                   77.3%########################################################                  78.9%#########################################################                 80.5%###########################################################               82.2%############################################################              83.9%#############################################################             85.5%##############################################################            87.2%################################################################          88.9%#################################################################         90.5%##################################################################        92.1%###################################################################       93.5%####################################################################      95.0%#####################################################################     96.4%######################################################################    97.8%#######################################################################   99.6%######################################################################## 100.0%
+* Checking archive integrity...
+* Extracting archive...
+* Remove previous installation (if any)
+* Copying archive contents...
+* Cleaning up...
+
+Adding maestro to your PATH in /Users/runner/.bash_profile
+Adding maestro to your PATH in /Users/runner/.zshrc
+
+Installation was successful!
+Please open a new terminal OR run the following in the existing one:
+
+    export PATH="$PATH":"$HOME/.maestro/bin"
+
+Then run the following command:
+
+    maestro
+
+Welcome to Maestro!
++ export PATH=/Users/runner/hostedtoolcache/node/22.23.3/arm64/bin:/opt/homebrew/lib/ruby/gems/3.4.0/bin:/opt/homebrew/opt/ruby@3.4/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools:/Users/runner/.maestro/bin
++ PATH=/Users/runner/hostedtoolcache/node/22.23.3/arm64/bin:/opt/homebrew/lib/ruby/gems/3.4.0/bin:/opt/homebrew/opt/ruby@3.4/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools:/Users/runner/.maestro/bin
++ maestro --version
+Anonymous analytics enabled. To opt out, set MAESTRO_CLI_NO_ANALYTICS environment variable to any value before running Maestro.
+
+2.11.0
++ cd /Users/runner/work/mimicry/mimicry
++ node scripts/capture-oracle.mjs --platform ios --scenes examples/expo-template/scenes --out /Users/runner/work/mimicry/mimicry/oracle/expo-template/ios --app-id com.mimicry.expotemplate --device B34C2F57-B98B-4C84-96E2-3170887BA2DB
+Running on iPhone 17 Pro - iOS 26.2 - B34C2F57-B98B-4C84-96E2-3170887BA2DB
+ > Flow explore-open.maestro
+Launch app "com.mimicry.expotemplate" with clear state... COMPLETED
+Wait for animation to end... COMPLETED
+Tap on "Explore"... COMPLETED
+Tap on "File-based routing"... FAILED
+
+Element not found: Text matching regex: File-based routing
+
+Element with Text matching regex: File-based routing not found. Check the UI hierarchy in debug artifacts to verify if the element exists.
+
+Possible causes:
+- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.
+- Element may be temporarily unavailable due to loading state.
+- This could be a real regression that needs to be addressed.
+
+==== Debug output (logs & screenshots) ====
+
+/Users/runner/.maestro/tests/2026-10-19_134025
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: maestro test /Users/runner/work/mimicry/mimicry/oracle/expo-template/ios/explore-open.maestro.yaml
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at run (file:///Users/runner/work/mimicry/mimicry/scripts/capture-oracle.mjs:42:39)
+    at file:///Users/runner/work/mimicry/mimicry/scripts/capture-oracle.mjs:100:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 63380,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v22.23.3
