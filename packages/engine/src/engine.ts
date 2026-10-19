@@ -20,6 +20,7 @@ import { Geometry } from './geometry';
 import { ImageStore } from './images';
 import { hitTest } from './input/hit-test';
 import { PointerInput } from './input/pointer';
+import { GestureArena } from './input/gestures/arena';
 import { ScrollManager } from './input/scroll';
 import { runLayout } from './layout/layout';
 import { FramePainter } from './paint/painter';
@@ -87,6 +88,7 @@ export class Engine {
   readonly behaviors: Behaviors;
   readonly scrolls: ScrollManager;
   readonly input: PointerInput;
+  readonly gestures: GestureArena;
   readonly nodes = new Map<number, HostNode>();
   readonly modals = new Set<HostNode>();
   /** views padded by their safe area insets (`safeAreaEdges`), see layout/safe-area.ts */
@@ -137,6 +139,7 @@ export class Engine {
     this.behaviors = new Behaviors(this);
     this.scrolls = new ScrollManager(this);
     this.input = new PointerInput(this);
+    this.gestures = new GestureArena(this);
     this.painter = new FramePainter(this);
 
     this.appRoot = this.createContainer('app');
@@ -376,6 +379,7 @@ export class Engine {
     this.inlineViews.delete(node);
     this.images.forget(node);
     this.scrolls.release(node);
+    this.gestures.nodeDestroyed(node);
   }
 
   visibleModals(): HostNode[] {

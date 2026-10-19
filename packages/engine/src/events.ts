@@ -67,6 +67,15 @@ export class EventDispatcher {
     }
   }
 
+  /** Run a callback that isn't a prop (gesture callbacks) with the same batching and error reporting. */
+  run(fn: () => void, priority: Priority = 'discrete'): void {
+    try {
+      dispatchWithPriority(priority, () => batchedUpdates(fn));
+    } catch (error) {
+      this.report(error);
+    }
+  }
+
   emit(node: HostNode, handler: string, nativeEvent: Record<string, unknown>, timeStamp: number, priority: Priority = 'discrete'): void {
     if (typeof node.props[handler] !== 'function') return;
     this.invoke(node, handler, syntheticEvent(handler.replace(/^on/, '').toLowerCase(), node, nativeEvent, timeStamp), priority);

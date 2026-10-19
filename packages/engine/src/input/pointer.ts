@@ -5,11 +5,16 @@ import type { HostNode } from '../tree/node';
 import { hitTest } from './hit-test';
 
 /**
- * Touch pipeline: hit test → native gestures (scroll views, switches) →
- * React Native's Gesture Responder System (capture/bubble negotiation, grant,
- * move, release, termination). Scroll views are native: once a drag passes
- * the touch slop they take the gesture and the JS responder is terminated,
- * exactly how a UIScrollView cancels touches on device.
+ * Touch pipeline: hit test → gesture handlers (the arena, see
+ * gestures/arena.ts) → native gestures (scroll views, switches) → React
+ * Native's Gesture Responder System (capture/bubble negotiation, grant, move,
+ * release, termination). Scroll views are native: once a drag passes the
+ * touch slop they take the gesture and the JS responder is terminated,
+ * exactly how a UIScrollView cancels touches on device. An activated gesture
+ * handler does the same, and keeps scroll views from starting.
+ *
+ * The first finger drives the responder system and scrolling; additional
+ * fingers only reach gesture handlers (pinch, rotation, multi-finger pans).
  */
 interface Touch {
   id: number;
@@ -30,10 +35,14 @@ interface Touch {
   control: HostNode | null;
   /** the touch stopped a moving scroll view; it must not become a tap */
   absorbed: boolean;
+  /** a gesture handler activated: no scrolling or new responders for this touch */
+  gestureOwned: boolean;
 }
 
 export class PointerInput {
   private touch: Touch | null = null;
+  /** fingers after the first, which only gesture handlers see */
+  private readonly extraPointers = new Set<number>();
   private responder: HostNode | null = null;
 
   constructor(private readonly engine: Engine) {}
@@ -43,10 +52,22 @@ export class PointerInput {
   }
 
   handle(phase: PointerPhase, id: number, x: number, y: number, time: number): void {
+    const sample = { id, x, y, time };
+    if (phase === 'down' && this.touch && this.touch.id !== id) {
+      this.extraPointers.add(id);
+      this.engine.gestures.pointerDown(sample, hitTest(this.engine, x, y) ?? []);
+      return;
+    }
+    if (this.extraPointers.has(id)) {
+      if (phase === 'move') this.engine.gestures.pointerMove(sample);
+      else if (phase === 'up') this.engine.gestures.pointerUp(sample);
+      else if (phase === 'cancel') this.engine.gestures.pointerCancel(sample);
+      if (phase === 'up' || phase === 'cancel') this.extraPointers.delete(id);
+      return;
+    }
     switch (phase) {
       case 'down':
-        if (this.touch) return; // single-touch for now
-        this.down(id, x, y, time);
+        if (!this.touch) this.down(id, x, y, time);
         break;
       case 'move':
         if (this.touch?.id === id) this.move(x, y, time);
@@ -81,10 +102,11 @@ export class PointerInput {
     for (const s of scrolls) if (this.engine.scrolls.touchDown(s)) absorbed = true;
     const touch: Touch = {
       id, path, target, startX: x, startY: y, startTime: time, x, y, prevX: x, prevY: y, time, prevTime: time,
-      scroll: null, scrollCandidates: scrolls, control: null, absorbed,
+      scroll: null, scrollCandidates: scrolls, control: null, absorbed, gestureOwned: false,
     };
     this.touch = touch;
-    if (absorbed) return;
+    this.engine.gestures.pointerDown({ id, x, y, time }, path);
+    if (absorbed || touch.gestureOwned) return;
 
     if (target.kind === 'switch' && !target.props.disabled) {
       touch.control = target;
@@ -126,6 +148,14 @@ export class PointerInput {
     touch.x = x;
     touch.y = y;
     touch.time = time;
+    this.engine.gestures.pointerMove({ id: touch.id, x, y, time });
+    if (touch.gestureOwned && !touch.scroll) {
+      // A scroll view may still start if the active gestures are simultaneous with it (the arena decides).
+      if (this.maybeStartScroll(touch, time)) return;
+      this.dispatchTouch('onTouchMove', touch, time);
+      if (this.responder) this.call(this.responder, 'onResponderMove', this.event('touchmove', touch, time));
+      return;
+    }
     if (touch.absorbed && !touch.scroll) {
       this.maybeStartScroll(touch, time);
       return;
@@ -194,7 +224,7 @@ export class PointerInput {
     if (Math.abs(dx) < slop && Math.abs(dy) < slop) return false;
     const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     const scroll = touch.scrollCandidates.find((s) => this.engine.scrolls.scrollable(s, axis));
-    if (!scroll) return false;
+    if (!scroll || !this.engine.gestures.canScroll(scroll)) return false;
     // The scroll view takes the gesture: cancel whatever JS had.
     if (this.responder) this.terminate(touch, time);
     if (touch.control) {
@@ -204,6 +234,7 @@ export class PointerInput {
     touch.scroll = scroll;
     this.engine.scrolls.beginDrag(scroll, touch.startX, touch.startY, touch.startTime);
     this.engine.scrolls.drag(scroll, touch.x, touch.y, time);
+    this.engine.gestures.scrollStarted(scroll);
     return true;
   }
 
@@ -214,9 +245,11 @@ export class PointerInput {
     touch.x = x;
     touch.y = y;
     touch.time = time;
+    this.engine.gestures.pointerUp({ id: touch.id, x, y, time });
     this.touch = null;
     if (touch.scroll) {
       this.engine.scrolls.endDrag(touch.scroll, time);
+      this.engine.gestures.scrollEnded(touch.scroll);
       return;
     }
     if (touch.absorbed) return;
@@ -237,10 +270,30 @@ export class PointerInput {
 
   private cancel(time: number): void {
     const touch = this.touch!;
+    this.engine.gestures.pointerCancel({ id: touch.id, x: touch.x, y: touch.y, time });
     this.touch = null;
-    if (touch.scroll) this.engine.scrolls.endDrag(touch.scroll, time);
+    if (touch.scroll) {
+      this.engine.scrolls.endDrag(touch.scroll, time);
+      this.engine.gestures.scrollEnded(touch.scroll);
+    }
     if (touch.control) this.engine.behaviors.controlPress(touch.control, false);
     if (this.responder) this.terminate(touch, time);
+  }
+
+  /**
+   * A gesture handler activated during the current touch: it owns the touch
+   * from now on. Like RNGH's root view, it cancels the JS responder (unless
+   * the gesture opted out with `cancelsJSResponder: false`) and any control press.
+   */
+  gestureActivated(cancelJSResponder: boolean): void {
+    const touch = this.touch;
+    if (!touch) return;
+    touch.gestureOwned = true;
+    if (cancelJSResponder && this.responder) this.terminate(touch, touch.time);
+    if (touch.control) {
+      this.engine.behaviors.controlPress(touch.control, false);
+      touch.control = null;
+    }
   }
 
   private grant(node: HostNode, touch: Touch, time: number): void {

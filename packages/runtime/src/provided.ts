@@ -10,6 +10,9 @@ import * as ExpoStatusBar from '@mimicry/react-native/shims/expo-status-bar';
 import * as SafeArea from '@mimicry/react-native/shims/react-native-safe-area-context';
 import * as LinearGradient from '@mimicry/react-native/shims/expo-linear-gradient';
 import * as MetroRuntime from '@mimicry/react-native/shims/expo-metro-runtime';
+import * as GestureHandler from '@mimicry/react-native/gesture-handler';
+import * as GestureHandlerSwipeable from '@mimicry/react-native/gesture-handler/swipeable-module';
+import * as GestureHandlerDrawerLayout from '@mimicry/react-native/gesture-handler/drawer-layout-module';
 
 /**
  * Modules the base provides to every app. App code and vendored packages link
@@ -28,6 +31,11 @@ export const PROVIDED_MODULES: Record<string, unknown> = {
   'expo-linear-gradient': LinearGradient,
   '@expo/metro-runtime': MetroRuntime,
   '@react-native/assets-registry/registry': AssetRegistry,
+  'react-native-gesture-handler': GestureHandler,
+  'react-native-gesture-handler/ReanimatedSwipeable': GestureHandlerSwipeable,
+  'react-native-gesture-handler/ReanimatedDrawerLayout': GestureHandlerDrawerLayout,
+  'react-native-gesture-handler/Swipeable': GestureHandlerSwipeable,
+  'react-native-gesture-handler/DrawerLayout': GestureHandlerDrawerLayout,
 };
 
 export const PROVIDED_SPECIFIERS = Object.keys(PROVIDED_MODULES);

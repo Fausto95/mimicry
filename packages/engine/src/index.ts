@@ -1,6 +1,12 @@
 export { Engine, textContent, type EngineOptions, type EngineHooks } from './engine';
 export { HostNode, HostType, type NodeKind, type Props } from './tree/node';
-export { reconciler, dispatchWithPriority, batchedUpdates, TEXT_OUTSIDE_TEXT_ERROR, type RootContainer } from './tree/reconciler';
+export { reconciler, dispatchWithPriority, batchedUpdates, findHostNode, TEXT_OUTSIDE_TEXT_ERROR, type RootContainer } from './tree/reconciler';
+export {
+  GestureState, TouchEventType, Direction,
+  type GestureKind, type GestureConfig, type GestureRelations, type GestureEventData, type GestureTouchEvent,
+  type GestureListener, type TouchData,
+} from './input/gestures/types';
+export type { GestureArena } from './input/gestures/arena';
 export { CanvasTextMeasurer, EstimatingTextMeasurer, type TextMeasurer, type MeasuringContext } from './text/measurer';
 export { layoutText, type TextLayout, type TextStyle, type Span } from './text/text-layout';
 export { RealClock, VirtualClock, type Clock } from './runtime/clock';
