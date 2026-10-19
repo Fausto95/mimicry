@@ -1,0 +1,9 @@
+node_modules/
+**/node_modules/
+.expo/
+**/.expo/
+**/dist/
+.DS_Store
+*.log
+examples/expo-demo/ios/
+examples/expo-demo/android/

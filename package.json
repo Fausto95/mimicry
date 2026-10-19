@@ -1,0 +1,17 @@
+{
+  "name":"mimicry",
+  "version":"0.2.0",
+  "private":true,
+  "type":"module",
+  "engines":{"node":">=22.13.0"},
+  "workspaces":["examples/expo-demo"],
+  "scripts":{
+    "dev":"node scripts/dev.mjs",
+    "dev:studio":"node scripts/dev.mjs --studio-only",
+    "dev:expo":"npm run web --workspace @mimicry/expo-demo",
+    "check":"node --check scripts/dev.mjs && node --check src/server.mjs && node --check public/app.js && node --check packages/runtime/metro.cjs",
+    "test":"node --test tests/*.test.mjs",
+    "test:browser":"node tests/browser-smoke.mjs"
+  },
+  "devDependencies":{"playwright":"^1.56.0"}
+}
