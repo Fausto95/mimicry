@@ -1,0 +1,7 @@
+appId: com.mimicry.showcase
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn: {"id":"tab-settings"}
+- waitForAnimationToEnd

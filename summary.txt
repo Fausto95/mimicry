@@ -1,0 +1,5 @@
+components-dark              1.56% 
+home                         2.46% 
+settings                     1.14% 
+spring                       — no reference capture
+report: oracle/report/index.html
