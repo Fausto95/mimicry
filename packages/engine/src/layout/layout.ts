@@ -1,6 +1,7 @@
 import { Direction, Edge } from 'yoga-layout/load';
 import type { Engine } from '../engine';
 import type { HostNode } from '../tree/node';
+import { resolveSafeAreaPadding } from './safe-area';
 
 export interface LayoutChange {
   node: HostNode;
@@ -13,8 +14,21 @@ export interface LayoutChange {
  * and that listen to onLayout.
  */
 export function runLayout(engine: Engine): LayoutChange[] {
-  const v = engine.viewport;
   const changes: LayoutChange[] = [];
+  pass(engine, changes);
+  // Safe-area padding depends on where views landed; settle it (it converges
+  // in one extra pass unless insets move views across the unsafe region).
+  let passes = 1;
+  for (; passes < 4 && engine.safeAreaNodes.size && resolveSafeAreaPadding(engine); passes++) pass(engine, changes);
+  if (passes === 1) return changes;
+  // a node that moved in several passes reports its final frame once
+  const last = new Map<HostNode, LayoutChange>();
+  for (const c of changes) last.set(c.node, c);
+  return Array.from(last.values());
+}
+
+function pass(engine: Engine, changes: LayoutChange[]): void {
+  const v = engine.viewport;
   for (const container of [engine.appRoot, engine.systemRoot]) {
     const yoga = container.root.yoga!;
     yoga.setWidth(v.width);
@@ -30,7 +44,6 @@ export function runLayout(engine: Engine): LayoutChange[] {
     modal.yoga.calculateLayout(frame.w, frame.h, Direction.LTR);
     sync(modal, changes, true, frame);
   }
-  return changes;
 }
 
 function sync(node: HostNode, changes: LayoutChange[], root: boolean, frame?: { x: number; y: number }): void {

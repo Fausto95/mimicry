@@ -3,6 +3,7 @@ import { Spring } from '../runtime/animator';
 import type { FrameTask } from '../runtime/animator';
 import type { HostNode } from '../tree/node';
 import { uikitEase } from '../runtime/animator';
+import { safeAreaInsetsOf } from '../layout/safe-area';
 
 /**
  * Native scroll behavior, owned by the engine like UIScrollView /
@@ -58,13 +59,45 @@ export class ScrollManager implements FrameTask {
     if (!s.initialized && node.laidOut) {
       s.initialized = true;
       const offset = node.props.contentOffset;
+      const b = this.bounds(node);
       if (offset) {
-        const b = this.bounds(node);
-        s.x = clamp(offset.x ?? 0, 0, b.maxX);
-        s.y = clamp(offset.y ?? 0, 0, b.maxY);
+        s.x = clamp(offset.x ?? 0, b.minX, b.maxX);
+        s.y = clamp(offset.y ?? 0, b.minY, b.maxY);
+      } else if (this.adjustsInsets(node)) {
+        // UIKit starts an inset-adjusted scroll view at -adjustedContentInset
+        s.x = b.minX;
+        s.y = b.minY;
       }
     }
     return s;
+  }
+
+  private adjustsInsets(node: HostNode): boolean {
+    const behavior = node.props.contentInsetAdjustmentBehavior;
+    return this.engine.platform === 'ios' && (behavior === 'automatic' || behavior === 'always' || behavior === 'scrollableAxes');
+  }
+
+  /**
+   * contentInset plus, for `contentInsetAdjustmentBehavior` other than
+   * 'never', the scroll view's safe area insets (UIScrollView.adjustedContentInset).
+   */
+  contentInsets(node: HostNode): { top: number; left: number; bottom: number; right: number } {
+    const inset = node.props.contentInset ?? {};
+    const out = { top: inset.top ?? 0, left: inset.left ?? 0, bottom: inset.bottom ?? 0, right: inset.right ?? 0 };
+    if (!this.adjustsInsets(node)) return out;
+    const safe = safeAreaInsetsOf(this.engine, node);
+    const behavior = node.props.contentInsetAdjustmentBehavior;
+    const vertical = behavior !== 'scrollableAxes' || !this.horizontal(node);
+    const horizontal = behavior !== 'scrollableAxes' || this.horizontal(node);
+    if (vertical) {
+      out.top += safe.top;
+      out.bottom += safe.bottom;
+    }
+    if (horizontal) {
+      out.left += safe.left;
+      out.right += safe.right;
+    }
+    return out;
   }
 
   horizontal(node: HostNode): boolean {
@@ -81,18 +114,20 @@ export class ScrollManager implements FrameTask {
     }
     contentW += i.right;
     contentH += i.bottom;
-    const inset = node.props.contentInset ?? {};
+    const inset = this.contentInsets(node);
     const viewportW = node.w;
     const viewportH = node.h;
+    const minX = 0 - inset.left; // not -inset.left: avoid -0
+    const minY = 0 - inset.top;
     return {
       contentW,
       contentH,
       viewportW,
       viewportH,
-      minX: -(inset.left ?? 0),
-      minY: -(inset.top ?? 0),
-      maxX: Math.max(0, contentW - viewportW + (inset.right ?? 0)),
-      maxY: Math.max(0, contentH - viewportH + (inset.bottom ?? 0)),
+      minX,
+      minY,
+      maxX: Math.max(minX, contentW - viewportW + inset.right),
+      maxY: Math.max(minY, contentH - viewportH + inset.bottom),
     };
   }
 
@@ -406,7 +441,7 @@ export class ScrollManager implements FrameTask {
     if (typeof node.props[name] !== 'function') return;
     const s = this.ensure(node);
     const b = this.bounds(node);
-    const inset = node.props.contentInset ?? {};
+    const inset = this.contentInsets(node);
     this.engine.events.emit(node, name, {
       contentOffset: { x: s.x, y: s.y },
       contentSize: { width: b.contentW, height: b.contentH },

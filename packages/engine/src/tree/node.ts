@@ -2,6 +2,7 @@ import type { Node as YogaNode } from 'yoga-layout/load';
 import { MeasureMode } from 'yoga-layout/load';
 import type { Engine } from '../engine';
 import { applyYogaStyle } from '../layout/yoga-style';
+import { safeAreaStyle } from '../layout/safe-area';
 import { flattenStyle, LAYOUT_KEYS, TEXT_MEASURE_KEYS, type FlatStyle } from '../style/flatten';
 import type { TextLayout } from '../text/text-layout';
 import type { ScrollState } from '../input/scroll';
@@ -138,6 +139,19 @@ export class HostNode {
           this.engine.invalidateLayout();
         }
       }
+      const safeAreaChanged =
+        !Object.is(prevProps.safeAreaEdges, next.safeAreaEdges) ||
+        prevProps.safeAreaMode !== next.safeAreaMode ||
+        !Object.is(prevProps.additionalSafeAreaInsets, next.additionalSafeAreaInsets);
+      if (safeAreaChanged) {
+        if (next.safeAreaEdges) this.engine.safeAreaNodes.add(this);
+        else {
+          this.engine.safeAreaNodes.delete(this);
+          delete this.native.safeAreaInsets;
+        }
+        this.refreshLayoutStyle();
+        this.engine.invalidateLayout();
+      }
       this.engine.behaviors.propsChanged(this);
     }
   }
@@ -203,7 +217,7 @@ export class HostNode {
       case 'modal':
         return { position: 'absolute', left: 0, top: 0, ...style };
       default:
-        return style;
+        return this.props.safeAreaEdges ? safeAreaStyle(style, this.props.safeAreaEdges, this.props.safeAreaMode, this.native.safeAreaInsets) : style;
     }
   }
 

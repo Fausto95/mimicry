@@ -81,8 +81,41 @@ export const CAPABILITIES: Record<string, CapabilityLevel> = {
   stickyHeaderIndices: 'supported', 'inline views in Text': 'unsupported', 'multi-touch': 'unsupported',
 };
 
+/**
+ * Globals React Native installs before any module runs (ErrorUtils,
+ * requestIdleCallback…). Libraries reference them as free variables.
+ */
+function installGlobals(engine: Engine): void {
+  const g = globalThis as any;
+  let handler = (error: unknown, _isFatal?: boolean) => engine.reportError(error, 'runtime');
+  g.ErrorUtils = {
+    setGlobalHandler: (fn: typeof handler) => {
+      handler = fn;
+    },
+    getGlobalHandler: () => handler,
+    reportError: (error: unknown) => handler(error, false),
+    reportFatalError: (error: unknown) => handler(error, true),
+    applyWithGuard: (fn: (...args: unknown[]) => unknown, context: unknown, args: unknown[]) => {
+      try {
+        return fn.apply(context, args);
+      } catch (error) {
+        handler(error, false);
+        return undefined;
+      }
+    },
+    inGuard: () => false,
+  };
+  g.requestIdleCallback ??= (cb: (deadline: { didTimeout: boolean; timeRemaining(): number }) => void) =>
+    setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 16 }), 1) as unknown as number;
+  g.cancelIdleCallback ??= (id: number) => clearTimeout(id as any);
+  g.setImmediate ??= (fn: (...args: unknown[]) => void, ...args: unknown[]) => setTimeout(() => fn(...args), 0);
+  g.clearImmediate ??= (id: unknown) => clearTimeout(id as any);
+  g.__DEV__ = true;
+}
+
 /** Connects the React Native surface to an engine and mounts system UI. */
 export function installReactNative(engine: Engine): void {
+  installGlobals(engine);
   setActiveEngine(engine);
   resetSystemUI();
   engine.hooks.onError = (error) => showError(error);

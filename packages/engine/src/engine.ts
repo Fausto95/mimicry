@@ -88,6 +88,8 @@ export class Engine {
   readonly input: PointerInput;
   readonly nodes = new Map<number, HostNode>();
   readonly modals = new Set<HostNode>();
+  /** views padded by their safe area insets (`safeAreaEdges`), see layout/safe-area.ts */
+  readonly safeAreaNodes = new Set<HostNode>();
   readonly appRoot: RootContainer;
   readonly systemRoot: RootContainer;
   readonly hooks: EngineHooks = {};
@@ -345,6 +347,7 @@ export class Engine {
         n.mounted = true;
         this.nodes.set(n.id, n);
         if (n.kind === 'modal') this.modals.add(n);
+        if (n.props.safeAreaEdges) this.safeAreaNodes.add(n);
         this.behaviors.attached(n);
       }
     });
@@ -355,6 +358,7 @@ export class Engine {
       if (n.mounted) {
         n.mounted = false;
         this.modals.delete(n);
+        this.safeAreaNodes.delete(n);
         this.behaviors.detached(n);
         if (this.focus.focused === n) this.focus.blur(n);
       }
@@ -364,6 +368,7 @@ export class Engine {
   onDestroy(node: HostNode): void {
     this.nodes.delete(node.id);
     this.modals.delete(node);
+    this.safeAreaNodes.delete(node);
     this.images.forget(node);
     this.scrolls.release(node);
   }
