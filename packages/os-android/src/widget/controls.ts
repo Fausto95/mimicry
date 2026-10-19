@@ -2,6 +2,7 @@ import { easeOut, inflate, type FrameTask, type LayerContext } from '@mimicry/os
 import { androidKit } from '../theme';
 import type { Context } from '../content/context';
 import { Color } from '../graphics/color';
+import { StateSet } from '../graphics/drawable';
 import { MotionEvent } from '../view/motion-event';
 import { MeasureSpec, View } from '../view/view';
 
@@ -52,7 +53,17 @@ export class CompoundButton extends View implements FrameTask {
       this.tween = { from: this.progress, to: target, start: kernel.animator.animationTime, duration: this.toggleDuration };
       this.track();
     }
-    if (changed) this.listener?.(this, checked);
+    if (changed) {
+      this.refreshDrawableState();
+      this.listener?.(this, checked);
+    }
+  }
+
+  protected override drawableState(): string[] {
+    const s = super.drawableState();
+    s.push(StateSet.checkable);
+    if (this.checked) s.push(StateSet.checked);
+    return s;
   }
 
   toggle(): void {

@@ -1,5 +1,9 @@
 import type { CommandWriter, Radii } from '@mimicry/protocol';
 import { Color } from './color';
+import { Typeface, type FontMetrics } from '../text/typeface';
+import { Looper } from '../os/looper';
+
+export { Typeface };
 
 /**
  * android.graphics: RectF, Paint, Path and Canvas. A Canvas records into the
@@ -42,38 +46,6 @@ export enum PaintStyle { FILL = 0, STROKE = 1, FILL_AND_STROKE = 2 }
 export enum PaintCap { BUTT = 0, ROUND = 1, SQUARE = 2 }
 export enum PaintJoin { MITER = 0, ROUND = 1, BEVEL = 2 }
 export enum PaintAlign { LEFT = 0, CENTER = 1, RIGHT = 2 }
-
-export class Typeface {
-  static readonly DEFAULT = new Typeface('Roboto', 400, false);
-  static readonly DEFAULT_BOLD = new Typeface('Roboto', 700, false);
-  static readonly SANS_SERIF = new Typeface('Roboto', 400, false);
-  static readonly SERIF = new Typeface('Noto Serif', 400, false);
-  static readonly MONOSPACE = new Typeface('Roboto Mono', 400, false);
-  static readonly NORMAL = 0;
-  static readonly BOLD = 1;
-  static readonly ITALIC = 2;
-  static readonly BOLD_ITALIC = 3;
-
-  constructor(readonly family: string, readonly weight: number, readonly italic: boolean) {}
-
-  static create(family: string | Typeface | null, style: number): Typeface {
-    const name = family instanceof Typeface ? family.family : family ?? 'Roboto';
-    return new Typeface(name, style & Typeface.BOLD ? 700 : 400, (style & Typeface.ITALIC) !== 0);
-  }
-
-  /** Typeface.create(Typeface, weight, italic) (API 28) */
-  static createWeighted(family: Typeface, weight: number, italic: boolean): Typeface {
-    return new Typeface(family.family, weight, italic);
-  }
-
-  isBold(): boolean {
-    return this.weight >= 600;
-  }
-
-  isItalic(): boolean {
-    return this.italic;
-  }
-}
 
 export class Paint {
   static readonly ANTI_ALIAS_FLAG = 1;
@@ -162,8 +134,39 @@ export class Paint {
 
   /** css font for the text renderer */
   get cssFont(): string {
-    const t = this.typeface;
-    return `${t.italic ? 'italic ' : ''}${t.weight} ${this.textSize}px "${t.family}", Roboto, sans-serif`;
+    return this.typeface.css(this.textSize);
+  }
+
+  /** Advance width of `text` (dp), measured by the kernel's font rasterizer. */
+  measureText(text: string, start = 0, end = text.length): number {
+    const kernel = Looper.requireMainKernel();
+    return kernel.measurer.width(text.slice(start, end), this.cssFont, this.letterSpacing * this.textSize);
+  }
+
+  /** Paint.getFontMetrics (dp; negative above the baseline). */
+  getFontMetrics(): FontMetrics {
+    const kernel = Looper.getMainKernel();
+    return this.typeface.metrics(this.textSize, kernel?.viewport.scale ?? 1, kernel?.measurer ?? null);
+  }
+
+  /** The recommended line spacing: descent − ascent. */
+  getFontSpacing(): number {
+    const m = this.getFontMetrics();
+    return m.descent - m.ascent;
+  }
+
+  /** Copy every attribute of `other` (Paint.set). */
+  set(other: Paint): void {
+    this.setColor(other.getColor());
+    this.setStyle(other.getStyle());
+    this.setStrokeWidth(other.getStrokeWidth());
+    this.setStrokeCap(other.getStrokeCap());
+    this.setStrokeJoin(other.getStrokeJoin());
+    this.setTextSize(other.getTextSize());
+    this.setTypeface(other.getTypeface());
+    this.setTextAlign(other.getTextAlign());
+    this.setLetterSpacing(other.getLetterSpacing());
+    this.shadow = other.shadow ? { ...other.shadow } : null;
   }
 
   get rgba(): number {

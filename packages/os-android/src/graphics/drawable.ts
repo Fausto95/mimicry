@@ -21,6 +21,9 @@ export const StateSet = {
   focused: 'state_focused',
   selected: 'state_selected',
   checked: 'state_checked',
+  activated: 'state_activated',
+  hovered: 'state_hovered',
+  checkable: 'state_checkable',
 } as const;
 
 export abstract class Drawable {

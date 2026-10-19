@@ -141,6 +141,9 @@ export class View implements DrawableCallback {
   private foreground: Drawable | null = null;
   private enabled = true;
   private pressed = false;
+  private selected = false;
+  private activated = false;
+  private focused = false;
   private clickable = false;
   private longClickable = false;
   private focusable = false;
@@ -723,7 +726,59 @@ export class View implements DrawableCallback {
     const s: string[] = [];
     if (this.enabled) s.push(StateSet.enabled);
     if (this.pressed) s.push(StateSet.pressed);
+    if (this.selected) s.push(StateSet.selected);
+    if (this.activated) s.push(StateSet.activated);
+    if (this.focused) s.push(StateSet.focused);
     return s;
+  }
+
+  /** The view's state names (state_enabled, state_pressed, state_checked…). */
+  getDrawableState(): string[] {
+    return this.drawableState();
+  }
+
+  isSelected(): boolean {
+    return this.selected;
+  }
+
+  setSelected(selected: boolean): void {
+    if (this.selected === selected) return;
+    this.selected = selected;
+    this.refreshDrawableState();
+    this.dispatchSetSelected(selected);
+  }
+
+  protected dispatchSetSelected(_selected: boolean): void {}
+
+  isActivated(): boolean {
+    return this.activated;
+  }
+
+  setActivated(activated: boolean): void {
+    if (this.activated === activated) return;
+    this.activated = activated;
+    this.refreshDrawableState();
+    this.dispatchSetActivated(activated);
+  }
+
+  protected dispatchSetActivated(_activated: boolean): void {}
+
+  isFocused(): boolean {
+    return this.focused;
+  }
+
+  /** Mimicry has no keyboard focus traversal; focus is a state views can be put in. */
+  requestFocus(): boolean {
+    if (!this.focusable || this.focused) return this.focused;
+    this.focused = true;
+    this.refreshDrawableState();
+    return true;
+  }
+
+  clearFocus(): void {
+    if (!this.focused) return;
+    this.focused = false;
+    this.refreshDrawableState();
   }
 
   isClickable(): boolean {

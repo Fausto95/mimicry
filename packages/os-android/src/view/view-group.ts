@@ -284,6 +284,14 @@ export class ViewGroup extends View {
     this.touchTargets = [];
   }
 
+  protected override dispatchSetSelected(selected: boolean): void {
+    for (const child of this.children) child.setSelected(selected);
+  }
+
+  protected override dispatchSetActivated(activated: boolean): void {
+    for (const child of this.children) child.setActivated(activated);
+  }
+
   // ── attach & insets ─────────────────────────────────────────────────
 
   override dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
