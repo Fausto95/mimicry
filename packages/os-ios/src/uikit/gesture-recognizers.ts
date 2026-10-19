@@ -131,6 +131,15 @@ export class UIPanGestureRecognizer extends UIGestureRecognizer {
   private origin: CGPoint | null = null;
   private offset: CGPoint = { x: 0, y: 0 };
   private samples: Array<{ t: number; x: number; y: number }> = [];
+  /** where the fingers were last (translation and velocity hold it once they lift) */
+  private last: CGPoint | null = null;
+
+  /** Centroid of the fingers still down, or where they lifted. */
+  private position(): CGPoint {
+    const live = Array.from(this._touches).some((t) => t.phase !== UITouchPhase.ended && t.phase !== UITouchPhase.cancelled);
+    if (live) this.last = centroid(this._touches, null);
+    return this.last ?? { x: 0, y: 0 };
+  }
 
   override touchesBegan(touches: ReadonlySet<UITouch>, event: UIEvent): void {
     if (this.numberOfTouches > this.maximumNumberOfTouches) {
@@ -181,7 +190,7 @@ export class UIPanGestureRecognizer extends UIGestureRecognizer {
   /** Translation since the gesture started, in `view` coordinates (window when null). */
   translation(view: UIView | null): CGPoint {
     if (!this.origin) return { x: 0, y: 0 };
-    const now = centroid(this._touches, null);
+    const now = this.position();
     const dx = now.x - this.origin.x + this.offset.x;
     const dy = now.y - this.origin.y + this.offset.y;
     if (!view) return { x: dx, y: dy };
@@ -206,7 +215,7 @@ export class UIPanGestureRecognizer extends UIGestureRecognizer {
   }
 
   private sample(time: number): void {
-    const p = centroid(this._touches, null);
+    const p = this.position();
     this.samples.push({ t: time, x: p.x, y: p.y });
     if (this.samples.length > 12) this.samples.shift();
   }
@@ -215,6 +224,7 @@ export class UIPanGestureRecognizer extends UIGestureRecognizer {
     this.origin = null;
     this.offset = { x: 0, y: 0 };
     this.samples = [];
+    this.last = null;
   }
 }
 
