@@ -4,7 +4,7 @@
 
 Mimicry takes the architecture [Dactyl](https://dactyl.dev/blog/how-dactyl-works/) built for SwiftUI and applies it to React Native:
 
-- A **reimplementation of the platform**, not a stream from a real simulator. React reconciles into a retained view tree. [Yoga](https://yogalayout.dev) (the layout engine React Native ships on device) lays it out, and platform kits draw UIKit- or Android-style controls.
+- A **reimplementation of the platform**, not a stream from a real simulator. Mimicry models the operating systems themselves — UIKit, Core Animation and Foundation on iOS; the View system, widgets and app components on Android — on a small kernel, and runs frameworks on them through **adapters**. React Native's adapter is its Fabric: React reconciles into a shadow tree, [Yoga](https://yogalayout.dev) lays it out, and it mounts into `UIView`s and Android `View`s. Lynx, NativeScript and Vector can plug in the same way ([docs/adapters.md](docs/adapters.md)).
 - A **binary draw-command stream**. Layout and text are fully resolved before a single command is written. A thin host paints the stream on Canvas2D and caches each chunk's raster by content hash, so scrolling and transform or opacity animations cost compositing, not painting.
 - A **base/side module split**. The engine, React and `react-native` form one content-addressed base module that the browser loads once. Your app compiles per file into a small side module, and edits hot-swap under the running app with Fast Refresh, so state survives.
 - **Native controls at resolved rectangles.** Like Dactyl's Compose host mounting real Material widgets, the browser host mounts real `<input>`s exactly where the engine laid out each `TextInput`, so IME, selection and autofill are native.
@@ -12,7 +12,9 @@ Mimicry takes the architecture [Dactyl](https://dactyl.dev/blog/how-dactyl-works
 
 ```
 App.tsx ──compile──▶ side module ──link──▶ base module (Web Worker)
-                                            React → retained tree → Yoga → platform kit
+                                            React → shadow tree → Yoga → mount (adapter)
+                                            UIKit / Android View system (OS models)
+                                            kernel: layers → render server
                                                         │ binary frame (chunks + layers + overlays)
                                                         ▼
                                             host: Canvas2D compositor + raster cache + native inputs
@@ -75,16 +77,20 @@ mimicry diff a.png b.png --out diff.png
 | Package | Role |
 | --- | --- |
 | `@mimicry/protocol` | Frame format, opcodes, writer/reader, engine↔host messages, device descriptors |
-| `@mimicry/react-native-fabric` | React host config, retained tree, Yoga layout, text layout, platform kits, painter, input, scroll physics |
+| `@mimicry/os-core` | The kernel: frame loop, render layers and render server, text layout, fonts, images, storage, keyboard, scroll kinetics, the framework adapter contract |
+| `@mimicry/os-ios` | iOS: UIKit, Core Animation, Foundation ([docs/os-ios.md](docs/os-ios.md)) |
+| `@mimicry/os-android` | Android: android.view, widget, app, animation, androidx ([docs/os-android.md](docs/os-android.md)) |
+| `@mimicry/device` | Boots a kernel with the OS a device descriptor names |
+| `@mimicry/react-native-fabric` | React Native's native side: React host config, shadow tree, Yoga, mounting into OS views, touch handling, gesture arena, SVG |
 | `@mimicry/react-native` | The `react-native` API surface (components, Animated, Alert, …) plus Expo/community shims |
-| `@mimicry/runtime` | Module linker with Fast Refresh, app runtime, the engine Web Worker entry (base module) |
+| `@mimicry/runtime` | Module linker with Fast Refresh, app runtime, the React Native adapter, the Web Worker entry (base module) |
 | `@mimicry/host-web` | Canvas2D executor + compositor with raster cache, native input overlays, `EngineHost` |
 | `@mimicry/compiler` | Base module build, per-file side module compiler (SWC), resolver, vendor prebundle |
 | `@mimicry/studio` | The browser UI around the device |
 | `@mimicry/cli` | `mimicry dev / render / filmstrip / oracle / diff` and the dev server |
-| `@mimicry/testing` | Headless sessions, filmstrips, pixel diffs |
+| `@mimicry/testing` | Headless sessions, bare devices (`createDevice`), filmstrips, pixel diffs |
 
-Read more in [docs/architecture.md](docs/architecture.md), [docs/protocol.md](docs/protocol.md) and [docs/fidelity.md](docs/fidelity.md).
+Read more in [docs/architecture.md](docs/architecture.md), [docs/adapters.md](docs/adapters.md), [docs/protocol.md](docs/protocol.md) and [docs/fidelity.md](docs/fidelity.md).
 
 ## Development
 
