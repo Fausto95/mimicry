@@ -24,6 +24,16 @@ Older device presets remain available for compatibility.
 - **Visual-only**: side rails, physical buttons, bezels, and chosen hardware finishes around the viewport.
 - **Approximate**: brand-new display corner radii, dynamic cutout dimensions, density and safe-area values until verified against current official simulator captures.
 
+### Material 3 Expressive (opt-in)
+
+`MaterialButton` in `@mimicry/os-android` supports expressive button profiles without changing existing apps:
+
+- `setExpressiveSize('xs' | 'sm' | 'md' | 'lg' | 'xl')`
+- `setExpressiveShape('round' | 'square')`
+- `setExpressiveMorphOnPress(true)` morphs between round and square while pressed or selected as a toggle.
+
+This matches the newly available size/shape interaction API model, **not** the complete Material 3 Expressive catalog, or measured Android 17 transitions.
+
 iOS 27 and Android 17 *version metadata do not imply full parity with Apple's or Google's current OS release*. Most UIKit Liquid Glass behavior currently derives from captured iOS 26 geometry, and Android's Material widgets still require fresh Android 17 / Material 3 Expressive oracle comparisons.
 
 This separation is intentional: we can model more iOS/Android APIs without depending on the real simulators at runtime. The real OS is used only as an offline test oracle.
