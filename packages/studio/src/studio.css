@@ -82,8 +82,86 @@ button, select { font: inherit; color: inherit; }
   background: radial-gradient(ellipse at 50% 35%, var(--backdrop) 30%, var(--backdrop-deep) 100%);
 }
 .device { position: relative; padding: var(--bezel); border-radius: calc(var(--radius) + var(--bezel)); }
-.device.ios { background: linear-gradient(145deg, #4b4d52, #1e1f22 40%, #34363b); box-shadow: 0 30px 60px -20px rgba(15, 20, 30, 0.45), inset 0 0 0 1.5px #6c6f75; }
-.device.android { background: linear-gradient(145deg, #2c2e33, #111214 50%, #26282c); box-shadow: 0 30px 60px -20px rgba(15, 20, 30, 0.45), inset 0 0 0 1px #45484e; }
+/*
+ * Device enclosure, not an image. The engine owns every on-screen pixel; Studio
+ * paints the side rails, buttons and glass edge independently. This keeps
+ * screenshots clean and makes any logical viewport render inside the shell.
+ */
+.device {
+  --rail: #4b4d52;
+  --rail-light: #9b9da3;
+  --rail-dark: #252629;
+  --control-scale: 1;
+  isolation: isolate;
+  background: linear-gradient(110deg,
+    var(--rail-dark) 0%, var(--rail-light) 1.2%, var(--rail) 4%,
+    var(--rail-dark) 48%, var(--rail) 93%, var(--rail-light) 98%,
+    var(--rail-dark) 100%);
+  box-shadow:
+    0 35px 72px -22px rgba(0, 0, 0, 0.46),
+    0 9px 18px -8px rgba(0, 0, 0, 0.36),
+    inset 0 0 0 1px var(--rail-light),
+    inset 0 0 0 3px var(--rail-dark);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+.device::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+.device.ios.phone .screen { outline: 1px solid rgba(2, 2, 3, 0.8); }
+.device.android .screen { outline: 1px solid rgba(0, 0, 0, 0.9); }
+.device.tablet { --bezel: 13px; }
+.device.tablet .screen { outline: 1px solid rgba(0, 0, 0, 0.66); }
+.frame-button {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  width: max(2px, calc(3px * var(--control-scale)));
+  background: linear-gradient(to right, var(--rail-dark), var(--rail-light));
+  border: 1px solid var(--rail-dark);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+  border-radius: 3px;
+}
+.frame-button.action {
+  left: -2px;
+  top: 13%;
+  height: 6%;
+}
+.frame-button.volume-up {
+  left: -2px;
+  top: 23%;
+  height: 6%;
+}
+.frame-button.volume-down {
+  left: -2px;
+  top: 32%;
+  height: 6%;
+}
+.frame-button.power {
+  right: -2px;
+  top: 25%;
+  height: 10%;
+  background: linear-gradient(to left, var(--rail-dark), var(--rail-light));
+}
+.device.android .frame-button.action { display: none; }
+.device.android .frame-button.volume-up { left: auto; right: -2px; top: 16%; }
+.device.android .frame-button.volume-down { left: auto; right: -2px; top: 22%; }
+.device.android .frame-button.power { top: 32%; height: 7%; }
+.device.tablet .frame-button.action,
+.device.tablet .frame-button.volume-down { display: none; }
+.device.tablet .frame-button.volume-up { top: 12%; height: 5%; }
+.device.tablet .frame-button.power { top: 6%; height: 5%; }
+.device.landscape.phone .frame-button.action { top: 18%; }
+.device.landscape.phone .frame-button.volume-up { top: 28%; }
+.device.landscape.phone .frame-button.volume-down { top: 38%; }
+.device.landscape.phone .frame-button.power { top: 28%; }
+.device.shell-iphone18 { box-shadow: 0 35px 72px -22px rgba(25, 17, 27, 0.55), 0 9px 18px -8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px var(--rail-light); }
+.device.shell-iphone16 { box-shadow: 0 35px 72px -22px rgba(0, 0, 0, 0.5), inset 0 0 0 2px var(--rail-light); }
 .screen { position: relative; overflow: hidden; border-radius: var(--radius); background: #000; }
 .home-indicator { position: absolute; border-radius: 999px; pointer-events: none; z-index: 2; }
 .notch { position: absolute; background: #000; border-radius: 0 0 18px 18px; pointer-events: none; z-index: 2; }
@@ -140,3 +218,30 @@ button, select { font: inherit; color: inherit; }
   .project strong { max-width: 110px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Studio ergonomics: useful at 13" laptop widths and on narrow browsers. */
+.bar { gap: 8px; }
+.bar #device { min-width: 150px; max-width: 215px; }
+.bar #finish { min-width: 102px; max-width: 140px; }
+.bar select { text-overflow: ellipsis; cursor: pointer; }
+.device .screen {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.8);
+}
+.caption { padding: 0 16px; letter-spacing: 0.005em; }
+@media (max-width: 1200px) {
+  .bar { gap: 4px; padding: 0 8px; }
+  .project strong { max-width: 105px; }
+  .bar #device { max-width: 155px; }
+  .bar #finish { max-width: 115px; }
+}
+@media (max-width: 1040px) {
+  .bar #finish { max-width: 75px; }
+  .bar #slow, .bar #back, .bar #zoom-out, .bar #zoom-in, .bar #zoom-label { display: none; }
+}
+@media (max-width: 680px) {
+  .bar { overflow-x: auto; scrollbar-width: none; }
+  .bar::-webkit-scrollbar { display: none; }
+  .project strong, .bar #appearance, .bar #finish { display: none; }
+  .bar #device { min-width: 125px; }
+  .caption { font-size: 10px; }
+}
