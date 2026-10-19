@@ -104,6 +104,40 @@ describe('MaterialButton', () => {
     device.tap(...center(view));
     expect(seen).toEqual([true, false]);
   });
+  it('offers five opt-in Material 3 Expressive sizes without changing defaults', () => {
+    const { device, view } = single((ctx) => {
+      const button = new MaterialButton(ctx);
+      button.setText('Continue');
+      button.setExpressiveSize('lg');
+      return button;
+    });
+    expect(view.getExpressiveSize()).toBe('lg');
+    expect(view.getHeight()).toBeGreaterThanOrEqual(80);
+    expect(view.getShapeDrawable().getCornerSize()).toBe(-1);
+    view.setExpressiveSize('md');
+    device.advance(32);
+    expect(view.getExpressiveSize()).toBe('md');
+    expect(view.getHeight()).toBeGreaterThanOrEqual(56);
+  });
+
+  it('morphs between round and square Expressive shapes when pressed', () => {
+    const { view } = single((ctx) => {
+      const button = new MaterialButton(ctx);
+      button.setText('Tap');
+      button.setExpressiveSize('sm');
+      button.setExpressiveMorphOnPress(true);
+      return button;
+    });
+    expect(view.getShapeDrawable().getCornerSize()).toBe(-1);
+    view.setPressed(true);
+    expect(view.getShapeDrawable().getCornerSize()).toBe(12);
+    view.setPressed(false);
+    expect(view.getShapeDrawable().getCornerSize()).toBe(-1);
+    view.setExpressiveShape('square');
+    expect(view.getShapeDrawable().getCornerSize()).toBe(12);
+    view.setPressed(true);
+    expect(view.getShapeDrawable().getCornerSize()).toBe(-1);
+  });
 });
 
 describe('selection controls', () => {
