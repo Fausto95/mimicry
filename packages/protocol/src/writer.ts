@@ -268,4 +268,10 @@ export class CompositeWriter extends WordWriter {
     this.end(at);
     return this;
   }
+  backdrop(x: number, y: number, w: number, h: number, radii: Radii, blur: number, saturation: number): this {
+    const at = this.begin(CompositeOp.Backdrop);
+    this.f32(x).f32(y).f32(w).f32(h).f32(radii[0]).f32(radii[1]).f32(radii[2]).f32(radii[3]).f32(blur).f32(saturation);
+    this.end(at);
+    return this;
+  }
 }

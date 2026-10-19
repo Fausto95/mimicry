@@ -90,6 +90,15 @@ export const CompositeOp = {
   Chunk: 2,
   /** close the current layer */
   Pop: 3,
+  /**
+   * Backdrop material: blur (and saturate) whatever has already been
+   * composited beneath this point, inside a rounded rect of the current layer.
+   * x y w h tl tr br bl blurRadius saturation
+   * It is a composite-time effect — never part of a cached raster — because
+   * its result depends on the content behind it. Tints and highlights are
+   * ordinary chunks drawn after it.
+   */
+  Backdrop: 4,
 } as const;
 
 export const ClipKind = { None: 0, Rect: 1, RRect: 2 } as const;

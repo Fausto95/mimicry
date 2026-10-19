@@ -67,9 +67,8 @@ const hostConfig = {
   createInstance(type: string, props: Props, root: RootContainer, context: HostContext, fiber: unknown): HostNode {
     const node = new HostNode(root.engine, type, kindForType(type, context.insideText), props);
     node.fiber = fiber;
-    if (context.insideText && type !== HostType.Text) {
-      root.engine.warnOnce('inline-view', 'Views nested inside <Text> are not supported by Mimicry yet; they are not drawn.');
-    }
+    // A view nested in <Text> is an inline box: the text measures it and places it in a line.
+    if (context.insideText && type !== HostType.Text) root.engine.inlineViews.add(node);
     return node;
   },
 

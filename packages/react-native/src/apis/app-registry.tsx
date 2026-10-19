@@ -78,7 +78,8 @@ export const CAPABILITIES: Record<string, CapabilityLevel> = {
   Animated: 'supported', Easing: 'supported', PanResponder: 'supported', LayoutAnimation: 'stub',
   Keyboard: 'stub', Linking: 'approximate', BackHandler: 'supported', AppState: 'stub', Share: 'stub',
   Vibration: 'stub', AccessibilityInfo: 'stub', I18nManager: 'stub', NativeModules: 'unsupported',
-  stickyHeaderIndices: 'supported', 'inline views in Text': 'unsupported', 'multi-touch': 'unsupported',
+  stickyHeaderIndices: 'supported', 'inline views in Text': 'supported', adjustsFontSizeToFit: 'supported', textAlignVertical: 'supported',
+  android_hyphenationFrequency: 'approximate', 'expo-blur': 'approximate', 'expo-glass-effect': 'approximate', 'multi-touch': 'unsupported',
 };
 
 /** Connects the React Native surface to an engine and mounts system UI. */

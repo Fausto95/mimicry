@@ -25,7 +25,7 @@ export interface ExecuteOptions {
 const CAPS: CanvasLineCap[] = ['butt', 'round', 'square'];
 const JOINS: CanvasLineJoin[] = ['miter', 'round', 'bevel'];
 
-function rrectPath(ctx: Ctx2D, x: number, y: number, w: number, h: number, tl: number, tr: number, br: number, bl: number): void {
+export function rrectPath(ctx: Ctx2D, x: number, y: number, w: number, h: number, tl: number, tr: number, br: number, bl: number): void {
   if (w < 0) {
     x += w;
     w = -w;
