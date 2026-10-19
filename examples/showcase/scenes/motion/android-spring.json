@@ -1,0 +1,1 @@
+{ "name": "android-spring", "device": "pixel-9", "steps": [{ "tap": { "testID": "tab-motion" } }], "trigger": { "tap": { "testID": "spring-card" } }, "duration": 1200 }

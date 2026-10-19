@@ -151,9 +151,13 @@ async function oracle(args: string[]): Promise<void> {
   const { values, positionals } = parseArgs({
     args,
     allowPositionals: true,
-    options: { scenes: { type: 'string' }, reference: { type: 'string' }, out: { type: 'string', default: 'oracle-report' }, threshold: { type: 'string', default: '0.1' } },
+    options: {
+      scenes: { type: 'string' }, reference: { type: 'string' }, out: { type: 'string', default: 'oracle-report' }, threshold: { type: 'string', default: '0.1' },
+      motion: { type: 'boolean', default: false },
+    },
   });
   if (!values.scenes || !values.reference) throw new Error('oracle needs --scenes and --reference');
+  if (values.motion) return motionOracle(positionals[0] ?? '.', values.scenes, values.reference, values.out!);
   const { diffPng } = await import('@mimicry/testing');
   const project = positionals[0] ?? '.';
   await mkdir(values.out!, { recursive: true });
@@ -181,6 +185,45 @@ async function oracle(args: string[]): Promise<void> {
   await writeFile(join(values.out!, 'index.html'), oracleReport(rows));
   for (const r of rows) console.log(`${r.name.padEnd(28)} ${r.ratio == null ? '—' : `${(r.ratio * 100).toFixed(2)}%`} ${r.note ?? ''}`);
   console.log(`report: ${join(values.out!, 'index.html')}`);
+}
+
+/**
+ * `mimicry oracle --motion`: replays each motion scene's trigger on the
+ * virtual clock at 60 fps and compares the progress curve with the
+ * simulator's screen recording (frames extracted by scripts/capture-motion.mjs).
+ */
+async function motionOracle(project: string, scenesDir: string, referenceDir: string, out: string): Promise<void> {
+  const { compareMotion, motionChartSvg } = await import('@mimicry/testing');
+  await mkdir(out, { recursive: true });
+  const sections: string[] = [];
+  for (const file of (await readdir(scenesDir)).filter((f) => f.endsWith('.json')).sort()) {
+    const scene = JSON.parse(await readFile(join(scenesDir, file), 'utf8')) as Scene;
+    const name = scene.name ?? basename(file, '.json');
+    if (!scene.trigger) continue;
+    const refDir = join(referenceDir, name);
+    if (!existsSync(refDir)) {
+      console.log(`${name.padEnd(28)} — no reference recording`);
+      continue;
+    }
+    const app = await openProject(project, scene, {});
+    for (const step of scene.steps ?? []) runStep(app.session, step);
+    await app.session.ready();
+    const trigger = scene.trigger;
+    const ours = app.session.filmstrip({ duration: scene.duration ?? 1000, every: 1000 / 60, scale: 1, actions: [{ at: 0, run: (s) => runStep(s, trigger) }] });
+    app.session.dispose();
+    const refFiles = (await readdir(refDir)).filter((f) => f.endsWith('.png')).sort();
+    const fps = Number((await readFile(join(refDir, 'fps.txt'), 'utf8').catch(() => '60')).trim()) || 60;
+    const reference = await Promise.all(refFiles.map(async (f, i) => ({ time: (i * 1000) / fps, png: await readFile(join(refDir, f)) })));
+    const result = compareMotion(ours, reference);
+    await writeFile(join(out, `${name}.svg`), motionChartSvg(result));
+    await writeFile(join(out, `${name}.json`), JSON.stringify({ settle: { mimicry: result.ours.settle, simulator: result.reference.settle }, rms: result.rms, maxGap: result.maxGap, ours: result.ours, reference: result.reference }, null, 1));
+    console.log(`${name.padEnd(28)} settle ${Math.round(result.ours.settle)}ms vs ${Math.round(result.reference.settle)}ms  rms ${(result.rms * 100).toFixed(1)}%  max ${(result.maxGap * 100).toFixed(1)}%`);
+    sections.push(`<section><h2>${name} <small>settle ${Math.round(result.ours.settle)} ms (simulator ${Math.round(result.reference.settle)} ms) · curve RMS ${(result.rms * 100).toFixed(1)}%</small></h2><img src="${name}.svg"></section>`);
+  }
+  await writeFile(join(out, 'index.html'), `<!doctype html><meta charset="utf-8"><title>Mimicry motion oracle</title>
+<style>body{font:14px system-ui;margin:24px;background:#f3f4f6;color:#1f2329}h2{font-size:16px}small{color:#6b7280;font-weight:400;margin-left:8px}img{border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}</style>
+<h1>Motion: engine vs simulator</h1><p>Progress from the first moving frame (0) to the final frame (1).</p>${sections.join('\n')}`);
+  console.log(`report: ${join(out, 'index.html')}`);
 }
 
 function oracleReport(rows: Array<{ name: string; ratio: number | null; note?: string }>): string {

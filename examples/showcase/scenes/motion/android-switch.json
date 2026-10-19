@@ -1,0 +1,1 @@
+{ "name": "android-switch", "device": "pixel-9", "steps": [{ "tap": { "testID": "tab-components" } }], "trigger": { "tap": { "testID": "sync" } }, "duration": 600 }

@@ -31,9 +31,10 @@ maestro --version
 cd "$ROOT"
 node scripts/capture-oracle.mjs --platform android --scenes "$PROJECT/scenes" --out "$OUT/android" --app-id "$APP_ID"
 if [ "${MOTION:-0}" = "1" ]; then
+  command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
   node scripts/capture-motion.mjs --platform android --scenes "$PROJECT/scenes" --out "$OUT/android-motion" --app-id "$APP_ID"
 fi
 node packages/cli/bin/mimicry.js oracle "$PROJECT" --scenes "$PROJECT/scenes" --reference "$OUT/android" --out "$OUT/android-report" | tee "$OUT/android-summary.txt"
 if [ "${MOTION:-0}" = "1" ]; then
-  node packages/cli/bin/mimicry.js oracle "$PROJECT" --motion --scenes "$PROJECT/scenes" --reference "$OUT/android-motion" --out "$OUT/android-motion-report" | tee "$OUT/android-motion-summary.txt"
+  node packages/cli/bin/mimicry.js oracle "$PROJECT" --motion --scenes "$PROJECT/scenes/motion" --reference "$OUT/android-motion" --out "$OUT/android-motion-report" | tee "$OUT/android-motion-summary.txt"
 fi

@@ -49,9 +49,10 @@ maestro --version
 cd "$ROOT"
 node scripts/capture-oracle.mjs --platform ios --scenes "$PROJECT/scenes" --out "$OUT/ios" --app-id "$APP_ID" --device "$UDID"
 if [ "${MOTION:-0}" = "1" ]; then
+  command -v ffmpeg || brew install ffmpeg
   node scripts/capture-motion.mjs --platform ios --scenes "$PROJECT/scenes" --out "$OUT/ios-motion" --app-id "$APP_ID" --device "$UDID"
 fi
 node packages/cli/bin/mimicry.js oracle "$PROJECT" --scenes "$PROJECT/scenes" --reference "$OUT/ios" --out "$OUT/ios-report" | tee "$OUT/ios-summary.txt"
 if [ "${MOTION:-0}" = "1" ]; then
-  node packages/cli/bin/mimicry.js oracle "$PROJECT" --motion --scenes "$PROJECT/scenes" --reference "$OUT/ios-motion" --out "$OUT/ios-motion-report" | tee "$OUT/ios-motion-summary.txt"
+  node packages/cli/bin/mimicry.js oracle "$PROJECT" --motion --scenes "$PROJECT/scenes/motion" --reference "$OUT/ios-motion" --out "$OUT/ios-motion-report" | tee "$OUT/ios-motion-summary.txt"
 fi

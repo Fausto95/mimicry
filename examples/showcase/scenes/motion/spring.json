@@ -1,0 +1,1 @@
+{ "name": "spring", "device": "iphone-17-pro", "steps": [{ "tap": { "testID": "tab-motion" } }], "trigger": { "tap": { "testID": "spring-card" } }, "duration": 1200 }

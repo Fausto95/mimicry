@@ -1,0 +1,1 @@
+{ "name": "push", "device": "iphone-17-pro", "trigger": { "tap": { "testID": "row-1" } }, "duration": 1000 }

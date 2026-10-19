@@ -22,9 +22,11 @@ export interface Scene {
   appearance?: 'light' | 'dark';
   orientation?: 'portrait' | 'landscape';
   steps?: SceneStep[];
-  /** filmstrip sampling */
+  /** filmstrip sampling; for motion scenes, how long to record after the trigger */
   duration?: number;
   every?: number;
+  /** motion scenes (scenes/motion/*.json): the step whose animation is recorded, after `steps` set up */
+  trigger?: SceneStep;
 }
 
 export function runStep(session: Session, step: SceneStep): void {
