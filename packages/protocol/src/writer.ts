@@ -94,6 +94,22 @@ export type Radii = readonly [tl: number, tr: number, br: number, bl: number];
 export const NO_RADII: Radii = [0, 0, 0, 0];
 
 /** Writes the drawing commands of one chunk. */
+/**
+ * A gradient paint for FillPathGradient / StrokePathGradient. Coordinates are
+ * in the space of `matrix` (column-major a b c d e f).
+ */
+export interface PathGradient {
+  kind: 'linear' | 'radial';
+  x0: number;
+  y0: number;
+  r0: number;
+  x1: number;
+  y1: number;
+  r1: number;
+  matrix: readonly [number, number, number, number, number, number];
+  stops: ReadonlyArray<readonly [offset: number, color: number]>;
+}
+
 export class CommandWriter extends WordWriter {
   private simple(op: number, ...values: number[]): this {
     const at = this.begin(op);
@@ -210,6 +226,34 @@ export class CommandWriter extends WordWriter {
     this.u32(rule);
     this.end(at);
     return this;
+  }
+
+  strokeStyle(miterLimit: number, dashOffset: number, dashes: readonly number[]): this {
+    const at = this.begin(Op.StrokeStyle);
+    this.f32(miterLimit).f32(dashOffset).u32(dashes.length);
+    for (const d of dashes) this.f32(d);
+    this.end(at);
+    return this;
+  }
+  fillPathGradient(rule: number, gradient: PathGradient): this {
+    const at = this.begin(Op.FillPathGradient);
+    this.u32(rule);
+    this.gradientFields(gradient);
+    this.end(at);
+    return this;
+  }
+  strokePathGradient(lineWidth: number, cap: number, join: number, gradient: PathGradient): this {
+    const at = this.begin(Op.StrokePathGradient);
+    this.f32(lineWidth).u32(cap).u32(join);
+    this.gradientFields(gradient);
+    this.end(at);
+    return this;
+  }
+  private gradientFields(g: PathGradient): void {
+    this.u32(g.kind === 'radial' ? 1 : 0).f32(g.x0).f32(g.y0).f32(g.r0).f32(g.x1).f32(g.y1).f32(g.r1);
+    for (const v of g.matrix) this.f32(v);
+    this.u32(g.stops.length);
+    for (const [offset, color] of g.stops) this.f32(offset).u32(color);
   }
 
   font(css: string): this {

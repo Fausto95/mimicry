@@ -103,7 +103,17 @@ export function disassemble(bytes: Uint8Array, start = 0, end = bytes.byteLength
   while (cursor.next()) {
     const layout = layouts[cursor.op];
     const args: Array<number | string> = [];
-    if (cursor.op === Op.LinearGradientRRect) {
+    if (cursor.op === Op.StrokeStyle) {
+      args.push(round(cursor.f32(0)), round(cursor.f32(1)));
+      for (let i = 0; i < cursor.u32(2); i++) args.push(round(cursor.f32(3 + i)));
+    } else if (cursor.op === Op.FillPathGradient || cursor.op === Op.StrokePathGradient) {
+      const head = cursor.op === Op.FillPathGradient ? 1 : 3;
+      for (let i = 0; i < head; i++) args.push(i === 0 && head === 3 ? round(cursor.f32(0)) : cursor.u32(i));
+      args.push(cursor.u32(head) === 1 ? 'radial' : 'linear');
+      for (let i = head + 1; i < head + 13; i++) args.push(round(cursor.f32(i)));
+      const count = cursor.u32(head + 13);
+      for (let i = 0; i < count; i++) args.push(round(cursor.f32(head + 14 + i * 2)), hex(cursor.u32(head + 15 + i * 2)));
+    } else if (cursor.op === Op.LinearGradientRRect) {
       for (let i = 0; i < 12; i++) args.push(round(cursor.f32(i)));
       const count = cursor.u32(12);
       for (let i = 0; i < count; i++) args.push(round(cursor.f32(13 + i * 2)), hex(cursor.u32(14 + i * 2)));

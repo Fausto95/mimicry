@@ -2,6 +2,7 @@ import type { Engine } from '../engine';
 import { localMatrix, stickyOffset } from '../geometry';
 import { apply, invert } from '../style/matrix';
 import type { HostNode } from '../tree/node';
+import { hitTestSvg } from '../svg/query';
 
 /**
  * Hit testing in paint order (topmost first), honoring transforms, scroll
@@ -73,6 +74,13 @@ function hitNode(engine: Engine, node: HostNode, lx: number, ly: number): HostNo
   const inside = lx >= -hs.left && ly >= -hs.top && lx < node.w + hs.right && ly < node.h + hs.bottom;
   const clips = node.computed.overflow === 'hidden' || node.kind === 'scroll';
   if (!inside && (clips || !engine.kit.hitTestOutsideBounds)) return null;
+  if (node.kind === 'svg') {
+    // SVG elements hit on their painted geometry; the viewport clips them.
+    if (!inside) return null;
+    const elements = pe === 'box-only' ? null : hitTestSvg(engine, node, lx, ly);
+    if (elements) return [node, ...elements];
+    return pe === 'box-none' ? null : [node];
+  }
   if (pe !== 'box-only' && node.kind !== 'text') {
     for (const child of paintOrderReversed(engine, node)) {
       if (child.kind === 'modal') continue;

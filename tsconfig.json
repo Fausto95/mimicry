@@ -19,5 +19,5 @@
     "paths": { "react-native": ["./packages/react-native/src/index.ts"] }
   },
   "include": ["packages/*/src/**/*", "packages/*/test/**/*", "tests/**/*", "types/**/*", "vitest.config.ts"],
-  "exclude": ["**/node_modules", "examples"]
+  "exclude": ["**/node_modules", "examples", "tests/fixtures"]
 }

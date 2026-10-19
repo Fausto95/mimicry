@@ -79,6 +79,7 @@ export const CAPABILITIES: Record<string, CapabilityLevel> = {
   Keyboard: 'stub', Linking: 'approximate', BackHandler: 'supported', AppState: 'stub', Share: 'stub',
   Vibration: 'stub', AccessibilityInfo: 'stub', I18nManager: 'stub', NativeModules: 'unsupported',
   stickyHeaderIndices: 'supported', 'inline views in Text': 'unsupported', 'multi-touch': 'unsupported',
+  'react-native-svg': 'approximate',
 };
 
 /** Connects the React Native surface to an engine and mounts system UI. */

@@ -14,3 +14,4 @@ export type { PlatformKit, StatusBarState } from './platform/kit';
 export { EnvironmentStore } from './environment';
 export { syntheticEvent, type SyntheticEvent } from './events';
 export { loadYoga } from './layout/yoga';
+export { svgQueries, svgRootOf } from './svg/query';

@@ -187,6 +187,50 @@ export function execute(ctx: Ctx2D, bytes: Uint8Array, start: number, end: numbe
       case Op.ClipPath:
         ctx.clip(c.u32(0) === 1 ? 'evenodd' : 'nonzero');
         break;
+      case Op.StrokeStyle: {
+        ctx.miterLimit = c.f32(0) || 4;
+        ctx.lineDashOffset = c.f32(1);
+        const count = c.u32(2);
+        const dashes: number[] = [];
+        for (let i = 0; i < count; i++) dashes.push(Math.max(0, c.f32(3 + i)));
+        ctx.setLineDash(dashes.some((d) => d > 0) ? dashes : []);
+        break;
+      }
+      case Op.FillPathGradient: {
+        const rule = c.u32(0) === 1 ? 'evenodd' : 'nonzero';
+        const m = gradientMatrix(c, 1);
+        if (!m) break;
+        // Clip to the path, then flood the clip with the gradient in its own space.
+        ctx.save();
+        ctx.clip(rule);
+        ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
+        ctx.fillStyle = createGradient(ctx, c, 1);
+        const cover = coverRect(m);
+        ctx.fillRect(cover.x, cover.y, cover.w, cover.h);
+        ctx.restore();
+        break;
+      }
+      case Op.StrokePathGradient: {
+        const m = gradientMatrix(c, 3);
+        if (!m) break;
+        // The path is already in device space; stroke with the gradient's space as the
+        // current transform, compensating line width and dashes for its scale.
+        const scale = Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2])) || 1;
+        ctx.save();
+        ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
+        ctx.lineWidth = c.f32(0) / scale;
+        ctx.lineCap = CAPS[c.u32(1)] ?? 'butt';
+        ctx.lineJoin = JOINS[c.u32(2)] ?? 'miter';
+        const dash = ctx.getLineDash();
+        if (dash.length) {
+          ctx.setLineDash(dash.map((d) => d / scale));
+          ctx.lineDashOffset /= scale;
+        }
+        ctx.strokeStyle = createGradient(ctx, c, 3);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
       case Op.Font:
         ctx.font = c.string(0);
         break;
@@ -209,6 +253,43 @@ export function execute(ctx: Ctx2D, bytes: Uint8Array, start: number, end: numbe
     }
   }
   if (hasLetterSpacing && letterSpacing !== 0) (ctx as CanvasRenderingContext2D).letterSpacing = '0px';
+}
+
+/** Gradient fields start at word `at`: kind x0 y0 r0 x1 y1 r1 a b c d e f count (offset color)*. */
+function createGradient(ctx: Ctx2D, c: CommandCursor, at: number): CanvasGradient {
+  const radial = c.u32(at) === 1;
+  const x0 = c.f32(at + 1);
+  const y0 = c.f32(at + 2);
+  const r0 = c.f32(at + 3);
+  const x1 = c.f32(at + 4);
+  const y1 = c.f32(at + 5);
+  const r1 = c.f32(at + 6);
+  const g = radial ? ctx.createRadialGradient(x0, y0, Math.max(0, r0), x1, y1, Math.max(0, r1)) : ctx.createLinearGradient(x0, y0, x1, y1);
+  const count = c.u32(at + 13);
+  for (let i = 0; i < count; i++) g.addColorStop(Math.max(0, Math.min(1, c.f32(at + 14 + i * 2))), toCss(c.u32(at + 15 + i * 2)));
+  return g;
+}
+
+/** The gradient's matrix (fields at+7 … at+12), or null when it is degenerate. */
+function gradientMatrix(c: CommandCursor, at: number): [number, number, number, number, number, number] | null {
+  const m: [number, number, number, number, number, number] = [c.f32(at + 7), c.f32(at + 8), c.f32(at + 9), c.f32(at + 10), c.f32(at + 11), c.f32(at + 12)];
+  return Math.abs(m[0] * m[3] - m[1] * m[2]) < 1e-12 ? null : m;
+}
+
+/** A rectangle in the space of `m` that covers any clip (the preimage of a huge square). */
+function coverRect(m: readonly [number, number, number, number, number, number]): { x: number; y: number; w: number; h: number } {
+  const [a, b, c, d, e, f] = m;
+  const det = a * d - b * c;
+  const R = 1e5;
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (const [x, y] of [[-R, -R], [R, -R], [R, R], [-R, R]] as const) {
+    xs.push((d * (x - e) - c * (y - f)) / det);
+    ys.push((-b * (x - e) + a * (y - f)) / det);
+  }
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
 }
 
 function boxShadow(ctx: Ctx2D, c: CommandCursor, pr: number): void {

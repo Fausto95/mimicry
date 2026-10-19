@@ -17,11 +17,15 @@ export const HostType = {
   ActivityIndicator: 'm-activity',
   Path: 'm-path',
   Modal: 'm-modal',
+  /** an SVG viewport (react-native-svg's RNSVGSvgView): a box in layout, a vector canvas inside */
+  Svg: 'm-svg',
+  /** any element inside an SVG viewport; its `svgType` prop says which (path, g, linearGradient…) */
+  SvgNode: 'm-svg-node',
 } as const;
 
 export type NodeKind =
   | 'root' | 'view' | 'text' | 'virtual-text' | 'raw-text' | 'image' | 'scroll'
-  | 'input' | 'switch' | 'activity' | 'path' | 'modal';
+  | 'input' | 'switch' | 'activity' | 'path' | 'modal' | 'svg' | 'svg-node';
 
 const KIND_BY_TYPE: Record<string, NodeKind> = {
   [HostType.View]: 'view',
@@ -33,6 +37,8 @@ const KIND_BY_TYPE: Record<string, NodeKind> = {
   [HostType.ActivityIndicator]: 'activity',
   [HostType.Path]: 'path',
   [HostType.Modal]: 'modal',
+  [HostType.Svg]: 'svg',
+  [HostType.SvgNode]: 'svg-node',
 };
 
 export function kindForType(type: string, insideText: boolean): NodeKind {
@@ -103,7 +109,8 @@ export class HostNode {
     this.type = type;
     this.kind = kind;
     this.props = props;
-    if (kind !== 'virtual-text' && kind !== 'raw-text') {
+    // Inline text and SVG elements are drawn by their container; they have no box of their own.
+    if (kind !== 'virtual-text' && kind !== 'raw-text' && kind !== 'svg-node') {
       this.yoga = engine.yoga.Node.create(engine.yogaConfig);
       this.installMeasure();
     }
@@ -328,6 +335,14 @@ export class HostNode {
 
   measure(callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void): void {
     const page = this.engine.geometry.windowRect(this);
+    if (this.kind === 'svg-node') {
+      // relative to the SVG viewport that contains it
+      let root = this.parent;
+      while (root && root.kind === 'svg-node') root = root.parent;
+      const origin = root ? this.engine.geometry.windowRect(root) : { x: 0, y: 0 };
+      callback(page.x - origin.x, page.y - origin.y, page.w, page.h, page.x, page.y);
+      return;
+    }
     callback(this.x, this.y, this.w, this.h, page.x, page.y);
   }
 
