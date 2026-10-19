@@ -1,6 +1,8 @@
-name: Oracle (iOS Simulator)
-# Captures real-simulator references for the showcase scenes and diffs them
-# against Mimicry's renders. Results are pushed to the `oracle-results` branch.
+name: Oracle (simulators)
+# Captures real-simulator/emulator references for example projects and diffs
+# them against Mimicry's renders. Which projects run on which platform is set
+# in scripts/oracle-targets.json. Each job pushes its captures and report to
+# an `oracle-out/<platform>-<project>` branch.
 on:
   workflow_dispatch:
   push:
@@ -8,9 +10,31 @@ on:
 permissions:
   contents: write
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      ios: ${{ steps.p.outputs.ios }}
+      android: ${{ steps.p.outputs.android }}
+      motion: ${{ steps.p.outputs.motion }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          node -e '
+            const t = require("./scripts/oracle-targets.json");
+            const fs = require("fs");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT,
+              `ios=${JSON.stringify(t.ios ?? [])}\nandroid=${JSON.stringify(t.android ?? [])}\nmotion=${t.motion ? 1 : 0}\n`);'
+
   ios:
+    needs: plan
+    if: needs.plan.outputs.ios != '[]'
     runs-on: macos-26
-    timeout-minutes: 90
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.plan.outputs.ios) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,24 +43,70 @@ jobs:
       - name: Build, capture and compare
         id: run
         continue-on-error: true
+        env:
+          PROJECT: ${{ matrix.project }}
+          MOTION: ${{ needs.plan.outputs.motion }}
         run: |
           set -o pipefail
-          bash scripts/oracle-ci.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"
-      - name: Publish results to the oracle-results branch
+          bash scripts/oracle-ios.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"
+      - name: Publish results
         if: always()
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT: ${{ matrix.project }}
+          OUTCOME: ${{ steps.run.outcome }}
+        run: bash scripts/oracle-publish.sh ios
+
+  android:
+    needs: plan
+    if: needs.plan.outputs.android != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.plan.outputs.android) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+      - name: Enable KVM
         run: |
-          OUT="$RUNNER_TEMP/results"
-          mkdir -p "$OUT"
-          cp -R oracle/. "$OUT/" 2>/dev/null || true
-          tail -c 80000 "$RUNNER_TEMP/oracle-log.txt" > "$OUT/log-tail.txt" || true
-          echo "outcome: ${{ steps.run.outcome }}" > "$OUT/status.txt"
-          echo "commit: ${{ github.sha }}" >> "$OUT/status.txt"
-          cd "$OUT"
-          git init -q
-          git config user.name "mimicry-oracle"
-          git config user.email "oracle@users.noreply.github.com"
-          git add -A
-          git commit -qm "Oracle results for ${{ github.sha }}"
-          git push -f "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" HEAD:oracle-results
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+      - name: Pick a Pixel 9 hardware profile
+        id: profile
+        run: |
+          AVD="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+          "$AVD" list device -c | tee "$RUNNER_TEMP/devices.txt"
+          if grep -qx pixel_9 "$RUNNER_TEMP/devices.txt"; then echo "profile=pixel_9" >> "$GITHUB_OUTPUT"; else echo "profile=pixel_8" >> "$GITHUB_OUTPUT"; fi
+      - name: Build, boot emulator, capture and compare
+        id: run
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          PROJECT: ${{ matrix.project }}
+          MOTION: ${{ needs.plan.outputs.motion }}
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: ${{ steps.profile.outputs.profile }}
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash -c 'set -o pipefail; bash scripts/oracle-android.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"'
+      - name: Publish results
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT: ${{ matrix.project }}
+          OUTCOME: ${{ steps.run.outcome }}
+        run: bash scripts/oracle-publish.sh android

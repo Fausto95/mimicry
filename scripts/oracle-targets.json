@@ -1,0 +1,5 @@
+{
+  "ios": ["examples/showcase"],
+  "android": ["examples/showcase"],
+  "motion": false
+}
