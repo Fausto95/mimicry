@@ -87,6 +87,7 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
   /** the touch-down of the current sequence stopped a moving scroll */
   touchStoppedScrolling = false;
   private _refreshControl: UIRefreshControl | null = null;
+  private readonly scrollObservers = new Set<(scrollView: UIScrollView) => void>();
 
   constructor(frame?: CGRect) {
     super(frame);
@@ -313,8 +314,33 @@ export class UIScrollView extends UIView implements FrameTask, WheelScrollable {
   }
 
   private syncOffset(): void {
+    const moved = this.layer.originX !== this.kinetics.x || this.layer.originY !== this.kinetics.y;
     this.layer.originX = this.kinetics.x;
     this.layer.originY = this.kinetics.y;
+    if (moved) for (const observer of Array.from(this.scrollObservers)) observer(this);
+  }
+
+  /** @internal be told whenever the offset moves (containers follow their content scroll view). */
+  _observeScroll(observer: (scrollView: UIScrollView) => void): () => void {
+    this.scrollObservers.add(observer);
+    return () => this.scrollObservers.delete(observer);
+  }
+
+  /**
+   * The first layout in a window fixes the initial offset (at
+   * -adjustedContentInset), as UIKit does. Scroll views whose owner
+   * manages the offset itself (React Native's, which override metrics())
+   * are left alone.
+   */
+  override layoutSubviews(): void {
+    super.layoutSubviews();
+    if (!this.window) return;
+    if (this.initialized) {
+      this.clampOffset();
+      return;
+    }
+    if (this.metrics !== UIScrollView.prototype.metrics || this.kinetics.x !== 0 || this.kinetics.y !== 0) return;
+    this.initializeOffsetIfNeeded();
   }
 
   /** @internal a finger touched down on the scroll view */

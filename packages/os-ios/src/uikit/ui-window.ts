@@ -127,7 +127,7 @@ export class UIWindow extends UIView {
     for (const v of chain) {
       const vc = v._viewController;
       if (!vc) continue;
-      const extra = vc.additionalSafeAreaInsets;
+      const extra = vc._safeAreaExtension;
       if (!extra.top && !extra.left && !extra.bottom && !extra.right) continue;
       const r = v.layer.windowRect();
       x0 = Math.max(x0, r.x) + extra.left;

@@ -2,6 +2,8 @@ import { UIEdgeInsetsZero, type UIEdgeInsets } from '../core-graphics/geometry';
 import { UIResponder } from './ui-responder';
 import { UIUserInterfaceStyle } from './ui-trait-collection';
 import { UIView } from './ui-view';
+import { UINavigationItem } from './ui-navigation-item';
+import { UITabBarItem } from './ui-tab-bar-item';
 
 /**
  * UIViewController: owns a view (loaded lazily through loadView /
@@ -22,7 +24,13 @@ export class UIViewController extends UIResponder {
   private _parent: UIViewController | null = null;
   private readonly _children: UIViewController[] = [];
   private _additionalSafeAreaInsets: UIEdgeInsets = UIEdgeInsetsZero;
-  title: string | null = null;
+  /** insets a container adds for its bars (navigation bar, tab bar) */
+  private _containerInsets: UIEdgeInsets = UIEdgeInsetsZero;
+  private _title: string | null = null;
+  private _navigationItem: UINavigationItem | null = null;
+  private _tabBarItem: UITabBarItem | null = null;
+  /** pushed onto a navigation controller inside a tab bar controller: hide the tab bar */
+  hidesBottomBarWhenPushed = false;
   overrideUserInterfaceStyle = UIUserInterfaceStyle.unspecified;
   modalPresentationStyle = UIModalPresentationStyle.automatic;
   modalTransitionStyle = UIModalTransitionStyle.coverVertical;
@@ -37,6 +45,55 @@ export class UIViewController extends UIResponder {
 
   get next(): UIResponder | null {
     return this._view?.superview ?? this._parent ?? null;
+  }
+
+  /** Setting the title also titles the navigation item and the tab bar item (UIKit does). */
+  get title(): string | null {
+    return this._title;
+  }
+
+  set title(title: string | null) {
+    this._title = title;
+    if (this._navigationItem) this._navigationItem.title = title;
+    if (this._tabBarItem && this._tabBarItem.title === null) this._tabBarItem.title = title;
+  }
+
+  get navigationItem(): UINavigationItem {
+    return (this._navigationItem ??= new UINavigationItem(this._title));
+  }
+
+  get tabBarItem(): UITabBarItem {
+    return (this._tabBarItem ??= new UITabBarItem(this._title, null, null));
+  }
+
+  set tabBarItem(item: UITabBarItem) {
+    this._tabBarItem = item;
+    this._parent?._childTabBarItemChanged();
+  }
+
+  /** @internal a child's tab bar item changed (UITabBarController redraws its bar) */
+  _childTabBarItemChanged(): void {}
+
+  /** The nearest navigation controller up the parent chain. */
+  get navigationController(): UIViewController | null {
+    for (let p = this._parent; p; p = p._parent) if (p._isNavigationController) return p;
+    return null;
+  }
+
+  /** The nearest tab bar controller up the parent chain. */
+  get tabBarController(): UIViewController | null {
+    for (let p = this._parent; p; p = p._parent) if (p._isTabBarController) return p;
+    return null;
+  }
+
+  /** @internal */
+  get _isNavigationController(): boolean {
+    return false;
+  }
+
+  /** @internal */
+  get _isTabBarController(): boolean {
+    return false;
   }
 
   // ── view lifecycle ──────────────────────────────────────────────────
@@ -119,6 +176,22 @@ export class UIViewController extends UIResponder {
     this._additionalSafeAreaInsets = insets;
     this._view?.setNeedsLayout();
     this.viewSafeAreaInsetsDidChange();
+  }
+
+  /** @internal a container's bars inset this controller's view (on top of additionalSafeAreaInsets) */
+  _setContainerInsets(insets: UIEdgeInsets): void {
+    const c = this._containerInsets;
+    if (c.top === insets.top && c.left === insets.left && c.bottom === insets.bottom && c.right === insets.right) return;
+    this._containerInsets = insets;
+    this._view?.setNeedsLayout();
+    this.viewSafeAreaInsetsDidChange();
+  }
+
+  /** @internal what this controller's view adds to the safe area of what it contains */
+  get _safeAreaExtension(): UIEdgeInsets {
+    const a = this._additionalSafeAreaInsets;
+    const c = this._containerInsets;
+    return { top: a.top + c.top, left: a.left + c.left, bottom: a.bottom + c.bottom, right: a.right + c.right };
   }
 
   // ── presentation ────────────────────────────────────────────────────

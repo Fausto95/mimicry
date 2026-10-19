@@ -34,6 +34,10 @@ export const SF_TO_MATERIAL: Record<string, string> = {
   'car': 'directions_car', 'airplane': 'flight', 'bicycle': 'pedal_bike', 'figure.walk': 'directions_walk', 'music.note': 'music_note',
   'film': 'movie', 'tv': 'tv', 'gamecontroller': 'sports_esports', 'book': 'menu_book', 'graduationcap': 'school', 'briefcase': 'work',
   'building.2': 'apartment', 'square.stack': 'layers', 'rectangle.portrait.and.arrow.right': 'logout', 'power': 'power_settings_new',
+  // UIKit's own system items
+  'arrowshape.turn.up.left': 'reply', 'arrow.uturn.backward': 'undo', 'arrow.uturn.forward': 'redo', 'apple.writing.tools': 'edit_note',
+  'clock.arrow.circlepath': 'history', 'star.circle': 'stars', 'person.2.fill': 'group', 'square.grid.2x2.fill': 'grid_view',
+  'arrow.down.circle': 'download', 'list.number': 'format_list_numbered', 'ellipsis.circle.fill': 'more_horiz',
 };
 
 /** The Material Symbols ligature that draws an SF Symbol. */
