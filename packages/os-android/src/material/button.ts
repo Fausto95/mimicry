@@ -63,6 +63,21 @@ export const isIconStyle = (style: ButtonStyle) => style >= ButtonStyle.ICON;
 
 export type OnButtonCheckedListener = (button: MaterialButton, isChecked: boolean) => void;
 
+/**
+ * Material 3 Expressive button profiles. They are opt-in theme variants:
+ * MDC permits expressive components on older Android versions, too.
+ * Heights include the transparent touch-target inset around the container.
+ */
+export type ExpressiveButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type ExpressiveButtonShape = 'round' | 'square';
+export const EXPRESSIVE_BUTTON_SIZES: Readonly<Record<ExpressiveButtonSize, { height: number; padding: number; labelSize: number }>> = {
+  xs: { height: 48, padding: 12, labelSize: 12 },
+  sm: { height: 48, padding: 16, labelSize: 14 },
+  md: { height: 56, padding: 24, labelSize: 14 },
+  lg: { height: 80, padding: 32, labelSize: 16 },
+  xl: { height: 96, padding: 40, labelSize: 18 },
+};
+
 export class Button extends TextView {
   override getAccessibilityClassName(): string {
     return 'android.widget.Button';
@@ -181,11 +196,57 @@ export class MaterialButton extends Button {
   private iconTint: ColorStateList | null = null;
   private checkable = false;
   private checked = false;
+  private expressiveSize: ExpressiveButtonSize | null = null;
+  private expressiveShape: ExpressiveButtonShape = 'round';
+  private expressiveMorph = false;
   private readonly checkedListeners: OnButtonCheckedListener[] = [];
 
   constructor(context: Context, style: ButtonStyle = ButtonStyle.FILLED) {
     super(context, style);
     if (isIconStyle(style)) this.iconSize = 24;
+  }
+
+  /**
+   * Opt into one of five Material 3 Expressive button sizes. Existing styles
+   * remain M3 by default, preserving measured legacy controls and golden images.
+   */
+  setExpressiveSize(size: ExpressiveButtonSize): void {
+    this.expressiveSize = size;
+    const profile = EXPRESSIVE_BUTTON_SIZES[size];
+    this.setMinimumHeight(profile.height);
+    this.setMinimumWidth(profile.height);
+    this.applyPadding();
+    this.updateExpressiveShape();
+    this.requestLayout();
+  }
+
+  getExpressiveSize(): ExpressiveButtonSize | null {
+    return this.expressiveSize;
+  }
+
+  /** Round and square Expressive buttons use different container geometry. */
+  setExpressiveShape(shape: ExpressiveButtonShape): void {
+    this.expressiveShape = shape;
+    this.updateExpressiveShape();
+  }
+
+  getExpressiveShape(): ExpressiveButtonShape {
+    return this.expressiveShape;
+  }
+
+  /** Morph round ↔ square on press (and for checked toggle buttons). */
+  setExpressiveMorphOnPress(enabled: boolean): void {
+    this.expressiveMorph = enabled;
+    this.updateExpressiveShape();
+  }
+
+  private updateExpressiveShape(): void {
+    if (!this.expressiveSize) return;
+    const morph = this.expressiveMorph && (this.isPressed() || (this.checkable && this.checked));
+    const shape: ExpressiveButtonShape = morph
+      ? (this.expressiveShape === 'round' ? 'square' : 'round')
+      : this.expressiveShape;
+    this.shape.setCornerSize(shape === 'round' ? CORNER_FULL : this.expressiveSize === 'xl' ? 28 : this.expressiveSize === 'lg' ? 20 : 12);
   }
 
   protected override applyStyle(): void {
@@ -206,8 +267,9 @@ export class MaterialButton extends Button {
     }
     const text = this.buttonStyle === ButtonStyle.TEXT;
     const withIcon = this.icon != null && (this.iconGravity === MaterialButton.ICON_GRAVITY_START || this.iconGravity === MaterialButton.ICON_GRAVITY_TEXT_START);
-    const start = text ? 12 : withIcon ? 16 : 24;
-    const end = text ? (this.icon ? 16 : 12) : 24;
+    const pad = this.expressiveSize ? EXPRESSIVE_BUTTON_SIZES[this.expressiveSize].padding : 24;
+    const start = text ? 12 : withIcon ? 16 : pad;
+    const end = text ? (this.icon ? 16 : 12) : pad;
     this.setPadding(start, INSET + 6, end, INSET + 6);
   }
 
@@ -268,6 +330,7 @@ export class MaterialButton extends Button {
   protected override drawableStateChanged(): void {
     super.drawableStateChanged();
     this.applyIconTint();
+    this.updateExpressiveShape();
   }
 
   private iconSpace(): number {
@@ -345,6 +408,7 @@ export class MaterialButton extends Button {
     if (!this.checkable || this.checked === checked) return;
     this.checked = checked;
     this.refreshDrawableState();
+    this.updateExpressiveShape();
     this.updateCheckedColors();
     for (const l of this.checkedListeners.slice()) l(this, checked);
   }
