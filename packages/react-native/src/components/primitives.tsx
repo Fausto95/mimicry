@@ -103,12 +103,13 @@ export const ImageBackground = forwardRef<any, AnyProps>(function ImageBackgroun
     View,
     { style, ref, ...rest },
     h(Image, {
+      key: 'background',
       source,
       resizeMode,
       ref: imageRef,
       style: [{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }, imageStyle],
     }),
-    children,
+    h(React.Fragment, { key: 'content', children }),
   );
 });
 
@@ -135,8 +136,8 @@ export const Pressable = forwardRef<any, AnyProps>(function Pressable(props, ref
       ...handlers,
       style: typeof style === 'function' ? style(state) : style,
       ref: mergeRefs(ref, host),
+      children: typeof children === 'function' ? children(state) : children,
     },
-    typeof children === 'function' ? children(state) : children,
   );
 });
 

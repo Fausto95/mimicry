@@ -21,7 +21,7 @@ export function SafeAreaProvider({ children, style }: { children?: React.ReactNo
     React.createElement(
       SafeAreaFrameContext.Provider,
       { value: { x: 0, y: 0, width, height } },
-      React.createElement(View as any, { style: [{ flex: 1 }, style] }, children),
+      React.createElement(View as any, { style: [{ flex: 1 }, style], children }),
     ),
   );
 }

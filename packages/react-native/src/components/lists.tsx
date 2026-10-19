@@ -21,7 +21,7 @@ export const ScrollView = forwardRef<any, AnyProps>(function ScrollView(props, r
   return h(
     HostType.ScrollView,
     { ...rest, horizontal: !!horizontal, style: [horizontal ? baseHorizontal : baseVertical, style], ref },
-    h(View, { collapsable: false, onLayout, style: [horizontal ? { flexDirection: 'row' } : null, contentContainerStyle] }, children),
+    h(View, { collapsable: false, onLayout, style: [horizontal ? { flexDirection: 'row' } : null, contentContainerStyle], children }),
   );
 });
 

@@ -23,6 +23,6 @@ export function Modal(props: Record<string, any>) {
   return h(
     HostType.Modal,
     { ...rest, visible, transparent: !!transparent, animationType, onDismiss: dismissed },
-    h(View, { style: { flex: 1, backgroundColor: transparent ? 'transparent' : 'white' } }, children),
+    h(View, { style: { flex: 1, backgroundColor: transparent ? 'transparent' : 'white' }, children }),
   );
 }

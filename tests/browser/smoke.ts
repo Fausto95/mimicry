@@ -51,5 +51,8 @@ await page.waitForTimeout(600);
 await page.click('.tabs button[data-tab="engine"]');
 await page.waitForTimeout(600);
 await page.screenshot({ path: 'artifacts/studio-android-dark.png' });
-console.log(errors.length ? `ERRORS:\n${errors.join('\n')}` : 'no page errors');
+if (errors.length) {
+  console.error(`page errors:\n${errors.join('\n')}`);
+  process.exitCode = 1;
+} else console.log('PASS: Studio booted both platforms, taps and native text input reached the app');
 await browser.close();

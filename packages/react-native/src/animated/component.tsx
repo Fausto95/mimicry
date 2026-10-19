@@ -7,10 +7,14 @@ import { AnimatedNode } from './animated';
  * that, value changes are pushed straight onto the host node as style
  * overrides (no React render), like the native driver does on device.
  */
+/** React elements are plain objects too; never walk into them. */
+const isPlain = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype && !('$$typeof' in (value as object));
+
 function resolve(value: unknown): unknown {
   if (value instanceof AnimatedNode) return value.__getValue();
   if (Array.isArray(value)) return value.map(resolve);
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+  if (isPlain(value)) {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) out[k] = resolve(v);
     return out;
@@ -21,7 +25,7 @@ function resolve(value: unknown): unknown {
 function containsAnimated(value: unknown): boolean {
   if (value instanceof AnimatedNode) return true;
   if (Array.isArray(value)) return value.some(containsAnimated);
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+  if (isPlain(value)) {
     return Object.values(value).some(containsAnimated);
   }
   return false;
@@ -33,7 +37,7 @@ function collectNodes(value: unknown, out: Set<AnimatedNode>): void {
     return;
   }
   if (Array.isArray(value)) value.forEach((v) => collectNodes(v, out));
-  else if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+  else if (isPlain(value)) {
     Object.values(value).forEach((v) => collectNodes(v, out));
   }
 }
@@ -51,7 +55,7 @@ export function createAnimatedComponent<P extends object>(Component: React.Compo
 
     const style = flattenStyle(props.style);
     const animatedStyleKeys = Object.keys(style).filter((k) => containsAnimated(style[k]));
-    const otherAnimated = Object.keys(props).filter((k) => k !== 'style' && containsAnimated(props[k]));
+    const otherAnimated = Object.keys(props).filter((k) => k !== 'style' && k !== 'children' && containsAnimated(props[k]));
 
     const resolved: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(props)) {
@@ -98,7 +102,8 @@ export function createAnimatedComponent<P extends object>(Component: React.Compo
       [forwardedRef],
     );
 
-    return <Component {...(resolved as P)} ref={setRef} />;
+    // createElement (not JSX spread): children arrive as a prop and must not be re-validated as a keyed list
+    return React.createElement(Component as React.ComponentType<any>, { ...resolved, ref: setRef });
   });
   Animated.displayName = `Animated(${Component.displayName ?? Component.name ?? 'Component'})`;
   return Animated;

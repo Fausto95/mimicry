@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - name: Studio smoke test (Chromium)
+        run: |
+          npx playwright install --with-deps chromium
+          node packages/cli/bin/mimicry.js dev examples/showcase --port 5180 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:5180/__mimicry/manifest > /dev/null && break; sleep 1; done
+          npm run test:browser
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renders
+          path: artifacts/
+          if-no-files-found: ignore

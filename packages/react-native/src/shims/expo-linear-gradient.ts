@@ -16,5 +16,6 @@ export const LinearGradient = forwardRef<any, any>(function LinearGradient(props
     ...rest,
     ref,
     style: [style, { experimental_backgroundImage: `linear-gradient(${angle}deg, ${stops})` }],
-  }, children);
+    children,
+  });
 });

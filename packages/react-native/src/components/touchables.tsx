@@ -49,8 +49,8 @@ export const TouchableOpacity = forwardRef<any, AnyProps>(function TouchableOpac
       ...handlers,
       style: [style, { opacity: flatOpacity === 1 ? opacity : opacity.interpolate({ inputRange: [0, 1], outputRange: [0, flatOpacity] }) }],
       ref: mergeRefs(ref, host),
+      children,
     },
-    children,
   );
 });
 

@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:golden": "vitest run tests/golden",
-    "test:browser": "node --import tsx tests/browser/smoke.ts",
+    "test:browser": "MIMICRY_URL=${MIMICRY_URL:-http://127.0.0.1:5180} node --import tsx tests/browser/smoke.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "goldens:update": "MIMICRY_UPDATE_GOLDENS=1 vitest run tests/golden"
   },
