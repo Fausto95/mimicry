@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/material-symbols": "^0.4.50",
     "@expo-google-fonts/roboto": "^0.4.3",
     "@mimicry/protocol": "0.3.0",
     "@swc/core": "^1.16.18",

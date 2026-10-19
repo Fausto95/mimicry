@@ -66,7 +66,7 @@ export const TabsHost = forwardRef<any, any>(function TabsHost(props, ref) {
   const state = useRef<{ selected: string | null; provenance: number; lastUi: number }>({ selected: null, provenance: 0, lastUi: -1 });
   const [, rerender] = useState(0);
 
-  // Order follows the children (each Tabs.Screen element carries its screenKey).
+  // Order follows the children when they carry their screenKey (Tabs.Screen elements).
   const order: string[] = [];
   React.Children.forEach(children, (child) => {
     if (React.isValidElement(child) && typeof (child.props as any).screenKey === 'string') order.push((child.props as any).screenKey);
@@ -158,7 +158,9 @@ export const TabsHost = forwardRef<any, any>(function TabsHost(props, ref) {
     },
   }), [s.selected, barInset]);
 
-  const tabs = order.map((k) => items.get(k)).filter((t): t is TabItem => !!t);
+  // Wrappers (expo-router's) may hide screenKey from the children; then mount order is tab order.
+  const keys = order.length ? order : Array.from(items.keys());
+  const tabs = keys.map((k) => items.get(k)).filter((t): t is TabItem => !!t);
   const appearance = items.get(s.selected ?? '')?.appearance ?? tabs[0]?.appearance;
   const bar = tabBarHidden ? null : ios
     ? React.createElement(IOSTabBar, { tabs, selected: s.selected, onSelect: select, tint: tabBarTintColor, appearance, bottom: insets.bottom })

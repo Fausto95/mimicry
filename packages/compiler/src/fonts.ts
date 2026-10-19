@@ -5,10 +5,12 @@ import { existsSync } from 'node:fs';
 /**
  * Fonts Mimicry ships so text measures identically in the engine worker, the
  * browser host and headless Node: Inter stands in for SF Pro (which cannot
- * be redistributed) and Roboto is Android's actual system font.
+ * be redistributed), Roboto is Android's actual system font, and Material
+ * Symbols draws system glyphs (SF Symbols are mapped onto it, see
+ * react-native/src/native/expo-views.tsx).
  */
 export interface BundledFont {
-  family: 'Inter' | 'Roboto';
+  family: 'Inter' | 'Roboto' | 'Material Symbols';
   weight: string;
   style: 'normal' | 'italic';
   file: string;
@@ -31,9 +33,15 @@ function packageDir(name: string): string | null {
   }
 }
 
-export function bundledFonts(families: Array<'Inter' | 'Roboto'> = ['Inter', 'Roboto']): BundledFont[] {
+export function bundledFonts(families: Array<BundledFont['family']> = ['Inter', 'Roboto', 'Material Symbols']): BundledFont[] {
   const out: BundledFont[] = [];
   for (const family of families) {
+    if (family === 'Material Symbols') {
+      const dir = packageDir('@expo-google-fonts/material-symbols');
+      const file = dir && join(dir, '400Regular', 'MaterialSymbols_400Regular.ttf');
+      if (file && existsSync(file)) out.push({ family, weight: '400', style: 'normal', file, url: '/__mimicry/fonts/MaterialSymbols_400Regular.ttf' });
+      continue;
+    }
     const dir = packageDir(`@expo-google-fonts/${family.toLowerCase()}`);
     if (!dir) continue;
     for (const [weight, name] of WEIGHTS) {
@@ -50,5 +58,5 @@ export function bundledFonts(families: Array<'Inter' | 'Roboto'> = ['Inter', 'Ro
 /** The subset a platform needs at boot (others load lazily in the browser). */
 export function fontsForPlatform(platform: 'ios' | 'android'): BundledFont[] {
   const family = platform === 'ios' ? 'Inter' : 'Roboto';
-  return bundledFonts([family]).filter((f) => f.style === 'normal' || f.weight === '400');
+  return bundledFonts([family, 'Material Symbols']).filter((f) => f.style === 'normal' || f.weight === '400');
 }

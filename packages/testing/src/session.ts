@@ -134,12 +134,21 @@ export class Session {
     return this;
   }
 
-  /** Wait for images, then settle. */
+  /**
+   * Settle, then let async work the app started (promises, images) finish
+   * inside act() and settle again, until nothing new happens.
+   */
   async ready(maxMs = 5000): Promise<this> {
     this.settle(maxMs);
-    for (let i = 0; i < 10 && this.pendingImages.size; i++) {
-      await Promise.all(Array.from(this.pendingImages));
+    for (let i = 0; i < 10; i++) {
+      const before = this.engine.stats.frames;
+      await act(async () => {
+        await Promise.all(Array.from(this.pendingImages));
+        // a macrotask: every promise chain started so far runs inside act
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
       this.settle(maxMs);
+      if (!this.pendingImages.size && this.engine.stats.frames === before && !this.engine.hasDeferred) break;
     }
     return this;
   }

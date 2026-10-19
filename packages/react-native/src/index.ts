@@ -28,6 +28,7 @@ import { getNativeModule, nativeComponent, nativeCommands } from './native/regis
 import './native/expo-modules';
 import './native/svg';
 import './native/screens';
+import './native/expo-views';
 import './native/materials';
 export { DeviceEventEmitter, NativeEventEmitter } from './native/events';
 export {
