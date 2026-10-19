@@ -1,5 +1,5 @@
 import { mixColor, rgba, withAlpha, type Appearance, type CommandWriter, type Viewport } from '@mimicry/protocol';
-import { circle, pill, resolveBarStyle, type ActivityState, type PlatformKit, type StatusBarState, type SwitchState } from './kit';
+import { circle, pill, resolveBarStyle, type ActivityState, type PlatformKit, type StatusBarState, type SwitchState } from '@mimicry/os-core';
 
 /**
  * Android kit: what a stock React Native app looks like on Android — Roboto,

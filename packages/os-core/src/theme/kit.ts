@@ -29,8 +29,8 @@ export interface ActivityState {
   animating: boolean;
 }
 
-export type { StatusBarState } from '@mimicry/os-core';
-import type { StatusBarState } from '@mimicry/os-core';
+export type { StatusBarState } from '../services/environment';
+import type { StatusBarState } from '../services/environment';
 
 export interface ScrollPhysics {
   /** iOS rubber banding while dragging past an edge */

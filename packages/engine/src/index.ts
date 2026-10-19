@@ -14,9 +14,9 @@ export { Animator, Spring, cubicBezier, uikitEase, materialStandard, type FrameT
 export { flattenStyle, type FlatStyle } from './style/flatten';
 export { parseColor, type ColorContext } from '@mimicry/os-core';
 export { transformMatrix } from './style/transform';
-export { iosKit, IOS_COLORS } from './platform/ios';
-export { androidKit, ANDROID_COLORS } from './platform/android';
-export type { PlatformKit, StatusBarState } from './platform/kit';
+export { iosKit, IOS_COLORS } from '@mimicry/os-ios';
+export { androidKit, ANDROID_COLORS } from '@mimicry/os-android';
+export type { PlatformKit, StatusBarState } from '@mimicry/os-core';
 export { EnvironmentStore } from '@mimicry/os-core';
 export { syntheticEvent, type SyntheticEvent } from './events';
 export { loadYoga } from './layout/yoga';

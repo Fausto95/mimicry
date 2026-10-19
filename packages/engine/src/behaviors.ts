@@ -3,7 +3,7 @@ import type { Engine } from './engine';
 import { cubicBezier, easeOut, type FrameTask } from '@mimicry/os-core';
 import { parseColor } from '@mimicry/os-core';
 import { multiply, scaling, translation, type Matrix } from '@mimicry/os-core';
-import type { ActivityState, SwitchState } from './platform/kit';
+import type { ActivityState, SwitchState } from '@mimicry/os-core';
 import type { HostNode } from './tree/node';
 
 /**

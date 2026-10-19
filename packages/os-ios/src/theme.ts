@@ -1,5 +1,5 @@
 import { mixColor, rgba, withAlpha, type Appearance, type CommandWriter, type Viewport } from '@mimicry/protocol';
-import { pill, resolveBarStyle, type ActivityState, type PlatformKit, type StatusBarState, type SwitchState } from './kit';
+import { pill, resolveBarStyle, type ActivityState, type PlatformKit, type StatusBarState, type SwitchState } from '@mimicry/os-core';
 
 /**
  * iOS kit: UIKit semantic colors, SF Pro typography (Inter when bundled

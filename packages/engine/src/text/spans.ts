@@ -1,6 +1,6 @@
 import type { Appearance } from '@mimicry/protocol';
-import type { PlatformKit } from '../platform/kit';
-import { normalizeWeight } from '../platform/kit';
+import type { PlatformKit } from '@mimicry/os-core';
+import { normalizeWeight } from '@mimicry/os-core';
 import { parseColor, type ColorContext } from '@mimicry/os-core';
 import type { FlatStyle } from '../style/flatten';
 import type { HostNode } from '../tree/node';

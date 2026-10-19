@@ -12,3 +12,8 @@ export * from './text/text-block';
 export * from './animation/animator';
 export * from './animation/clock';
 export * from './services/environment';
+export * from './theme/kit';
+export * from './render/layer';
+export * from './render/render-server';
+export * from './services/images';
+export * from './kernel';
