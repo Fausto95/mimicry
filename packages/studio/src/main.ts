@@ -261,6 +261,7 @@ async function main(): Promise<void> {
     frame.dataset.finish = shell.id;
     frame.style.setProperty('--radius', `${d.cornerRadius * zoom}px`);
     frame.style.setProperty('--bezel', `${Math.max(5, dBezel(d) * zoom)}px`);
+    frame.style.setProperty('--control-scale', String(zoom));
     frame.style.setProperty('--rail', shell.rail);
     frame.style.setProperty('--rail-light', shell.light);
     frame.style.setProperty('--rail-dark', shell.dark);
