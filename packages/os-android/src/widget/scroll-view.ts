@@ -4,8 +4,8 @@ import {
 import { androidKit } from '../theme';
 import type { Context } from '../content/context';
 import { MotionEvent, ViewConfiguration } from '../view/motion-event';
-import { MeasureSpec, View } from '../view/view';
-import { FrameLayout } from '../view/view-group';
+import { LayoutParams, MeasureSpec, View } from '../view/view';
+import { FrameLayout, ViewGroup } from '../view/view-group';
 
 /**
  * android.widget.ScrollView and HorizontalScrollView: one child scrolled by
@@ -167,13 +167,19 @@ export class ScrollView extends FrameLayout implements FrameTask {
     const height = MeasureSpec.getSize(heightMeasureSpec);
     const child = this.getChildAt(0);
     if (child) {
-      const unspecified = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-      const fixedW = MeasureSpec.makeMeasureSpec(width - this.getPaddingLeft() - this.getPaddingRight(), MeasureSpec.EXACTLY);
-      const fixedH = MeasureSpec.makeMeasureSpec(height - this.getPaddingTop() - this.getPaddingBottom(), MeasureSpec.EXACTLY);
-      child.measure(this.horizontal ? unspecified : fixedW, this.horizontal ? fixedH : unspecified);
+      const lp = child.getLayoutParams();
+      const padW = this.getPaddingLeft() + this.getPaddingRight();
+      const padH = this.getPaddingTop() + this.getPaddingBottom();
+      // Along the scroll axis the child is as big as it wants (or its fixed size).
+      const along = (fixed: number | undefined) => (fixed !== undefined && fixed >= 0 ? MeasureSpec.makeMeasureSpec(fixed, MeasureSpec.EXACTLY) : MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+      const wSpec = this.horizontal ? along(lp?.width) : ViewGroup.getChildMeasureSpec(widthMeasureSpec, padW, lp?.width ?? LayoutParams.MATCH_PARENT);
+      const hSpec = this.horizontal ? ViewGroup.getChildMeasureSpec(heightMeasureSpec, padH, lp?.height ?? LayoutParams.MATCH_PARENT) : along(lp?.height);
+      child.measure(wSpec, hSpec);
       if (this.fillViewport) {
-        if (!this.horizontal && child.getMeasuredHeight() < height) child.measure(fixedW, fixedH);
-        if (this.horizontal && child.getMeasuredWidth() < width) child.measure(fixedW, fixedH);
+        const fixedW = MeasureSpec.makeMeasureSpec(width - padW, MeasureSpec.EXACTLY);
+        const fixedH = MeasureSpec.makeMeasureSpec(height - padH, MeasureSpec.EXACTLY);
+        if (!this.horizontal && child.getMeasuredHeight() < height - padH) child.measure(wSpec, fixedH);
+        if (this.horizontal && child.getMeasuredWidth() < width - padW) child.measure(fixedW, hSpec);
       }
     }
     this.setMeasuredDimension(width, height);
