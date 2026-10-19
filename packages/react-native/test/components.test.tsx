@@ -67,3 +67,28 @@ describe('react-native components', () => {
     s.dispose();
   });
 });
+
+describe('lists', () => {
+  it('render into renderScrollComponent and scroll to a section location', async () => {
+    const { SectionList, ScrollView, Text } = await import('react-native');
+    const React = await import('react');
+    const ref = React.createRef<any>();
+    const sections = Array.from({ length: 6 }, (_, s) => ({ key: `s${s}`, data: Array.from({ length: 8 }, (_, i) => `item ${s}-${i}`) }));
+    const s = await render(
+      <SectionList
+        ref={ref}
+        sections={sections}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }: any) => <Text testID={`header-${section.key}`} style={{ height: 40 }}>{section.key}</Text>}
+        renderItem={({ item }: any) => <Text style={{ height: 30 }}>{item}</Text>}
+        renderScrollComponent={(props: any) => <ScrollView {...props} testID="custom-scroll" contentContainerStyle={{ paddingHorizontal: 24 }} />}
+      />,
+    );
+    expect(s.find({ testID: 'custom-scroll' }).length).toBe(1);
+    expect(s.find({ testID: 'header-s0' })[0]!.rect.x).toBe(24);
+    s.act(() => ref.current.scrollToLocation({ sectionIndex: 2, itemIndex: 0, animated: false }));
+    s.settle();
+    expect(s.find({ testID: 'header-s2' })[0]!.rect.y).toBeCloseTo(0, 0);
+    s.dispose();
+  });
+});

@@ -55,6 +55,20 @@ interface ListHandle {
 }
 
 /**
+ * The scroll view a list renders into: a ScrollView, or the element from
+ * `renderScrollComponent(props)` (e.g. a keyboard-aware scroll view), which
+ * gets the list's ref and content like VirtualizedList gives it.
+ */
+function scrollComponent(renderScrollComponent: ((props: AnyProps) => React.ReactElement) | undefined, props: AnyProps, children: React.ReactNode[]) {
+  if (renderScrollComponent) {
+    const { ref, ...rest } = props;
+    const element = renderScrollComponent(rest);
+    return React.cloneElement(element as React.ReactElement<any>, { ref }, ...children);
+  }
+  return h(ScrollView, props, ...children);
+}
+
+/**
  * Not virtualized: every item renders. The painter culls and tiles what is
  * off screen, so drawing stays proportional to the viewport, but React work
  * grows with the data set (docs/fidelity.md).
@@ -65,7 +79,7 @@ export const FlatList = forwardRef<ListHandle, AnyProps>(function FlatList(props
     ListEmptyComponent, ListHeaderComponentStyle, ListFooterComponentStyle, numColumns = 1, columnWrapperStyle,
     horizontal, inverted, onEndReached, onEndReachedThreshold = 2, onScroll, getItemLayout, extraData,
     initialNumToRender, maxToRenderPerBatch, windowSize, removeClippedSubviews, CellRendererComponent, onViewableItemsChanged,
-    viewabilityConfig, ...rest
+    viewabilityConfig, renderScrollComponent, ...rest
   } = props;
   const scroll = useRef<any>(null);
   const offsets = useRef<Map<number, { offset: number; length: number }>>(new Map());
@@ -155,18 +169,14 @@ export const FlatList = forwardRef<ListHandle, AnyProps>(function FlatList(props
     body = items.map(cell);
   }
 
-  return h(
-    ScrollView,
-    {
-      ...rest,
-      horizontal,
-      ref: scroll,
-      onScroll: handleScroll,
-      style: [rest.style, invert],
-    },
-    ListHeaderComponent ? h(View, { style: [ListHeaderComponentStyle, invert] }, renderComponent(ListHeaderComponent)) : null,
-    body,
-    ListFooterComponent ? h(View, { style: [ListFooterComponentStyle, invert] }, renderComponent(ListFooterComponent)) : null,
+  return scrollComponent(
+    renderScrollComponent,
+    { ...rest, horizontal, ref: scroll, onScroll: handleScroll, style: [rest.style, invert] },
+    [
+      ListHeaderComponent ? h(View, { key: '__header', style: [ListHeaderComponentStyle, invert] }, renderComponent(ListHeaderComponent)) : null,
+      h(React.Fragment, { key: '__body' }, body),
+      ListFooterComponent ? h(View, { key: '__footer', style: [ListFooterComponentStyle, invert] }, renderComponent(ListFooterComponent)) : null,
+    ],
   );
 });
 
@@ -174,16 +184,27 @@ export const SectionList = forwardRef<any, AnyProps>(function SectionList(props,
   const {
     sections = [], renderItem, renderSectionHeader, renderSectionFooter, keyExtractor = defaultKey,
     ItemSeparatorComponent, SectionSeparatorComponent, ListHeaderComponent, ListFooterComponent, ListEmptyComponent,
-    stickySectionHeadersEnabled, ...rest
+    stickySectionHeadersEnabled, renderScrollComponent, ...rest
   } = props;
   const scroll = useRef<any>(null);
+  /** layout of each cell by "section:index", index 0 = the section header like VirtualizedSectionList */
+  const cells = useRef(new Map<string, { y: number; height: number }>());
   useImperativeHandle(ref, () => ({
-    scrollToLocation() {},
+    scrollToLocation({ sectionIndex, itemIndex = 0, viewOffset = 0, viewPosition = 0, animated = true }: { sectionIndex: number; itemIndex?: number; viewOffset?: number; viewPosition?: number; animated?: boolean }) {
+      const node = scroll.current;
+      const cell = cells.current.get(`${sectionIndex}:${itemIndex}`) ?? cells.current.get(`${sectionIndex}:${itemIndex + 1}`);
+      if (!node || !cell) return;
+      node.scrollTo({ y: cell.y - viewOffset - (node.h - cell.height) * viewPosition, animated });
+    },
     getScrollResponder: () => scroll.current,
     getScrollableNode: () => scroll.current,
     flashScrollIndicators: () => scroll.current?.flashScrollIndicators(),
     recordInteraction() {},
   }));
+  const track = (key: string) => (e: any) => {
+    const l = e.nativeEvent.layout;
+    cells.current.set(key, { y: l.y, height: l.height });
+  };
   const children: React.ReactNode[] = [];
   const header = renderComponent(ListHeaderComponent);
   if (header) children.push(h(View, { key: '__header' }, header));
@@ -192,12 +213,12 @@ export const SectionList = forwardRef<any, AnyProps>(function SectionList(props,
     const sectionKey = section.key ?? String(s);
     if (renderSectionHeader) {
       stickyIndices.push(children.length);
-      children.push(h(View, { key: `h-${sectionKey}` }, renderSectionHeader({ section })));
+      children.push(h(View, { key: `h-${sectionKey}`, onLayout: track(`${s}:0`) }, renderSectionHeader({ section })));
     }
     if (SectionSeparatorComponent) children.push(h(SectionSeparatorComponent, { key: `ss-${sectionKey}` }));
     (section.data ?? []).forEach((item: any, index: number) => {
       const render = section.renderItem ?? renderItem;
-      children.push(h(View, { key: `${sectionKey}-${keyExtractor(item, index)}` }, render?.({ item, index, section, separators: {} })));
+      children.push(h(View, { key: `${sectionKey}-${keyExtractor(item, index)}`, onLayout: track(`${s}:${index + 1}`) }, render?.({ item, index, section, separators: {} })));
       if (ItemSeparatorComponent && index < section.data.length - 1) children.push(h(ItemSeparatorComponent, { key: `sep-${sectionKey}-${index}` }));
     });
     if (renderSectionFooter) children.push(h(View, { key: `f-${sectionKey}` }, renderSectionFooter({ section })));
@@ -206,10 +227,10 @@ export const SectionList = forwardRef<any, AnyProps>(function SectionList(props,
   if (footer) children.push(h(View, { key: '__footer' }, footer));
   // React Native pins section headers by default on iOS only
   const sticky = stickySectionHeadersEnabled ?? maybeEngine()?.platform === 'ios';
-  return h(
-    ScrollView,
+  return scrollComponent(
+    renderScrollComponent,
     { ...rest, ref: scroll, stickyHeaderIndices: sticky ? stickyIndices : undefined },
-    sections.length ? children : renderComponent(ListEmptyComponent),
+    sections.length ? children : [h(React.Fragment, { key: '__empty' }, renderComponent(ListEmptyComponent))],
   );
 });
 
