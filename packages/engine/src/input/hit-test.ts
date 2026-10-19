@@ -66,7 +66,8 @@ function slop(node: HostNode): { top: number; left: number; bottom: number; righ
 }
 
 function hitNode(engine: Engine, node: HostNode, lx: number, ly: number): HostNode[] | null {
-  if (node.hidden || !node.laidOut || node.computed.display === 'none') return null;
+  // An exiting node is already gone for React; its exit animation is not interactive.
+  if (node.hidden || node.exiting || !node.laidOut || node.computed.display === 'none') return null;
   const pe = node.props.pointerEvents ?? node.computed.pointerEvents ?? 'auto';
   if (pe === 'none') return null;
   const hs = slop(node);

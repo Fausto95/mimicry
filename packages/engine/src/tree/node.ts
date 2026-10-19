@@ -52,6 +52,18 @@ const EMPTY: FlatStyle = Object.freeze({}) as FlatStyle;
 
 export type Props = Record<string, any>;
 
+export interface Frame {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Runs an exit animation; calls `done` when the node may be removed. */
+export type ExitAnimation = (done: () => void) => void;
+/** Called when Yoga moves or resizes a laid-out node; may animate node.x/y/w/h itself. */
+export type LayoutTransition = (from: Frame, to: Frame) => void;
+
 /**
  * A node of the retained view tree (the "shadow tree"). It owns its Yoga node,
  * its last computed frame and any native behavior state (scroll position,
@@ -97,6 +109,15 @@ export class HostNode {
   /** React fiber, for the inspector's component names */
   fiber: unknown = null;
   mounted = false;
+
+  /**
+   * Layout-animation hooks installed by the React Native layer (Reanimated's
+   * `exiting` and `layout` props). See tree/exit.ts and layout/layout.ts.
+   */
+  exit: ExitAnimation | null = null;
+  /** true while an exit animation keeps a node React has already removed */
+  exiting = false;
+  layoutTransition: LayoutTransition | null = null;
 
   constructor(engine: Engine, type: string, kind: NodeKind, props: Props) {
     this.engine = engine;

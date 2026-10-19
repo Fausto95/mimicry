@@ -10,6 +10,8 @@ import * as ExpoStatusBar from '@mimicry/react-native/shims/expo-status-bar';
 import * as SafeArea from '@mimicry/react-native/shims/react-native-safe-area-context';
 import * as LinearGradient from '@mimicry/react-native/shims/expo-linear-gradient';
 import * as MetroRuntime from '@mimicry/react-native/shims/expo-metro-runtime';
+import * as Reanimated from '@mimicry/react-native/reanimated';
+import * as Worklets from '@mimicry/react-native/worklets';
 
 /**
  * Modules the base provides to every app. App code and vendored packages link
@@ -28,6 +30,9 @@ export const PROVIDED_MODULES: Record<string, unknown> = {
   'expo-linear-gradient': LinearGradient,
   '@expo/metro-runtime': MetroRuntime,
   '@react-native/assets-registry/registry': AssetRegistry,
+  // These have a default export: mark them as ES modules for CommonJS interop.
+  'react-native-reanimated': { __esModule: true, ...Reanimated },
+  'react-native-worklets': { __esModule: true, ...Worklets },
 };
 
 export const PROVIDED_SPECIFIERS = Object.keys(PROVIDED_MODULES);

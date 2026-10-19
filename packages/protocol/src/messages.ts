@@ -149,13 +149,21 @@ export const PROVIDED_MODULE_IDS = [
   'react-native-safe-area-context',
   '@expo/metro-runtime',
   '@react-native/assets-registry/registry',
+  'react-native-reanimated',
+  'react-native-worklets',
 ] as const;
 
 /**
  * Packages whose deep imports the base also provides (`react-native/Libraries/…`).
  * The runtime maps known subpaths and reports the rest when they are required.
  */
-export const PROVIDED_PREFIXES = ['react-native/', 'expo-modules-core/', 'react-native-safe-area-context/'] as const;
+export const PROVIDED_PREFIXES = [
+  'react-native/',
+  'expo-modules-core/',
+  'react-native-safe-area-context/',
+  'react-native-reanimated/',
+  'react-native-worklets/',
+] as const;
 
 const providedSet = new Set<string>(PROVIDED_MODULE_IDS);
 export function isProvidedSpecifier(specifier: string): boolean {

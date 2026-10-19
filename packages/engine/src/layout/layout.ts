@@ -40,6 +40,7 @@ function sync(node: HostNode, changes: LayoutChange[], root: boolean, frame?: { 
     const x = root ? frame?.x ?? 0 : l.left;
     const y = root ? frame?.y ?? 0 : l.top;
     const changed = !node.laidOut || x !== node.x || y !== node.y || l.width !== node.w || l.height !== node.h;
+    const previous = node.laidOut ? { x: node.x, y: node.y, w: node.w, h: node.h } : null;
     node.x = x;
     node.y = y;
     node.w = l.width;
@@ -53,6 +54,8 @@ function sync(node: HostNode, changes: LayoutChange[], root: boolean, frame?: { 
     node.laidOut = true;
     yoga.markLayoutSeen();
     if (changed) {
+      // A layout transition (Reanimated `layout`) animates from where the node is drawn now.
+      if (previous && node.layoutTransition) node.layoutTransition(previous, { x, y, w: l.width, h: l.height });
       if (typeof node.props.onLayout === 'function') {
         changes.push({ node, layout: { x, y, width: l.width, height: l.height } });
       }
