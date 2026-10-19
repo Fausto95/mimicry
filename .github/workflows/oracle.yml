@@ -1,0 +1,42 @@
+name: Oracle (iOS Simulator)
+# Captures real-simulator references for the showcase scenes and diffs them
+# against Mimicry's renders. Results are pushed to the `oracle-results` branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [oracle-run]
+permissions:
+  contents: write
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build, capture and compare
+        id: run
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bash scripts/oracle-ci.sh 2>&1 | tee "$RUNNER_TEMP/oracle-log.txt"
+      - name: Publish results to the oracle-results branch
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OUT="$RUNNER_TEMP/results"
+          mkdir -p "$OUT"
+          cp -R oracle/. "$OUT/" 2>/dev/null || true
+          tail -c 80000 "$RUNNER_TEMP/oracle-log.txt" > "$OUT/log-tail.txt" || true
+          echo "outcome: ${{ steps.run.outcome }}" > "$OUT/status.txt"
+          echo "commit: ${{ github.sha }}" >> "$OUT/status.txt"
+          cd "$OUT"
+          git init -q
+          git config user.name "mimicry-oracle"
+          git config user.email "oracle@users.noreply.github.com"
+          git add -A
+          git commit -qm "Oracle results for ${{ github.sha }}"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" HEAD:oracle-results

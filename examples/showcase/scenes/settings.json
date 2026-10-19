@@ -1,0 +1,1 @@
+{ "name": "settings", "device": "iphone-17-pro", "appearance": "light", "steps": [{ "tap": { "testID": "tab-settings" } }] }

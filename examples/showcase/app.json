@@ -5,7 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "ios": { "supportsTablet": true },
-    "android": { "edgeToEdgeEnabled": true }
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mimicry.showcase"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.mimicry.showcase"
+    }
   }
 }
