@@ -8,6 +8,7 @@
     "./worker": "./src/runtime/worker-entry.ts"
   },
   "dependencies": {
+    "@mimicry/os-core": "0.3.0",
     "@mimicry/protocol": "0.3.0",
     "hyphen": "^1.14.1",
     "react": "19.3.1",

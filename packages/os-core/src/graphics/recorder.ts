@@ -1,5 +1,5 @@
 import { CommandWriter, NO_CLIP, type ClipSpec, type FrameEncoder, type Radii } from '@mimicry/protocol';
-import { intersect, union, type Rect } from '../style/matrix';
+import { intersect, union, type Rect } from '../geometry/matrix';
 import { hasRadii } from './box';
 
 /**

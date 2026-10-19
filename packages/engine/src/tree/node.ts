@@ -4,7 +4,7 @@ import type { Engine } from '../engine';
 import { applyYogaStyle } from '../layout/yoga-style';
 import { safeAreaStyle } from '../layout/safe-area';
 import { flattenStyle, LAYOUT_KEYS, TEXT_MEASURE_KEYS, type FlatStyle } from '../style/flatten';
-import type { TextLayout } from '../text/text-layout';
+import type { TextLayout } from '@mimicry/os-core';
 import type { ScrollState } from '../input/scroll';
 
 /** Host component names emitted by @mimicry/react-native. */

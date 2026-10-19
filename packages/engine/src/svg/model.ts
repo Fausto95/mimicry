@@ -1,7 +1,7 @@
 import type { PathGradient } from '@mimicry/protocol';
 import { rgba, withAlpha } from '@mimicry/protocol';
-import { parseColor, type ColorContext } from '../style/color';
-import { IDENTITY, multiply, translation, type Matrix, type Rect } from '../style/matrix';
+import { parseColor, type ColorContext } from '@mimicry/os-core';
+import { IDENTITY, multiply, translation, type Matrix, type Rect } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
 import { ellipseOutline, lineOutline, Outline, rectOutline } from './outline';
 import { lengthList, resolveFraction, resolveLength, type SvgViewport } from './units';

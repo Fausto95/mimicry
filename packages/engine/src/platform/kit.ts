@@ -29,13 +29,8 @@ export interface ActivityState {
   animating: boolean;
 }
 
-export interface StatusBarState {
-  /** 'default' | 'light-content' | 'dark-content' */
-  barStyle: string;
-  hidden: boolean;
-  /** Android only */
-  backgroundColor: number | null;
-}
+export type { StatusBarState } from '@mimicry/os-core';
+import type { StatusBarState } from '@mimicry/os-core';
 
 export interface ScrollPhysics {
   /** iOS rubber banding while dragging past an edge */

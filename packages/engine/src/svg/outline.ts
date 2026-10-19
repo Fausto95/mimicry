@@ -1,6 +1,6 @@
 import type { CommandWriter } from '@mimicry/protocol';
-import { parsePath } from '../paint/path';
-import { apply, type Matrix, type Rect } from '../style/matrix';
+import { parsePath } from '@mimicry/os-core';
+import { apply, type Matrix, type Rect } from '@mimicry/os-core';
 
 /**
  * The geometry of an SVG shape in its own user space: a list of path

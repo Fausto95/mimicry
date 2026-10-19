@@ -1,8 +1,8 @@
 import type { Engine } from '../engine';
-import { Spring } from '../runtime/animator';
-import type { FrameTask } from '../runtime/animator';
+import { Spring } from '@mimicry/os-core';
+import type { FrameTask } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
-import { uikitEase } from '../runtime/animator';
+import { uikitEase } from '@mimicry/os-core';
 import { safeAreaInsetsOf } from '../layout/safe-area';
 
 /**

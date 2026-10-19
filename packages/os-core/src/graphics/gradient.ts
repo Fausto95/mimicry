@@ -1,4 +1,4 @@
-import { parseColor, type ColorContext } from '../style/color';
+import { parseColor, type ColorContext } from './color';
 
 /**
  * CSS linear-gradient() for `experimental_backgroundImage` (React Native

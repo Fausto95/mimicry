@@ -1,6 +1,6 @@
 // CommonJS package: take the default export so Node's ESM loader and bundlers agree.
 import enUs from 'hyphen/en-us';
-import type { FlatStyle } from '../style/flatten';
+import type { CSSStyle } from '../graphics/css';
 import type { TextLayout, TextLine } from './text-layout';
 
 const { hyphenateSync } = enUs;
@@ -25,7 +25,7 @@ export type VerticalAlign = 'top' | 'center' | 'bottom';
  * `textAlignVertical` (or its RN 0.71+ alias `verticalAlign`) from a style,
  * normalized; null when unset or 'auto'.
  */
-export function verticalAlignOf(style: FlatStyle, props: Record<string, any> = {}): VerticalAlign | null {
+export function verticalAlignOf(style: CSSStyle, props: Record<string, any> = {}): VerticalAlign | null {
   const raw = props.textAlignVertical ?? style.textAlignVertical ?? style.verticalAlign;
   if (raw === 'top' || raw === 'bottom' || raw === 'center') return raw;
   if (raw === 'middle') return 'center';

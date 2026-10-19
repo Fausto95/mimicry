@@ -1,10 +1,10 @@
 import type { Engine } from '../engine';
 import { localMatrix, stickyOffset } from '../geometry';
-import { apply, invert } from '../style/matrix';
+import { apply, invert } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
 import { hitTestSvg } from '../svg/query';
 import { textVerticalAlign } from '../layout/layout';
-import { blockOffset, lineOffset } from '../text/text-block';
+import { blockOffset, lineOffset } from '@mimicry/os-core';
 
 /**
  * Hit testing in paint order (topmost first), honoring transforms, scroll

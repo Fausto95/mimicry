@@ -1,8 +1,8 @@
 import { alphaOf, withAlpha, type CommandWriter, type Radii } from '@mimicry/protocol';
 import type { PlatformName } from '@mimicry/protocol';
-import { parseColor, type ColorContext } from '../style/color';
-import type { FlatStyle } from '../style/flatten';
-import type { Rect } from '../style/matrix';
+import { parseColor, type ColorContext } from './color';
+import type { CSSStyle } from './css';
+import type { Rect } from '../geometry/matrix';
 import { parseLinearGradients } from './gradient';
 
 /**
@@ -20,7 +20,7 @@ function pct(value: unknown, basis: number): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-export function resolveRadii(style: FlatStyle, w: number, h: number): Radii {
+export function resolveRadii(style: CSSStyle, w: number, h: number): Radii {
   const basis = Math.min(w, h);
   const all = style.borderRadius != null ? pct(style.borderRadius, basis) : 0;
   const pick = (...keys: string[]) => {
@@ -59,7 +59,7 @@ export interface Borders {
   style: 'solid' | 'dashed' | 'dotted';
 }
 
-export function resolveBorders(style: FlatStyle, colors: ColorContext, fallbackColor: number): Borders | null {
+export function resolveBorders(style: CSSStyle, colors: ColorContext, fallbackColor: number): Borders | null {
   const all = num(style.borderWidth);
   const top = num(style.borderTopWidth) ?? all ?? 0;
   const right = num(style.borderRightWidth) ?? num(style.borderEndWidth) ?? all ?? 0;
@@ -87,7 +87,7 @@ export interface ShadowSpec {
 }
 
 /** boxShadow (both platforms), iOS shadow* props, Android elevation. */
-export function resolveShadows(style: FlatStyle, platform: PlatformName, colors: ColorContext): ShadowSpec[] {
+export function resolveShadows(style: CSSStyle, platform: PlatformName, colors: ColorContext): ShadowSpec[] {
   const out: ShadowSpec[] = [];
   if (style.boxShadow) out.push(...parseBoxShadow(style.boxShadow, colors));
   if (platform === 'ios' && style.shadowColor != null || platform === 'ios' && style.shadowOpacity) {
@@ -189,7 +189,7 @@ export function drawShadows(w: CommandWriter, box: BoxGeometry, shadows: ShadowS
   }
 }
 
-export function drawBackground(w: CommandWriter, box: BoxGeometry, style: FlatStyle, colors: ColorContext): void {
+export function drawBackground(w: CommandWriter, box: BoxGeometry, style: CSSStyle, colors: ColorContext): void {
   const bg = parseColor(style.backgroundColor, colors);
   if (bg != null && bg !== 0) {
     if (hasRadii(box.radii)) w.fillRRect(box.x, box.y, box.w, box.h, box.radii, bg);

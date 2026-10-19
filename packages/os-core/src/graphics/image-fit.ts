@@ -1,4 +1,4 @@
-import type { Rect } from '../style/matrix';
+import type { Rect } from '../geometry/matrix';
 
 /** An Image `source` (object, string, or the first of an array) → its URI. */
 export function resolveSource(source: unknown): { uri: string; width?: number; height?: number } | null {

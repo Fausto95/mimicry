@@ -1,8 +1,8 @@
 import { rgba } from '@mimicry/protocol';
 import type { Engine } from './engine';
-import { cubicBezier, easeOut, type FrameTask } from './runtime/animator';
-import { parseColor } from './style/color';
-import { multiply, scaling, translation, type Matrix } from './style/matrix';
+import { cubicBezier, easeOut, type FrameTask } from '@mimicry/os-core';
+import { parseColor } from '@mimicry/os-core';
+import { multiply, scaling, translation, type Matrix } from '@mimicry/os-core';
 import type { ActivityState, SwitchState } from './platform/kit';
 import type { HostNode } from './tree/node';
 

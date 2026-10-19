@@ -1,4 +1,4 @@
-import { IDENTITY, apply, invert, multiply, transformRect, translation, type Matrix, type Rect } from './style/matrix';
+import { IDENTITY, apply, invert, multiply, transformRect, translation, type Matrix, type Rect } from '@mimicry/os-core';
 import { transformMatrix } from './style/transform';
 import type { Engine } from './engine';
 import { svgElementWindowRect } from './svg/query';

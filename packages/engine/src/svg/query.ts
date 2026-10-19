@@ -1,6 +1,6 @@
 import type { Engine } from '../engine';
 import { windowMatrix } from '../geometry';
-import { apply, invert, multiply, transformRect, type Matrix, type Rect } from '../style/matrix';
+import { apply, invert, multiply, transformRect, type Matrix, type Rect } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
 import { inheritAttrs, isDefinition, isShape, nodeMatrix, rootAttrs, shapeOutline, type Attrs } from './model';
 import { rootMatrix, svgContext, type SvgPaintContext } from './paint';

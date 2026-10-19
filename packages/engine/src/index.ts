@@ -7,17 +7,17 @@ export {
   type GestureListener, type TouchData,
 } from './input/gestures/types';
 export type { GestureArena } from './input/gestures/arena';
-export { CanvasTextMeasurer, EstimatingTextMeasurer, type TextMeasurer, type MeasuringContext } from './text/measurer';
-export { layoutText, type TextLayout, type TextStyle, type Span } from './text/text-layout';
-export { RealClock, VirtualClock, type Clock } from './runtime/clock';
-export { Animator, Spring, cubicBezier, uikitEase, materialStandard, type FrameTask } from './runtime/animator';
+export { CanvasTextMeasurer, EstimatingTextMeasurer, type TextMeasurer, type MeasuringContext } from '@mimicry/os-core';
+export { layoutText, type TextLayout, type TextStyle, type Span } from '@mimicry/os-core';
+export { RealClock, VirtualClock, type Clock } from '@mimicry/os-core';
+export { Animator, Spring, cubicBezier, uikitEase, materialStandard, type FrameTask } from '@mimicry/os-core';
 export { flattenStyle, type FlatStyle } from './style/flatten';
-export { parseColor, type ColorContext } from './style/color';
+export { parseColor, type ColorContext } from '@mimicry/os-core';
 export { transformMatrix } from './style/transform';
 export { iosKit, IOS_COLORS } from './platform/ios';
 export { androidKit, ANDROID_COLORS } from './platform/android';
 export type { PlatformKit, StatusBarState } from './platform/kit';
-export { EnvironmentStore } from './environment';
+export { EnvironmentStore } from '@mimicry/os-core';
 export { syntheticEvent, type SyntheticEvent } from './events';
 export { loadYoga } from './layout/yoga';
 export { safeAreaInsetsOf, containerSafeAreaInsets, normalizeEdges, type Insets, type SafeAreaEdges } from './layout/safe-area';

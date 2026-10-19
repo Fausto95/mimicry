@@ -2,7 +2,7 @@ import { Direction, Edge } from 'yoga-layout/load';
 import type { Engine } from '../engine';
 import type { HostNode } from '../tree/node';
 import { resolveSafeAreaPadding } from './safe-area';
-import { blockOffset, lineOffset, verticalAlignOf } from '../text/text-block';
+import { blockOffset, lineOffset, verticalAlignOf } from '@mimicry/os-core';
 
 export interface LayoutChange {
   node: HostNode;

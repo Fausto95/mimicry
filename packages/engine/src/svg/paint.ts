@@ -1,7 +1,7 @@
 import { alphaOf, withAlpha, type CommandWriter } from '@mimicry/protocol';
 import type { Engine } from '../engine';
-import { fitImage, resolveSource } from '../paint/image-fit';
-import type { Rect } from '../style/matrix';
+import { fitImage, resolveSource } from '@mimicry/os-core';
+import type { Rect } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
 import {
   collectDefs, fallbackColor, fontSize, gradientPaint, inheritAttrs, isDefinition, isShape, nodeMatrix, rootAttrs, shapeOutline,

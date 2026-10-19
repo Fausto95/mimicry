@@ -6,7 +6,15 @@ import {
   type Orientation,
   type Viewport,
 } from '@mimicry/protocol';
-import type { StatusBarState } from './platform/kit';
+
+/** The status bar as apps configure it (UIStatusBarStyle / Window status bar appearance). */
+export interface StatusBarState {
+  /** 'default' | 'light-content' | 'dark-content' */
+  barStyle: string;
+  hidden: boolean;
+  /** Android only */
+  backgroundColor: number | null;
+}
 
 export type EnvironmentListener = (env: EnvironmentStore, changed: { dimensions: boolean; appearance: boolean; device: boolean }) => void;
 

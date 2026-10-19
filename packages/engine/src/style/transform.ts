@@ -1,4 +1,4 @@
-import { identity, multiply, rotation, scaling, skewing, translation, type Matrix } from './matrix';
+import { identity, multiply, rotation, scaling, skewing, translation, type Matrix } from '@mimicry/os-core';
 
 /**
  * React Native `transform` → 2D affine matrix around `transformOrigin`.

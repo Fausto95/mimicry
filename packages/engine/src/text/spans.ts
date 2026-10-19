@@ -1,10 +1,10 @@
 import type { Appearance } from '@mimicry/protocol';
 import type { PlatformKit } from '../platform/kit';
 import { normalizeWeight } from '../platform/kit';
-import { parseColor, type ColorContext } from '../style/color';
+import { parseColor, type ColorContext } from '@mimicry/os-core';
 import type { FlatStyle } from '../style/flatten';
 import type { HostNode } from '../tree/node';
-import type { Span, TextStyle } from './text-layout';
+import type { Span, TextStyle } from '@mimicry/os-core';
 
 export interface TextEnvironment {
   kit: PlatformKit;

@@ -3,20 +3,20 @@ import {
 } from '@mimicry/protocol';
 import type { Engine } from '../engine';
 import { localMatrix, ownTransform, stickyOffset, windowMatrix } from '../geometry';
-import { parseColor } from '../style/color';
-import { IDENTITY, inflate, intersect, multiply, transformRect, translation, type Rect } from '../style/matrix';
+import { parseColor } from '@mimicry/os-core';
+import { IDENTITY, inflate, intersect, multiply, transformRect, translation, type Rect } from '@mimicry/os-core';
 import type { HostNode } from '../tree/node';
-import { applyTextTransform } from '../text/text-layout';
-import { blockOffset, lineOffset, verticalAlignOf, type VerticalAlign } from '../text/text-block';
+import { applyTextTransform } from '@mimicry/os-core';
+import { blockOffset, lineOffset, verticalAlignOf, type VerticalAlign } from '@mimicry/os-core';
 import { textVerticalAlign } from '../layout/layout';
 import {
   drawBackground, drawBorders, drawShadows, hasRadii, resolveBorders, resolveRadii, resolveShadows, shadowExtent,
   type BoxGeometry,
-} from './box';
-import { fitImage, resolveSource } from './image-fit';
-import { writePath } from './path';
+} from '@mimicry/os-core';
+import { fitImage, resolveSource } from '@mimicry/os-core';
+import { writePath } from '@mimicry/os-core';
 import { paintSvg } from '../svg/paint';
-import { LayerRecorder, type RecorderStats } from './recorder';
+import { LayerRecorder, type RecorderStats } from '@mimicry/os-core';
 
 /**
  * Walks the laid-out tree and produces one frame of draw commands.
