@@ -914,18 +914,42 @@ export class View implements DrawableCallback {
     return this.focused;
   }
 
-  /** Mimicry has no keyboard focus traversal; focus is a state views can be put in. */
+  /**
+   * Mimicry has no keyboard focus traversal; focus is a state views can be
+   * put in. One view per window has it: focusing one clears the previous.
+   */
   requestFocus(): boolean {
     if (!this.focusable || this.focused) return this.focused;
+    const info = this._attachInfo;
+    if (info?.focusedView && info.focusedView !== this) info.focusedView.clearFocus();
     this.focused = true;
+    if (info) info.focusedView = this;
     this.refreshDrawableState();
+    this.onFocusChanged(true);
+    this.focusListener?.(this, true);
     return true;
   }
 
   clearFocus(): void {
     if (!this.focused) return;
     this.focused = false;
+    if (this._attachInfo?.focusedView === this) this._attachInfo.focusedView = null;
     this.refreshDrawableState();
+    this.onFocusChanged(false);
+    this.focusListener?.(this, false);
+  }
+
+  hasFocus(): boolean {
+    return this.focused;
+  }
+
+  /** Called when the view gains or loses focus (EditText shows the keyboard). */
+  protected onFocusChanged(_gainFocus: boolean): void {}
+
+  private focusListener: ((view: View, hasFocus: boolean) => void) | null = null;
+
+  setOnFocusChangeListener(listener: ((view: View, hasFocus: boolean) => void) | null): void {
+    this.focusListener = listener;
   }
 
   isClickable(): boolean {

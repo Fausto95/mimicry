@@ -16,6 +16,8 @@ export class ViewRootImpl {
   /** pointers currently down, in down order: id → window position */
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private downTime = 0;
+  /** the view in this window that has focus */
+  focusedView: View | null = null;
 
   constructor(
     readonly kernel: Kernel,

@@ -70,3 +70,4 @@ export * from './uikit/ui-tab-bar-item';
 export * from './uikit/ui-tab-bar';
 export * from './uikit/ui-tab-bar-controller';
 export * from './springboard/status-bar';
+export * from './uikit/ui-text-field';
