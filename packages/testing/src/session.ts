@@ -190,6 +190,30 @@ export class Session {
     return this.advance(this.interval);
   }
 
+  /** Two fingers moving apart (scale > 1) or together (scale < 1) across a target's center. */
+  pinch(target: Target, scale: number, options: { distance?: number; duration?: number; steps?: number } = {}): this {
+    const c = this.point(target);
+    const start = options.distance ?? 100;
+    const steps = options.steps ?? 12;
+    const duration = options.duration ?? 200;
+    const a = this.pointerId;
+    const b = this.pointerId + 1;
+    this.pointer('down', c.x - start / 2, c.y, a);
+    this.advance(16);
+    this.pointer('down', c.x + start / 2, c.y, b);
+    for (let i = 1; i <= steps; i++) {
+      this.advance(duration / steps);
+      const d = start * (1 + (scale - 1) * (i / steps));
+      this.pointer('move', c.x - d / 2, c.y, a);
+      this.pointer('move', c.x + d / 2, c.y, b);
+    }
+    const end = start * scale;
+    this.pointer('up', c.x + end / 2, c.y, b);
+    this.pointer('up', c.x - end / 2, c.y, a);
+    this.pointerId += 2;
+    return this.advance(this.interval);
+  }
+
   /** Swipe to scroll content by `dy` (positive scrolls down). */
   scroll(target: Target, delta: { dx?: number; dy?: number }, options?: { duration?: number }): this {
     return this.drag(target, { dx: -(delta.dx ?? 0), dy: -(delta.dy ?? 0) }, options);

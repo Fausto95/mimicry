@@ -245,3 +245,12 @@ export function dispatchWithPriority<T>(kind: 'discrete' | 'continuous' | 'defau
 export function batchedUpdates<T>(fn: () => T): T {
   return (reconciler as any).batchedUpdates(fn);
 }
+
+/** The first host node rendered by a mounted class component instance (what findNodeHandle resolves). */
+export function findHostNode(instance: unknown): HostNode | null {
+  try {
+    return ((reconciler as any).findHostInstance(instance) as HostNode | null) ?? null;
+  } catch {
+    return null;
+  }
+}
