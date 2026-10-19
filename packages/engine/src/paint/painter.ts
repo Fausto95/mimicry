@@ -11,7 +11,9 @@ import {
   drawBackground, drawBorders, drawShadows, hasRadii, resolveBorders, resolveRadii, resolveShadows, shadowExtent,
   type BoxGeometry,
 } from './box';
+import { fitImage, resolveSource } from './image-fit';
 import { writePath } from './path';
+import { paintSvg } from '../svg/paint';
 import { LayerRecorder, type RecorderStats } from './recorder';
 
 /**
@@ -223,11 +225,15 @@ function paintContent(node: HostNode, ox: number, oy: number, rec: LayerRecorder
     case 'path':
       paintPath(node, box, rec, ctx);
       break;
+    case 'svg':
+      // The viewport clips its content, so the box bounds the whole drawing.
+      rec.item(box, (w) => paintSvg(w, node, box, engine));
+      break;
   }
 
   if (node.kind === 'scroll') {
     paintScroll(node, ox, oy, radii, rec, ctx);
-  } else if (node.kind !== 'text' && node.children.length) {
+  } else if (node.kind !== 'text' && node.kind !== 'svg' && node.children.length) {
     const clip = style.overflow === 'hidden';
     if (clip) rec.pushClip({ x: ox, y: oy, w: node.w, h: node.h, radii });
     paintChildren(node, ox, oy, rec, ctx);
@@ -280,15 +286,7 @@ function drawTextLines(w: CommandWriter, lines: ReturnType<Engine['textLayoutFor
   }
 }
 
-function resolveSource(source: unknown): { uri: string; width?: number; height?: number } | null {
-  if (!source) return null;
-  if (Array.isArray(source)) return resolveSource(source[0]);
-  if (typeof source === 'string') return { uri: source };
-  if (typeof source === 'object' && typeof (source as any).uri === 'string') return source as any;
-  return null;
-}
-
-export { resolveSource };
+export { resolveSource, fitImage };
 
 function paintImage(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: PaintContext): void {
   const engine = ctx.engine;
@@ -329,22 +327,6 @@ function objectFitToMode(fit: unknown): string | undefined {
   if (fit === 'fill') return 'stretch';
   if (fit === 'scale-down') return 'center';
   return typeof fit === 'string' ? fit : undefined;
-}
-
-export function fitImage(mode: string, iw: number, ih: number, box: Rect) {
-  const full = { sx: 0, sy: 0, sw: iw, sh: ih };
-  if (mode === 'stretch' || !iw || !ih) return { dx: box.x, dy: box.y, dw: box.w, dh: box.h, ...full };
-  const scaleCover = Math.max(box.w / iw, box.h / ih);
-  const scaleContain = Math.min(box.w / iw, box.h / ih);
-  if (mode === 'cover') {
-    const sw = box.w / scaleCover;
-    const sh = box.h / scaleCover;
-    return { dx: box.x, dy: box.y, dw: box.w, dh: box.h, sx: (iw - sw) / 2, sy: (ih - sh) / 2, sw, sh };
-  }
-  const s = mode === 'center' ? Math.min(1, scaleContain) : scaleContain;
-  const dw = iw * s;
-  const dh = ih * s;
-  return { dx: box.x + (box.w - dw) / 2, dy: box.y + (box.h - dh) / 2, dw, dh, ...full };
 }
 
 function paintInput(node: HostNode, box: BoxGeometry, rec: LayerRecorder, ctx: PaintContext): void {

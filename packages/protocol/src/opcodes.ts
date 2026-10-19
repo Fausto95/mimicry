@@ -63,6 +63,20 @@ export const Op = {
   StrokePath: 28,
   /** rule */
   ClipPath: 29,
+  /**
+   * stroke parameters for following StrokePath* until Restore:
+   * miterLimit dashOffset count dash*
+   */
+  StrokeStyle: 30,
+  /**
+   * fill the current path with a gradient (SVG paint servers):
+   * rule kind(0 linear|1 radial) x0 y0 r0 x1 y1 r1 a b c d e f count (offset color)*
+   * Gradient geometry is in the space of matrix a..f (applied on top of the
+   * current transform); radial is the two-circle canvas form.
+   */
+  FillPathGradient: 31,
+  /** lineWidth cap join, then the FillPathGradient gradient fields */
+  StrokePathGradient: 32,
 
   // ── text ───────────────────────────────────────────────
   /** css font string; sets the font for following Text commands */

@@ -79,7 +79,7 @@ export class Engine {
   readonly env: EnvironmentStore;
   readonly clock: Clock;
   readonly animator = new Animator();
-  readonly geometry = new Geometry();
+  readonly geometry: Geometry;
   readonly events: EventDispatcher;
   readonly images: ImageStore;
   readonly focus: FocusManager;
@@ -127,6 +127,7 @@ export class Engine {
     this.yogaConfig.setErrata(Errata.All);
     this.yogaConfig.setUseWebDefaults(false);
 
+    this.geometry = new Geometry(this);
     this.events = new EventDispatcher((error) => this.reportError(error, 'runtime'));
     this.images = new ImageStore(this);
     this.focus = new FocusManager(this);

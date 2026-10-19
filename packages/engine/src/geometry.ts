@@ -1,5 +1,7 @@
 import { IDENTITY, apply, invert, multiply, transformRect, translation, type Matrix, type Rect } from './style/matrix';
 import { transformMatrix } from './style/transform';
+import type { Engine } from './engine';
+import { svgElementWindowRect } from './svg/query';
 import type { HostNode } from './tree/node';
 
 /**
@@ -60,12 +62,20 @@ export function windowMatrix(node: HostNode): Matrix {
 }
 
 export class Geometry {
+  constructor(private readonly engine: Engine) {}
+
   windowRect(node: HostNode): Rect {
+    // SVG elements have no layout box: their rectangle is their painted bounds.
+    if (node.kind === 'svg-node') return svgElementWindowRect(this.engine, node);
     return transformRect(windowMatrix(node), { x: 0, y: 0, w: node.w, h: node.h });
   }
 
   /** window point → node local point */
   toLocal(node: HostNode, x: number, y: number): [number, number] {
+    if (node.kind === 'svg-node') {
+      const r = this.windowRect(node);
+      return [x - r.x, y - r.y];
+    }
     const inv = invert(windowMatrix(node));
     return inv ? apply(inv, x, y) : [x, y];
   }

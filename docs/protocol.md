@@ -20,7 +20,7 @@ Every command is a header word `opcode | payloadWords << 16` followed by its pay
 | State | `Save` `Restore` `Transform a b c d e f` `Alpha` `ClipRect` `ClipRRect` |
 | Shapes | `FillRect` `FillRRect` `StrokeRRect` (solid/dashed/dotted) `FillRing` (per-side borders) `LinearGradientRRect` |
 | Shadows | `Shadow`/`ShadowClear` (text, controls) and `BoxShadow` (CSS semantics: outset not drawn under the box, inset clipped to it; also used for iOS `shadow*` and Android `elevation`) |
-| Paths | `PathBegin` `MoveTo` `LineTo` `QuadTo` `CubicTo` `Arc` `ClosePath` `FillPath` `StrokePath` `ClipPath` |
+| Paths | `PathBegin` `MoveTo` `LineTo` `QuadTo` `CubicTo` `Arc` `ClosePath` `FillPath` `StrokePath` `ClipPath` · `StrokeStyle miterLimit dashOffset dashes…` (canvas state, until `Restore`) · `FillPathGradient` / `StrokePathGradient`: linear or two-circle radial gradient with its own matrix (SVG paint servers, objectBoundingBox units) |
 | Text | `Font css` · `Text x baseline color letterSpacing string`: single, pre-positioned runs only |
 | Images | `Image dx dy dw dh sx sy sw sh tint uri`: emitted only after the host confirmed the image loaded |
 
